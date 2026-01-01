@@ -1,10 +1,148 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { NextResponse } from "next/server"
+import * as cheerio from "cheerio"
 import type { TestResult } from "@/lib/types"
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
+
+interface ScrapedData {
+  title: string
+  price: string
+  description: string
+  images: string[]
+  trustSignals: string[]
+  shippingInfo: string
+  reviews: {
+    count: string
+    rating: string
+  }
+  paymentMethods: string[]
+  cartInfo: string
+}
+
+async function scrapeURL(url: string): Promise<ScrapedData> {
+  try {
+    // Fetch the page with a user agent to avoid blocking
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch URL: ${response.status}`)
+    }
+
+    const html = await response.text()
+    const $ = cheerio.load(html)
+
+    // Extract product title
+    const title =
+      $('meta[property="og:title"]').attr("content") ||
+      $("h1").first().text().trim() ||
+      $("title").text().trim() ||
+      "No title found"
+
+    // Extract price
+    const price =
+      $('meta[property="og:price:amount"]').attr("content") ||
+      $('[itemprop="price"]').attr("content") ||
+      $('.price, .product-price, [class*="price"]')
+        .first()
+        .text()
+        .trim() ||
+      "Price not found"
+
+    // Extract description
+    const description =
+      $('meta[property="og:description"]').attr("content") ||
+      $('meta[name="description"]').attr("content") ||
+      $('.product-description, .description, [itemprop="description"]').first().text().trim() ||
+      "No description found"
+
+    // Extract images
+    const images: string[] = []
+    $('meta[property="og:image"]').each((_, el) => {
+      const img = $(el).attr("content")
+      if (img) images.push(img)
+    })
+    if (images.length === 0) {
+      $(".product-image img, .product-gallery img").each((_, el) => {
+        const src = $(el).attr("src")
+        if (src) images.push(src)
+      })
+    }
+
+    // Extract trust signals
+    const trustSignals: string[] = []
+    $(
+      '.trust-badge, [class*="trust"], [class*="secure"], [class*="guarantee"], .reviews, [class*="rating"]',
+    ).each((_, el) => {
+      const text = $(el).text().trim()
+      if (text && text.length < 200) trustSignals.push(text)
+    })
+
+    // Extract shipping info
+    const shippingInfo =
+      $('.shipping-info, [class*="shipping"], [class*="delivery"]').first().text().trim() ||
+      "No shipping info visible"
+
+    // Extract reviews/ratings
+    const reviewCount =
+      $('[itemprop="reviewCount"]').text().trim() ||
+      $('.review-count, [class*="review-count"]').first().text().trim() ||
+      "0"
+    const rating =
+      $('[itemprop="ratingValue"]').attr("content") ||
+      $('.rating, [class*="rating"]').first().text().trim() ||
+      "No rating"
+
+    // Extract payment methods
+    const paymentMethods: string[] = []
+    $(
+      '.payment-methods img, [class*="payment"] img, [alt*="pay"], [alt*="visa"], [alt*="mastercard"], [alt*="PayPal"]',
+    ).each((_, el) => {
+      const alt = $(el).attr("alt")
+      if (alt) paymentMethods.push(alt)
+    })
+
+    // Extract cart-specific info
+    const cartInfo =
+      $('.cart-total, .subtotal, [class*="cart-summary"]').text().trim() ||
+      "No cart information visible"
+
+    return {
+      title,
+      price,
+      description: description.slice(0, 500), // Limit length
+      images: images.slice(0, 3), // First 3 images
+      trustSignals: trustSignals.slice(0, 5),
+      shippingInfo,
+      reviews: {
+        count: reviewCount,
+        rating,
+      },
+      paymentMethods: paymentMethods.slice(0, 5),
+      cartInfo,
+    }
+  } catch (error) {
+    console.error("Scraping error:", error)
+    return {
+      title: "Unable to scrape",
+      price: "Unknown",
+      description: "Could not fetch page data",
+      images: [],
+      trustSignals: [],
+      shippingInfo: "Unknown",
+      reviews: { count: "0", rating: "Unknown" },
+      paymentMethods: [],
+      cartInfo: "Unknown",
+    }
+  }
+}
 
 const PERSONA_MIXES = {
   balanced: [
@@ -53,23 +191,62 @@ export async function POST(request: Request) {
 
     const personas = getPersonas(personaMix)
 
-    const prompt = `You are an expert e-commerce conversion optimization analyst. Analyze the checkout experience at this URL: ${url}
+    // Scrape the URL to get real data
+    const scrapedData = await scrapeURL(url)
 
-Evaluate the checkout from the perspective of these 5 different shopper personas:
+    const prompt = `You are an expert Shopify conversion optimization analyst specializing in cart-to-checkout flow analysis.
+
+URL PROVIDED: ${url}
+
+ACTUAL PAGE DATA SCRAPED:
+- Product/Page Title: ${scrapedData.title}
+- Price Shown: ${scrapedData.price}
+- Description: ${scrapedData.description}
+- Trust Signals Found: ${scrapedData.trustSignals.length > 0 ? scrapedData.trustSignals.join(", ") : "None visible"}
+- Shipping Info: ${scrapedData.shippingInfo}
+- Reviews: ${scrapedData.reviews.count} reviews, ${scrapedData.reviews.rating} rating
+- Payment Methods Visible: ${scrapedData.paymentMethods.length > 0 ? scrapedData.paymentMethods.join(", ") : "None visible"}
+- Cart Information: ${scrapedData.cartInfo}
+
+Use this REAL DATA from the actual page to inform your analysis. Don't guess - base your recommendations on what you actually see.
+
+ANALYSIS SCOPE:
+Analyze the ENTIRE cart-to-checkout experience for this Shopify store. This includes:
+1. **Product Page** → Add to Cart experience
+2. **Cart Page** → Where customers see their items, shipping costs preview, and proceed to checkout
+3. **Checkout Flow** → Account/guest checkout, shipping, payment, and final purchase
+
+Focus heavily on the CART PAGE as this is where most friction and abandonment happens in Shopify stores. Common cart friction points include:
+- Hidden shipping costs (only shown at checkout)
+- No payment method visibility (Apple Pay, Shop Pay, etc.)
+- Missing trust signals (returns, security, reviews)
+- Forced account creation
+- Unclear total cost
+- Poor mobile experience
+- No progress indicators
+
+Evaluate this cart-to-checkout journey from the perspective of these 5 different shopper personas:
 ${personas.map((p, i) => `${i + 1}. ${p}`).join("\n")}
 
 For each persona, determine:
 1. Would they complete the purchase or abandon? (purchase/abandon)
-2. Their reasoning in first-person (a direct quote from them)
-3. If they abandon, at what point? (e.g., "Shipping page", "Payment page", "Account page")
+2. Their reasoning in first-person as they go through the cart → checkout flow (a direct quote from them)
+3. If they abandon, at what specific point in the journey? (e.g., "Cart page - saw shipping costs", "Checkout - no Apple Pay", "Checkout - forced account creation")
 
-Then, analyze the checkout for:
-- Overall score (0-100) based on conversion best practices
+Then, provide a comprehensive analysis including:
+- Overall score (0-100) based on Shopify cart-to-checkout best practices
 - Critical friction points (high impact issues causing abandonment)
 - High priority issues (significant but not critical)
 - Medium priority issues (minor improvements)
 - Things working well (positive elements)
 - Prioritized fix recommendations with estimated conversion impact
+
+IMPORTANT: Base your analysis on the ACTUAL SCRAPED DATA provided above. Be specific about what IS or ISN'T visible on the page:
+- If shipping info is missing, note it
+- If payment methods aren't shown, call it out
+- If trust signals are present, acknowledge them
+- Use the actual price and product info in your analysis
+- Reference specific elements you can see (or can't see) in the scraped data
 
 Return your analysis as a JSON object with this EXACT structure:
 {
@@ -122,7 +299,7 @@ IMPORTANT:
 - Prioritize fixes by impact vs effort`
 
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       messages: [
         {

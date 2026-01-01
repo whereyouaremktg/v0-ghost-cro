@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { ArrowRight, Check, Loader2 } from "lucide-react"
 import { PersonaSelector } from "@/components/dashboard/persona-selector"
 import { mockUser } from "@/lib/mock-data"
+import { saveTestResult } from "@/lib/client-storage"
 
 type TestState = "idle" | "running" | "complete"
 
@@ -23,10 +24,10 @@ export default function RunTestPage() {
   const [emailOnComplete, setEmailOnComplete] = useState(false)
   const [testState, setTestState] = useState<TestState>("idle")
   const [steps, setSteps] = useState<ProgressStep[]>([
-    { label: "Capturing checkout flow", status: "pending" },
-    { label: "Analyzing elements", status: "pending" },
+    { label: "Analyzing cart → checkout flow", status: "pending" },
+    { label: "Identifying friction points", status: "pending" },
     { label: "Running synthetic shoppers", status: "pending" },
-    { label: "Generating report", status: "pending" },
+    { label: "Generating recommendations", status: "pending" },
   ])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,19 +63,14 @@ export default function RunTestPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Analysis failed")
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        throw new Error(errorData.error || `Analysis failed with status ${response.status}`)
       }
 
       const { result } = await response.json()
 
-      // Save the result
-      await fetch("/api/tests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(result),
-      })
+      // Save the result to localStorage
+      saveTestResult(result)
 
       // Complete and redirect
       setSteps((prev) => prev.map((step) => ({ ...step, status: "done" as const })))
@@ -84,13 +80,14 @@ export default function RunTestPage() {
       }, 500)
     } catch (error) {
       console.error("Test failed:", error)
-      alert("Failed to run test. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+      alert(`Failed to run test: ${errorMessage}\n\nPlease check:\n1. Your ANTHROPIC_API_KEY is set in .env.local\n2. The URL is valid\n3. Your internet connection`)
       setTestState("idle")
       setSteps([
-        { label: "Capturing checkout flow", status: "pending" },
-        { label: "Analyzing elements", status: "pending" },
+        { label: "Analyzing cart → checkout flow", status: "pending" },
+        { label: "Identifying friction points", status: "pending" },
         { label: "Running synthetic shoppers", status: "pending" },
-        { label: "Generating report", status: "pending" },
+        { label: "Generating recommendations", status: "pending" },
       ])
     }
   }
@@ -145,8 +142,8 @@ export default function RunTestPage() {
     <div className="p-8 max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold uppercase tracking-tight mb-2">Run Test</h1>
-        <p className="text-muted-foreground">Analyze any checkout with synthetic shoppers</p>
+        <h1 className="text-2xl font-bold uppercase tracking-tight mb-2">Run Cart Analysis</h1>
+        <p className="text-muted-foreground">Analyze your Shopify cart → checkout flow with AI shoppers</p>
       </div>
 
       {/* Form */}
@@ -154,16 +151,18 @@ export default function RunTestPage() {
         <div className="bg-card border-2 border-border brutal-shadow p-8">
           {/* URL Input */}
           <div className="mb-8">
-            <label className="block text-xs font-bold uppercase tracking-wide mb-3">Checkout URL</label>
+            <label className="block text-xs font-bold uppercase tracking-wide mb-3">Store URL (Cart or Product)</label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://yourstore.com/checkout"
+              placeholder="https://yourstore.com/cart or /products/item"
               className="w-full px-4 py-3 bg-input border-2 border-border text-foreground placeholder:text-muted-foreground font-mono focus:outline-none focus:ring-2 focus:ring-primary"
               required
             />
-            <p className="text-xs text-muted-foreground mt-2">Enter the full URL to your checkout page</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Enter your cart URL or product page. We'll analyze the entire cart → checkout flow.
+            </p>
           </div>
 
           {/* Persona Selection */}

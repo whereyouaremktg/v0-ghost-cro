@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react"
 import type { TestResult } from "@/lib/types"
+import { getTestResult } from "@/lib/client-storage"
 
 const tabs = ["Overview", "Friction Points", "Shoppers", "Fixes"]
 
@@ -147,13 +148,12 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     async function loadTest() {
       try {
         const { id } = await params
-        const response = await fetch(`/api/tests/${id}`)
+        const result = getTestResult(id)
 
-        if (!response.ok) {
+        if (!result) {
           throw new Error("Test not found")
         }
 
-        const { result } = await response.json()
         setTest(result)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load test")

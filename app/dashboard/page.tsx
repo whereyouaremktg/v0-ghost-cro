@@ -1,11 +1,58 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Play } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ScoreChart } from "@/components/dashboard/score-chart"
 import { RecentTestsTable } from "@/components/dashboard/recent-tests-table"
+import { RevenueCalculator } from "@/components/dashboard/revenue-calculator"
 import { mockStats, mockUser } from "@/lib/mock-data"
 
 export default function DashboardPage() {
+  const [shopifyMetrics, setShopifyMetrics] = useState<any>(null)
+  const [shopifyStore, setShopifyStore] = useState<any>(null)
+  const [loadingMetrics, setLoadingMetrics] = useState(false)
+
+  useEffect(() => {
+    // Check if Shopify is connected
+    const stored = localStorage.getItem("shopifyStore")
+    if (stored) {
+      try {
+        const store = JSON.parse(stored)
+        setShopifyStore(store)
+        fetchShopifyMetrics(store)
+      } catch (error) {
+        console.error("Failed to parse shopify store data:", error)
+      }
+    }
+  }, [])
+
+  const fetchShopifyMetrics = async (store: any) => {
+    setLoadingMetrics(true)
+    try {
+      const response = await fetch("/api/shopify/metrics", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          shop: store.shop,
+          accessToken: store.accessToken,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setShopifyMetrics(data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch Shopify metrics:", error)
+    } finally {
+      setLoadingMetrics(false)
+    }
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -59,6 +106,15 @@ export default function DashboardPage() {
           }}
         />
         <StatCard label="Issues Fixed" value={mockStats.issuesFixed} sublabel="all time" />
+      </div>
+
+      {/* Revenue Calculator */}
+      <div className="mb-8">
+        <RevenueCalculator
+          shopifyMetrics={shopifyMetrics}
+          shopifyStore={shopifyStore}
+          loadingMetrics={loadingMetrics}
+        />
       </div>
 
       {/* Chart */}
