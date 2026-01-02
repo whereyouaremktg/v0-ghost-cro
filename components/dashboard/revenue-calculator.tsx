@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { Calculator, TrendingUp, DollarSign, Store } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts"
 import Link from "next/link"
 
 interface RevenueCalculatorProps {
@@ -62,21 +63,43 @@ export function RevenueCalculator({
     }).format(value)
   }
 
+  // Prepare chart data
+  const chartData = useMemo(() => [
+    {
+      name: "Current",
+      value: calculations.currentRevenue,
+      label: `${cvr}% CVR`,
+      color: "var(--muted-foreground)",
+    },
+    {
+      name: "3.5% CVR",
+      value: calculations.revenue35,
+      label: "+" + formatCurrency(calculations.delta35),
+      color: "var(--chart-2)",
+    },
+    {
+      name: "4% CVR",
+      value: calculations.revenue40,
+      label: "+" + formatCurrency(calculations.delta40),
+      color: "var(--primary)",
+    },
+  ], [calculations, cvr])
+
   return (
-    <div className="bg-card border-2 border-border brutal-shadow p-6">
+    <div className="bg-card/40 border border-border/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-5 card-hover animate-fade-in">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary border-2 border-border">
-            <Calculator className="h-5 w-5 text-primary-foreground" strokeWidth={3} />
+          <div className="p-2 bg-primary/10 border border-primary/30 rounded-xl">
+            <Calculator className="h-4 w-4 text-primary" strokeWidth={2.5} />
           </div>
-          <h2 className="text-lg font-bold uppercase tracking-tight">Revenue Opportunity</h2>
+          <h2 className="text-base font-medium tracking-tight font-heading">Revenue Opportunity</h2>
         </div>
 
         {/* Shopify Connection Status */}
         {shopifyStore ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border-2 border-primary">
-            <Store className="h-3.5 w-3.5 text-primary" strokeWidth={3} />
-            <span className="text-xs font-bold text-primary uppercase tracking-wide">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/30 rounded-xl">
+            <Store className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+            <span className="text-xs font-medium text-primary tracking-wide">
               Connected: {shopifyStore.shop.split(".")[0]}
               {loadingMetrics && <span className="ml-2">...</span>}
             </span>
@@ -84,7 +107,7 @@ export function RevenueCalculator({
         ) : (
           <Link
             href="/dashboard/settings"
-            className="text-xs font-bold uppercase tracking-wide text-muted-foreground hover:text-primary transition-colors underline"
+            className="text-xs font-medium tracking-wide text-muted-foreground hover:text-primary transition-colors underline hover:no-underline"
           >
             Connect Shopify for auto-sync
           </Link>
@@ -94,63 +117,63 @@ export function RevenueCalculator({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Inputs */}
         <div className="space-y-4">
-          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-4">
+          <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-3">
             Your Current Metrics
           </div>
 
           {/* Monthly Sessions */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wide mb-2">Monthly Sessions</label>
+            <label className="block text-[11px] font-medium tracking-wide mb-1.5 text-muted-foreground/70">Monthly Sessions</label>
             <input
               type="number"
               value={sessions}
               onChange={(e) => setSessions(Number(e.target.value))}
-              className="w-full px-4 py-3 bg-background border-2 border-border font-mono text-lg font-bold focus:outline-none focus:border-primary"
+              className="w-full px-3 py-2 bg-background/50 border border-border/30 rounded-md font-mono text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
           </div>
 
           {/* Current CVR */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wide mb-2">Current Conversion Rate (%)</label>
+            <label className="block text-[11px] font-medium tracking-wide mb-1.5 text-muted-foreground/70">Current Conversion Rate (%)</label>
             <div className="relative">
               <input
                 type="number"
                 step="0.1"
                 value={cvr}
                 onChange={(e) => setCvr(Number(e.target.value))}
-                className="w-full px-4 py-3 bg-background border-2 border-border font-mono text-lg font-bold focus:outline-none focus:border-primary pr-12"
+                className="w-full px-3 py-2 bg-background/50 border border-border/30 rounded-md font-mono text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all pr-10"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">%</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 font-medium text-sm">%</span>
             </div>
           </div>
 
           {/* AOV */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold uppercase tracking-wide">Average Order Value ($)</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-medium tracking-wide text-muted-foreground/70">Average Order Value ($)</label>
               {shopifyMetrics?.metrics?.averageOrderValue && (
-                <span className="text-xs text-primary font-bold uppercase tracking-wide">
+                <span className="text-[10px] text-primary font-medium tracking-wide">
                   ✓ Synced
                 </span>
               )}
             </div>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 font-medium text-sm">$</span>
               <input
                 type="number"
                 value={aov}
                 onChange={(e) => setAov(Number(e.target.value))}
-                className="w-full px-4 py-3 pl-8 bg-background border-2 border-border font-mono text-lg font-bold focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 pl-7 bg-background/50 border border-border/30 rounded-md font-mono text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
               />
             </div>
           </div>
 
           {/* Current Revenue */}
-          <div className="pt-4 border-t-2 border-border">
-            <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">
+          <div className="pt-3 border-t border-border/20">
+            <div className="text-[11px] font-medium tracking-wide text-muted-foreground/70 mb-1">
               Current Monthly Revenue
             </div>
-            <div className="text-3xl font-mono font-bold">{formatCurrency(calculations.currentRevenue)}</div>
+            <div className="text-2xl font-mono font-bold">{formatCurrency(calculations.currentRevenue)}</div>
           </div>
 
           {/* Manual Override Note */}
@@ -161,46 +184,82 @@ export function RevenueCalculator({
           )}
         </div>
 
-        {/* Projections */}
+        {/* Projections with Chart */}
         <div className="space-y-4">
-          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-4">Projected Outcomes</div>
+          <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-3">Projected Outcomes</div>
 
-          {/* 3.5% CVR Projection */}
-          <div className="bg-background border-2 border-border p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" strokeWidth={3} />
-              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                If you reach 3.5% CVR
-              </span>
+          {/* Bar Chart Comparison */}
+          <div className="bg-background/20 border border-border/20 rounded-xl p-4 mb-4">
+            <div className="h-48 mb-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 10, fontFamily: "var(--font-heading)", fill: "var(--muted-foreground)" }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fontFamily: "var(--font-heading)", fill: "var(--muted-foreground)" }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={50}
+                    tickFormatter={(value) => {
+                      if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`
+                      if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`
+                      return `$${value}`
+                    }}
+                  />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload
+                        return (
+                          <div className="bg-card border border-border/50 rounded-xl shadow-xl p-3 backdrop-blur-sm">
+                            <p className="text-xs text-muted-foreground mb-1">{data.name}</p>
+                            <p className="text-sm font-heading font-semibold">{formatCurrency(data.value)}</p>
+                            {data.label && data.name !== "Current" && (
+                              <p className="text-xs text-primary mt-1">{data.label}</p>
+                            )}
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    radius={[8, 8, 0, 0]}
+                    className="transition-all duration-300 hover:opacity-80"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-mono font-bold">{formatCurrency(calculations.revenue35)}</span>
-              <span className="text-sm font-bold text-primary">+{formatCurrency(calculations.delta35)}</span>
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
+              {chartData.map((item, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span>{item.name}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* 4% CVR Projection */}
-          <div className="bg-background border-2 border-border p-4">
+          {/* Max Upside Highlight */}
+          <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" strokeWidth={3} />
-              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                If you reach 4% CVR
-              </span>
+              <DollarSign className="h-4 w-4 text-primary/80" strokeWidth={2.5} />
+              <span className="text-xs font-medium tracking-wide text-primary/80">Potential Monthly Upside</span>
             </div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-mono font-bold">{formatCurrency(calculations.revenue40)}</span>
-              <span className="text-sm font-bold text-primary">+{formatCurrency(calculations.delta40)}</span>
-            </div>
-          </div>
-
-          {/* Max Upside */}
-          <div className="bg-primary/10 border-2 border-primary p-4 brutal-shadow">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="h-4 w-4 text-primary" strokeWidth={3} />
-              <span className="text-xs font-bold uppercase tracking-wide text-primary">Potential Monthly Upside</span>
-            </div>
-            <div className="text-4xl font-mono font-bold text-primary">{formatCurrency(calculations.maxUpside)}</div>
-            <div className="text-xs text-muted-foreground mt-1">Additional revenue per month at 4% CVR</div>
+            <div className="text-2xl font-heading font-bold text-primary">{formatCurrency(calculations.maxUpside)}</div>
+            <div className="text-[10px] text-muted-foreground/60 mt-1">Additional revenue per month at 4% CVR</div>
           </div>
         </div>
       </div>

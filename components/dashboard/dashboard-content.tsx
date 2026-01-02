@@ -7,6 +7,9 @@ import { StatCard } from "@/components/dashboard/stat-card"
 import { ScoreChart } from "@/components/dashboard/score-chart"
 import { RecentTestsTable } from "@/components/dashboard/recent-tests-table"
 import { RevenueCalculator } from "@/components/dashboard/revenue-calculator"
+import { AIInsightPanel } from "@/components/dashboard/ai-insight-panel"
+import { CircularScore } from "@/components/dashboard/circular-score"
+import { ConnectShopifyGate } from "@/components/dashboard/connect-shopify-gate"
 import { calculateRevenueLeak, calculatePercentileBenchmark, getPercentileLabel } from "@/lib/ghostEngine"
 import type { TestResult } from "@/lib/types"
 
@@ -32,9 +35,25 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
   const [shopifyMetrics, setShopifyMetrics] = useState<any>(null)
   const [shopifyStore, setShopifyStore] = useState<any>(null)
   const [loadingMetrics, setLoadingMetrics] = useState(false)
+  const [isCheckingConnection, setIsCheckingConnection] = useState(true)
 
   const hasTests = (tests?.length || 0) > 0
   const hasScore = (stats.currentScore || 0) > 0
+
+  // Check for Shopify connection on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("shopifyStore")
+    if (stored) {
+      try {
+        const store = JSON.parse(stored)
+        setShopifyStore(store)
+        fetchShopifyMetrics(store)
+      } catch (error) {
+        console.error("Failed to parse shopify store data:", error)
+      }
+    }
+    setIsCheckingConnection(false)
+  }, [])
 
   // Calculate revenue leak using Ghost Engine
   const revenueLeak = useMemo(() => {
@@ -51,19 +70,6 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
     return calculatePercentileBenchmark(stats.currentScore)
   }, [stats.currentScore])
 
-  useEffect(() => {
-    // Check if Shopify is connected
-    const stored = localStorage.getItem("shopifyStore")
-    if (stored) {
-      try {
-        const store = JSON.parse(stored)
-        setShopifyStore(store)
-        fetchShopifyMetrics(store)
-      } catch (error) {
-        console.error("Failed to parse shopify store data:", error)
-      }
-    }
-  }, [])
 
   const fetchShopifyMetrics = async (store: any) => {
     setLoadingMetrics(true)
@@ -90,194 +96,201 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
 
   const scoreDiff = stats.currentScore - stats.previousScore
 
+  // Show connect gate if Shopify is not connected
+  if (isCheckingConnection) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!shopifyStore) {
+    return <ConnectShopifyGate />
+  }
+
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+    <div className="p-6 lg:p-10 max-w-[1600px] mx-auto">
+      {/* Mobile: AI Panel at top */}
+      <div className="lg:hidden mb-6">
+        <div className="h-[400px]">
+          <AIInsightPanel latestTestResult={latestTestResult} revenueLeak={revenueLeak} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+        {/* Main Content */}
+        <div>
+          {/* Header */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8 animate-fade-in">
         <div className="flex items-start gap-3">
-          <div className="p-3 bg-card border-2 border-border brutal-shadow">
-            <Sparkles className="h-5 w-5" strokeWidth={3} />
+          <div className="p-2.5 bg-card border border-border/50 rounded-lg shadow-sm">
+            <Sparkles className="h-4 w-4 text-primary" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold uppercase tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              {hasScore ? "Your latest checkout performance and prioritized fixes." : "Run your first scan to generate your checkout report."}
+            <h1 className="text-2xl font-semibold tracking-tight font-heading">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {hasScore ? "Your latest checkout performance and prioritized fixes." : "Ghost is analyzing your store checkout flow."}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {shopifyStore?.shop && (
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-card border-2 border-border brutal-shadow text-sm">
-              <Store className="h-4 w-4" strokeWidth={3} />
-              <span className="font-bold">{shopifyStore.shop}</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-card border border-border/50 rounded-md shadow-sm text-sm">
+              <Store className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+              <span className="font-medium">{shopifyStore.shop}</span>
             </div>
           )}
 
           <Link
             href="/dashboard/run-test"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold uppercase tracking-wide text-sm border-2 border-border brutal-shadow brutal-hover"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium tracking-wide text-sm rounded-xl accent-glow transition-all duration-300 hover:-translate-y-1"
           >
-            <Play className="h-4 w-4" strokeWidth={3} />
-            Run New Test
+            <Play className="h-4 w-4" strokeWidth={2.5} />
+            {hasTests ? "Re-scan Store" : "Scan Store"}
           </Link>
         </div>
       </div>
 
-      {/* Hero Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-        {/* Primary Score */}
-        <div className="bg-card border-2 border-border brutal-shadow p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Ghost Checkout Score</div>
-              <div className="flex items-end gap-3">
-                <div className="text-5xl font-mono font-bold leading-none">{hasScore ? stats.currentScore : "—"}</div>
-                <div className="text-sm text-muted-foreground pb-1">{hasScore ? "/100" : "Run a test"}</div>
-              </div>
-              {stats.previousScore ? (
-                <div className="mt-3 text-sm">
-                  <span className={scoreDiff >= 0 ? "text-primary font-bold" : "text-red-500 font-bold"}>
-                    {scoreDiff >= 0 ? `+${scoreDiff}` : `${scoreDiff}`}
-                  </span>{" "}
-                  <span className="text-muted-foreground">vs last test</span>
+      {/* Hero Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* Compact Circular Score - 1 column */}
+        <div className="lg:col-span-3 bg-card/50 border border-border/30 rounded-2xl shadow-sm p-5 animate-fade-in card-hover">
+          <CircularScore
+            score={stats.currentScore}
+            previousScore={stats.previousScore}
+            percentile={percentile ? getPercentileLabel(percentile) : null}
+            historicalScores={tests
+              .filter((t) => t.overall_score !== null)
+              .slice(0, 6)
+              .map((t) => t.overall_score || 0)
+              .reverse()}
+          />
+          <div className="mt-6 pt-4 border-t border-border/20 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground/70">Scans this month</span>
+              <span className="font-medium">{stats.testsThisMonth}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground/70">Scans remaining</span>
+              <span className="font-medium">{stats.testsRemaining}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Money Leak - Dominant Hero Metric - 2 columns */}
+        <div className="lg:col-span-9 bg-gradient-to-br from-destructive/15 via-destructive/10 to-destructive/5 border border-destructive/40 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 card-hover animate-fade-in relative overflow-hidden">
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 to-transparent pointer-events-none" />
+          
+          <div className="relative">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-destructive/30 border border-destructive/50 rounded-xl backdrop-blur-sm">
+                  <TrendingDown className="h-5 w-5 text-destructive" strokeWidth={2.5} />
                 </div>
-              ) : (
-                <div className="mt-3 text-sm text-muted-foreground">We’ll compare your score after your second scan.</div>
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight font-heading">Live Money Leak</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Revenue lost daily due to checkout friction
+                  </p>
+                </div>
+              </div>
+              {loadingMetrics && (
+                <span className="text-xs text-muted-foreground/70">Fetching metrics…</span>
               )}
             </div>
 
-            {percentile ? (
-              <div className="text-right">
-                <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Benchmark</div>
-                <div className="mt-1 text-lg font-bold">{getPercentileLabel(percentile)}</div>
-                <div className="text-xs text-muted-foreground">of Shopify stores</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
+                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-2 mb-3">Daily Leak</div>
+                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
+                  {hasScore && revenueLeak.daily > 0 ? `$${revenueLeak.daily.toLocaleString()}` : "—"}
+                </div>
+                <div className="text-xs text-muted-foreground/60">per day</div>
               </div>
-            ) : (
-              <div className="text-right text-xs text-muted-foreground">No benchmark yet</div>
+              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
+                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-3">Weekly Leak</div>
+                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
+                  {hasScore && revenueLeak.weekly > 0 ? `$${revenueLeak.weekly.toLocaleString()}` : "—"}
+                </div>
+                <div className="text-xs text-muted-foreground/60">per week</div>
+              </div>
+              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
+                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-3">Monthly Leak</div>
+                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
+                  {hasScore && revenueLeak.monthly > 0 ? `$${revenueLeak.monthly.toLocaleString()}` : "—"}
+                </div>
+                <div className="text-xs text-muted-foreground/60">per month</div>
+              </div>
+            </div>
+
+            {!shopifyStore?.shop && (
+              <div className="mt-6 text-xs text-muted-foreground/70">
+                Connect Shopify to improve leak accuracy with real session and revenue data
+              </div>
             )}
           </div>
-
-          <div className="mt-6 flex items-center justify-between text-sm">
-            <div className="text-muted-foreground">Tests this month</div>
-            <div className="font-bold">{stats.testsThisMonth}</div>
-          </div>
-          <div className="mt-2 flex items-center justify-between text-sm">
-            <div className="text-muted-foreground">Tests remaining</div>
-            <div className="font-bold">{stats.testsRemaining}</div>
-          </div>
         </div>
+      </div>
 
-        {/* Live Money Leak */}
-        <div className="bg-destructive/10 border-2 border-destructive brutal-shadow p-6">
-          <div className="flex items-start gap-3">
-            <div className="p-3 bg-destructive border-2 border-border flex-shrink-0">
-              <TrendingDown className="h-5 w-5 text-destructive-foreground" strokeWidth={3} />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-bold uppercase tracking-tight">Live Money Leak</h2>
-                {loadingMetrics && <span className="text-xs text-muted-foreground">Fetching Shopify metrics…</span>}
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Estimated revenue lost due to friction detected in your latest scan.
-              </p>
-
-              <div className="mt-5 grid grid-cols-1 gap-3">
-                <div className="bg-background border-2 border-border p-4">
-                  <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">Daily</div>
-                  <div className="text-3xl font-mono font-bold text-destructive">
-                    {hasScore && revenueLeak.daily > 0 ? `$${revenueLeak.daily.toLocaleString()}` : "—"}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-background border-2 border-border p-4">
-                    <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">Weekly</div>
-                    <div className="text-xl font-mono font-bold text-destructive">
-                      {hasScore && revenueLeak.weekly > 0 ? `$${revenueLeak.weekly.toLocaleString()}` : "—"}
-                    </div>
-                  </div>
-                  <div className="bg-background border-2 border-border p-4">
-                    <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-1">Monthly</div>
-                    <div className="text-xl font-mono font-bold text-destructive">
-                      {hasScore && revenueLeak.monthly > 0 ? `$${revenueLeak.monthly.toLocaleString()}` : "—"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {!shopifyStore?.shop && (
-                <div className="mt-4 text-xs text-muted-foreground">
-                  Connect Shopify to improve leak accuracy (sessions, AOV, revenue).
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Next Actions */}
-        <div className="bg-card border-2 border-border brutal-shadow p-6">
-          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Next Actions</div>
+      {/* Secondary Actions - De-emphasized */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+        <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm p-5 animate-fade-in card-hover">
+          <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-3">Next Actions</div>
           {!hasScore ? (
-            <div className="mt-2">
-              <div className="text-lg font-bold mb-2">Run your first scan</div>
-              <p className="text-sm text-muted-foreground mb-4">Ghost will mirror a shopper and generate your first report with prioritized fixes.</p>
-              <Link
-                href="/dashboard/run-test"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-bold uppercase tracking-wide text-sm border-2 border-border brutal-shadow brutal-hover"
-              >
-                <Play className="h-4 w-4" strokeWidth={3} />
-                Start Scan
-              </Link>
+            <div>
+              <div className="text-base font-medium mb-1.5">Ghost is analyzing your store</div>
+              <p className="text-xs text-muted-foreground/70 mb-3">Your first checkout analysis is in progress. Results will appear here shortly.</p>
             </div>
           ) : (
-            <div className="mt-2 space-y-3">
-              <div className="bg-background border-2 border-border p-4">
-                <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">This week</div>
-                <div className="mt-1 font-bold">Fix 3 high-impact friction points</div>
-                <div className="mt-1 text-sm text-muted-foreground">Start with trust signals + CTA clarity + shipping transparency.</div>
+            <div className="space-y-2.5">
+              <div className="bg-background/30 border border-border/10 rounded-md p-3">
+                <div className="text-[10px] font-medium tracking-wide text-muted-foreground/60">This week</div>
+                <div className="mt-1 text-sm font-medium">Fix 3 high-impact friction points</div>
+                <div className="mt-0.5 text-xs text-muted-foreground/70">Trust signals + CTA clarity + shipping transparency</div>
               </div>
-              <div className="bg-background border-2 border-border p-4">
-                <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Then</div>
-                <div className="mt-1 font-bold">Re-run scan to verify lift</div>
-                <div className="mt-1 text-sm text-muted-foreground">Ghost tracks score movement and leak reduction.</div>
+              <div className="bg-background/30 border border-border/10 rounded-md p-3">
+                <div className="text-[10px] font-medium tracking-wide text-muted-foreground/60">Then</div>
+                <div className="mt-1 text-sm font-medium">Re-run scan to verify lift</div>
+                <div className="mt-0.5 text-xs text-muted-foreground/70">Track score movement and leak reduction</div>
               </div>
-              <div className="text-xs text-muted-foreground">(Auto-generated recommendations coming next.)</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Welcome Banner */}
-      <div className="bg-card border-2 border-border brutal-shadow p-6 mb-8">
-        <p className="text-lg">
-          <span className="font-bold">{user.name.split(" ")[0]}, here’s what Ghost sees.</span>{" "}
+      {/* Welcome Banner - De-emphasized */}
+      <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm p-4 mb-6 animate-fade-in card-hover">
+        <p className="text-sm">
+          <span className="font-medium">{user.name.split(" ")[0]}, here's what Ghost sees.</span>{" "}
           {hasScore ? (
             <>
-              Your checkout score is{" "}
+              Checkout score is{" "}
               {scoreDiff >= 0 ? (
-                <span className="text-primary font-bold">up {scoreDiff} points</span>
+                <span className="text-primary font-medium">up {scoreDiff} points</span>
               ) : (
-                <span className="text-red-500 font-bold">down {Math.abs(scoreDiff)} points</span>
+                <span className="text-destructive font-medium">down {Math.abs(scoreDiff)} points</span>
               )}{" "}
-              since your last scan.
+              since last scan.
             </>
           ) : (
-            <>Run your first scan to generate a baseline score and prioritized fixes.</>
+            <>Ghost is analyzing your store. Results will appear here shortly.</>
           )}
         </p>
         {stats.plan === "free" && (
-          <p className="text-sm text-muted-foreground mt-2">
-            You&apos;re on the free plan with {stats.testsRemaining} test remaining.{" "}
-            <Link href="/#pricing" className="text-primary font-bold underline">
-              Upgrade to run more tests
+          <p className="text-xs text-muted-foreground/70 mt-1.5">
+            Free plan: {stats.testsRemaining} test remaining.{" "}
+            <Link href="/#pricing" className="text-primary font-medium underline hover:no-underline">
+              Upgrade
             </Link>
           </p>
         )}
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stats Grid - De-emphasized */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard
           label="Checkout Score"
           value={stats.currentScore || "—"}
@@ -285,12 +298,17 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
           trend={
             stats.previousScore
               ? {
-                  value: `${scoreDiff >= 0 ? "+" : ""}${scoreDiff} vs last test`,
+                  value: `${scoreDiff >= 0 ? "+" : ""}${scoreDiff} vs last scan`,
                   positive: scoreDiff >= 0,
                 }
               : undefined
           }
           percentile={percentile ? getPercentileLabel(percentile) : undefined}
+          sparklineData={tests
+            .filter((t) => t.overall_score !== null)
+            .slice(0, 6)
+            .map((t) => t.overall_score || 0)
+            .reverse()}
         />
         <StatCard
           label="Plan"
@@ -298,7 +316,7 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
           sublabel={stats.plan === "free" ? "1 test included" : `${stats.testsLimit} tests/mo`}
         />
         <StatCard
-          label="Tests Run"
+          label="Scans Run"
           value={stats.testsThisMonth}
           sublabel="this month"
           trend={{
@@ -306,7 +324,7 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
             positive: stats.testsRemaining > 0,
           }}
         />
-        <StatCard label="Total Tests" value={tests.length} sublabel="all time" />
+        <StatCard label="Total Scans" value={tests.length} sublabel="all time" />
       </div>
 
       {/* Revenue Calculator */}
@@ -327,21 +345,23 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
           <RecentTestsTable tests={tests} />
         </>
       ) : (
-        <div className="bg-card border-2 border-border brutal-shadow p-6">
-          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">No scans yet</div>
-          <div className="text-lg font-bold mb-2">Run your first Ghost scan</div>
+        <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm p-6 animate-fade-in card-hover">
+          <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-2">No scans yet</div>
+          <div className="text-lg font-semibold mb-2">Ghost is analyzing your store</div>
           <p className="text-sm text-muted-foreground mb-4">
-            Ghost will analyze your PDP and checkout flow, detect friction, and generate a fix plan.
+            Your first checkout analysis is in progress. Results will appear here shortly.
           </p>
-          <Link
-            href="/dashboard/run-test"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-bold uppercase tracking-wide text-sm border-2 border-border brutal-shadow brutal-hover"
-          >
-            <Play className="h-4 w-4" strokeWidth={3} />
-            Run First Test
-          </Link>
         </div>
       )}
+        </div>
+
+        {/* Desktop: AI Panel on right */}
+        <div className="hidden lg:block">
+          <div className="sticky top-6 h-[calc(100vh-3rem)]">
+            <AIInsightPanel latestTestResult={latestTestResult} revenueLeak={revenueLeak} />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

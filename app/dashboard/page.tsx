@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
+import type { TestResult } from "@/lib/types"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -41,6 +42,10 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
+  // Check for Shopify connection in cookies (server-side check)
+  // Note: In production, you'd want to check this from a database or session
+  // For now, we'll check client-side in DashboardContent
+
   // Fetch user profile
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
@@ -68,7 +73,7 @@ export default async function DashboardPage() {
 
   // Latest test result (stored as JSON in Supabase)
   const latestTest = completedTests[0]
-  const latestTestResult = (latestTest?.results ?? null) as unknown
+  const latestTestResult = (latestTest?.results ?? null) as TestResult | null
 
   const stats = {
     currentScore,

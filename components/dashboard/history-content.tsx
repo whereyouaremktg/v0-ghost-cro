@@ -44,8 +44,8 @@ export function HistoryContent() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold uppercase tracking-tight mb-2">Test History</h1>
-        <p className="text-muted-foreground">All your checkout tests</p>
+        <h1 className="text-2xl font-bold uppercase tracking-tight mb-2">Scan History</h1>
+        <p className="text-muted-foreground">All your checkout scans</p>
       </div>
 
       {/* Filters */}
@@ -68,7 +68,7 @@ export function HistoryContent() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search URL..."
+            placeholder="Search scans..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-input border-2 border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -82,7 +82,7 @@ export function HistoryContent() {
           <thead>
             <tr className="bg-muted border-b-2 border-border">
               <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Date</th>
-              <th className="text-left text-xs font-bold uppercase tracking-wide p-4">URL</th>
+              <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Store</th>
               <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Personas</th>
               <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Score</th>
               <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Change</th>

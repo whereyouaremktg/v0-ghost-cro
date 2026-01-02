@@ -8,8 +8,8 @@ import { createClient } from "@/lib/supabase/client"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/run-test", label: "Run Test", icon: Play },
-  { href: "/dashboard/history", label: "Test History", icon: History },
+  { href: "/dashboard/run-test", label: "Re-scan Store", icon: Play },
+  { href: "/dashboard/history", label: "Scan History", icon: History },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
@@ -41,11 +41,11 @@ export function Sidebar({ user, subscription }: SidebarProps) {
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r-2 border-border bg-sidebar flex flex-col">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-border bg-sidebar flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b-2 border-border">
+      <div className="p-6 border-b border-border">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight">GHOST CRO</span>
+          <span className="text-xl font-bold tracking-tight font-heading">GHOST CRO</span>
           <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 border-2 border-border">
             BETA
           </span>
@@ -61,10 +61,10 @@ export function Sidebar({ user, subscription }: SidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 font-medium text-sm uppercase tracking-wide border-2 transition-all duration-100 ${
+                  className={`flex items-center gap-3 px-4 py-3 font-medium text-sm tracking-wide rounded-xl transition-all duration-300 ${
                     isActive
-                      ? "bg-primary text-primary-foreground border-border brutal-shadow"
-                      : "bg-transparent border-transparent hover:bg-muted hover:border-border"
+                      ? "bg-primary/20 text-primary border border-primary/30 accent-glow"
+                      : "bg-transparent hover:bg-muted/50 hover:border-border/50"
                   }`}
                 >
                   <item.icon className="h-5 w-5" strokeWidth={2.5} />
@@ -77,7 +77,7 @@ export function Sidebar({ user, subscription }: SidebarProps) {
       </nav>
 
       {/* Plan & Usage */}
-      <div className="p-4 border-t-2 border-border">
+      <div className="p-4 border-t border-border">
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -106,9 +106,9 @@ export function Sidebar({ user, subscription }: SidebarProps) {
         <div className="relative">
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="w-full flex items-center gap-3 p-2 border-2 border-transparent hover:border-border hover:bg-muted transition-colors"
+            className="w-full flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-border/50 hover:bg-muted/50 transition-all duration-300"
           >
-            <div className="h-10 w-10 bg-foreground text-background flex items-center justify-center font-bold text-sm border-2 border-border">
+            <div className="h-10 w-10 bg-foreground text-background flex items-center justify-center font-bold text-sm border border-border rounded-lg">
               {displayUser.name
                 .split(" ")
                 .map((n) => n[0])
@@ -123,7 +123,7 @@ export function Sidebar({ user, subscription }: SidebarProps) {
           </button>
 
           {userMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border-2 border-border brutal-shadow">
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-xl shadow-lg">
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-muted text-left"

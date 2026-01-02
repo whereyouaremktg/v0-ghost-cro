@@ -49,12 +49,12 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
   }
 
   return (
-    <div className="bg-card border-2 border-border brutal-shadow">
-      <div className="flex items-center justify-between p-4 border-b-2 border-border">
-        <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Recent Tests</h3>
+    <div className="bg-card/40 border border-border/30 rounded-xl shadow-sm card-hover animate-fade-in">
+      <div className="flex items-center justify-between p-4 border-b border-border/30">
+        <h3 className="text-xs font-medium tracking-wide text-muted-foreground font-heading">Recent Scans</h3>
         <Link
           href="/dashboard/history"
-          className="text-xs font-bold uppercase tracking-wide hover:text-primary transition-colors"
+          className="text-xs font-medium tracking-wide hover:text-primary transition-colors duration-300"
         >
           View All →
         </Link>
@@ -62,24 +62,19 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
       <div className="overflow-x-auto">
         {tests.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-muted-foreground mb-4">No tests run yet</p>
-            <Link
-              href="/dashboard/run-test"
-              className="inline-block px-6 py-3 bg-primary text-primary-foreground font-bold uppercase tracking-wide text-sm border-2 border-border brutal-shadow brutal-hover"
-            >
-              Run Your First Test
-            </Link>
+            <p className="text-muted-foreground mb-4">No scans yet</p>
+            <p className="text-sm text-muted-foreground">Ghost is analyzing your store. Results will appear here shortly.</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="bg-muted border-b-2 border-border">
-                <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Date</th>
-                <th className="text-left text-xs font-bold uppercase tracking-wide p-4">URL</th>
-                <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Status</th>
-                <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Score</th>
-                <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Change</th>
-                <th className="text-left text-xs font-bold uppercase tracking-wide p-4">Action</th>
+              <tr className="bg-muted/30 border-b border-border/30">
+                <th className="text-left text-xs font-medium tracking-wide p-4 text-muted-foreground">Date</th>
+                <th className="text-left text-xs font-medium tracking-wide p-4 text-muted-foreground">Store</th>
+                <th className="text-left text-xs font-medium tracking-wide p-4 text-muted-foreground">Status</th>
+                <th className="text-left text-xs font-medium tracking-wide p-4 text-muted-foreground">Score</th>
+                <th className="text-left text-xs font-medium tracking-wide p-4 text-muted-foreground">Change</th>
+                <th className="text-left text-xs font-medium tracking-wide p-4 text-muted-foreground">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -88,13 +83,13 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
                 return (
                   <tr
                     key={test.id}
-                    className="border-b-2 border-border last:border-b-0 hover:bg-muted/50 transition-colors"
+                    className="border-b border-border/20 last:border-b-0 hover:bg-muted/30 transition-all duration-300"
                   >
-                    <td className="p-4 font-mono text-sm">{formatDate(test.created_at)}</td>
+                    <td className="p-4 text-sm">{formatDate(test.created_at)}</td>
                     <td className="p-4 text-sm truncate max-w-[200px]">{test.store_url.replace("https://", "")}</td>
                     <td className="p-4">
                       <span
-                        className={`inline-block px-3 py-1 font-bold text-xs uppercase border-2 border-border ${getStatusBadge(test.status)}`}
+                        className={`inline-block px-3 py-1 font-medium text-xs rounded-lg border border-border/30 ${getStatusBadge(test.status)}`}
                       >
                         {test.status}
                       </span>
@@ -102,7 +97,7 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
                     <td className="p-4">
                       {test.overall_score !== null ? (
                         <span
-                          className={`inline-block px-3 py-1 font-mono font-bold text-sm border-2 border-border ${getScoreColor(test.overall_score)}`}
+                          className={`inline-block px-3 py-1 font-heading font-bold text-sm rounded-lg border border-border/30 ${getScoreColor(test.overall_score)}`}
                         >
                           {test.overall_score}
                         </span>
@@ -113,7 +108,7 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
                     <td className="p-4">
                       {test.status === "completed" && test.overall_score !== null ? (
                         <span
-                          className={`font-mono font-bold text-sm ${change > 0 ? "text-primary" : change < 0 ? "text-destructive" : "text-muted-foreground"}`}
+                          className={`font-heading font-bold text-sm ${change > 0 ? "text-primary" : change < 0 ? "text-destructive" : "text-muted-foreground"}`}
                         >
                           {change > 0 ? `+${change}` : change === 0 ? "—" : change}
                         </span>
@@ -124,7 +119,7 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
                     <td className="p-4">
                       <Link
                         href={`/dashboard/test/${test.id}`}
-                        className="inline-block px-4 py-2 text-xs font-bold uppercase tracking-wide border-2 border-border bg-card hover:bg-muted brutal-hover transition-all"
+                        className="inline-block px-4 py-2 text-xs font-medium tracking-wide rounded-xl border border-border/30 bg-card/50 hover:bg-muted/50 transition-all duration-300 hover:-translate-y-0.5"
                       >
                         View
                       </Link>

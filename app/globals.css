@@ -3,80 +3,81 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Neo-brutalist theme - lime accent on off-white/cream background */
+/* Gumroad-inspired Visual System */
 :root {
-  --background: oklch(0.97 0.01 90);
-  --foreground: oklch(0.13 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0 0);
-  --primary: oklch(0.84 0.2 130);
-  --primary-foreground: oklch(0.13 0 0);
-  --secondary: oklch(0.97 0.01 90);
-  --secondary-foreground: oklch(0.13 0 0);
-  --muted: oklch(0.92 0.01 90);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.84 0.2 130);
-  --accent-foreground: oklch(0.13 0 0);
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.13 0 0);
-  --input: oklch(1 0 0);
-  --ring: oklch(0.13 0 0);
-  --chart-1: oklch(0.84 0.2 130);
-  --chart-2: oklch(0.7 0.15 200);
-  --chart-3: oklch(0.65 0.2 25);
-  --chart-4: oklch(0.75 0.15 300);
-  --chart-5: oklch(0.8 0.15 60);
-  --radius: 0;
-  --sidebar: oklch(0.97 0.01 90);
-  --sidebar-foreground: oklch(0.13 0 0);
-  --sidebar-primary: oklch(0.84 0.2 130);
-  --sidebar-primary-foreground: oklch(0.13 0 0);
-  --sidebar-accent: oklch(0.92 0.01 90);
-  --sidebar-accent-foreground: oklch(0.13 0 0);
-  --sidebar-border: oklch(0.13 0 0);
-  --sidebar-ring: oklch(0.13 0 0);
+  --background: #0F1115;
+  --foreground: #E6E8EC;
+  --card: #161A20;
+  --card-foreground: #E6E8EC;
+  --popover: #161A20;
+  --popover-foreground: #E6E8EC;
+  --primary: #A8E063;
+  --primary-foreground: #0F1115;
+  --secondary: #222833;
+  --secondary-foreground: #E6E8EC;
+  --muted: #222833;
+  --muted-foreground: #9AA1AD;
+  --accent: #A8E063;
+  --accent-foreground: #0F1115;
+  --destructive: #FF5D5D;
+  --destructive-foreground: #E6E8EC;
+  --border: #222833;
+  --input: #222833;
+  --ring: #A8E063;
+  --chart-1: #A8E063;
+  --chart-2: #9AA1AD;
+  --chart-3: #FF5D5D;
+  --chart-4: #E6E8EC;
+  --chart-5: #222833;
+  --radius: 1rem;
+  --sidebar: #161A20;
+  --sidebar-foreground: #E6E8EC;
+  --sidebar-primary: #A8E063;
+  --sidebar-primary-foreground: #0F1115;
+  --sidebar-accent: #222833;
+  --sidebar-accent-foreground: #E6E8EC;
+  --sidebar-border: #222833;
+  --sidebar-ring: #A8E063;
 }
 
 .dark {
-  --background: oklch(0.13 0 0);
-  --foreground: oklch(0.97 0.01 90);
-  --card: oklch(0.18 0 0);
-  --card-foreground: oklch(0.97 0.01 90);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.97 0.01 90);
-  --primary: oklch(0.84 0.2 130);
-  --primary-foreground: oklch(0.13 0 0);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.97 0.01 90);
-  --muted: oklch(0.25 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.84 0.2 130);
-  --accent-foreground: oklch(0.13 0 0);
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.97 0.01 90);
-  --input: oklch(0.18 0 0);
-  --ring: oklch(0.97 0.01 90);
-  --chart-1: oklch(0.84 0.2 130);
-  --chart-2: oklch(0.7 0.15 200);
-  --chart-3: oklch(0.65 0.2 25);
-  --chart-4: oklch(0.75 0.15 300);
-  --chart-5: oklch(0.8 0.15 60);
-  --sidebar: oklch(0.13 0 0);
-  --sidebar-foreground: oklch(0.97 0.01 90);
-  --sidebar-primary: oklch(0.84 0.2 130);
-  --sidebar-primary-foreground: oklch(0.13 0 0);
-  --sidebar-accent: oklch(0.25 0 0);
-  --sidebar-accent-foreground: oklch(0.97 0.01 90);
-  --sidebar-border: oklch(0.97 0.01 90);
-  --sidebar-ring: oklch(0.97 0.01 90);
+  --background: #0F1115;
+  --foreground: #E6E8EC;
+  --card: #161A20;
+  --card-foreground: #E6E8EC;
+  --popover: #161A20;
+  --popover-foreground: #E6E8EC;
+  --primary: #A8E063;
+  --primary-foreground: #0F1115;
+  --secondary: #222833;
+  --secondary-foreground: #E6E8EC;
+  --muted: #222833;
+  --muted-foreground: #9AA1AD;
+  --accent: #A8E063;
+  --accent-foreground: #0F1115;
+  --destructive: #FF5D5D;
+  --destructive-foreground: #E6E8EC;
+  --border: #222833;
+  --input: #222833;
+  --ring: #A8E063;
+  --chart-1: #A8E063;
+  --chart-2: #9AA1AD;
+  --chart-3: #FF5D5D;
+  --chart-4: #E6E8EC;
+  --chart-5: #222833;
+  --sidebar: #161A20;
+  --sidebar-foreground: #E6E8EC;
+  --sidebar-primary: #A8E063;
+  --sidebar-primary-foreground: #0F1115;
+  --sidebar-accent: #222833;
+  --sidebar-accent-foreground: #E6E8EC;
+  --sidebar-border: #222833;
+  --sidebar-ring: #A8E063;
 }
 
 @theme inline {
-  --font-sans: "Space Grotesk", "Geist", system-ui, sans-serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-heading: var(--font-heading), "DM Sans", system-ui, sans-serif;
   --font-mono: "Space Mono", "Geist Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -102,10 +103,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -122,6 +123,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
   }
 }
 
@@ -129,29 +134,155 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Neo-brutalist utility classes */
-.brutal-shadow {
-  box-shadow: 4px 4px 0 0 var(--border);
+/* Gumroad-inspired animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.brutal-shadow-lg {
-  box-shadow: 6px 6px 0 0 var(--border);
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
 }
 
-.brutal-shadow-primary {
-  box-shadow: 4px 4px 0 0 var(--primary);
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
 }
 
-.brutal-hover {
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.brutal-hover:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 0 var(--border);
+@keyframes pulseRing {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
 }
 
-.brutal-hover:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 0 var(--border);
+@keyframes highlightFlash {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(168, 224, 99, 0.15);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-pulse-ring {
+  animation: pulseRing 0.6s ease-out;
+}
+
+.animate-highlight-flash {
+  animation: highlightFlash 1s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.5s ease-out;
+}
+
+/* Card hover lift effect */
+.card-hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15), 0 8px 16px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Button glow effect */
+.button-glow {
+  transition: all 0.3s ease;
+}
+
+.button-glow:hover {
+  box-shadow: 0 0 20px rgba(168, 224, 99, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Section scroll animation */
+.section-scroll-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.section-scroll-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Accent button glow effect */
+.accent-glow {
+  box-shadow: 0 0 20px rgba(168, 224, 99, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.accent-glow:hover {
+  box-shadow: 0 0 30px rgba(168, 224, 99, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.3), 0 8px 16px -6px rgba(0, 0, 0, 0.2);
 }

@@ -10,13 +10,27 @@ export async function GET(request: Request) {
     }
 
     const clientId = process.env.SHOPIFY_CLIENT_ID
-    const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/shopify/callback`
+    const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+    const redirectUri = `${nextAuthUrl}/api/auth/shopify/callback`
     const scopes = "read_orders,read_products,read_analytics"
+
+    // Validate required environment variables
+    if (!clientId) {
+      console.error("SHOPIFY_CLIENT_ID is not set in environment variables")
+      return NextResponse.json(
+        { 
+          error: "Shopify OAuth is not configured. Please set SHOPIFY_CLIENT_ID in your environment variables.",
+          details: "Contact your administrator or check your .env.local file"
+        },
+        { status: 500 }
+      )
+    }
+
     const state = Math.random().toString(36).substring(7) // Generate random state for CSRF protection
 
     // Build Shopify OAuth URL
     const shopifyAuthUrl = new URL(`https://${shop}/admin/oauth/authorize`)
-    shopifyAuthUrl.searchParams.append("client_id", clientId!)
+    shopifyAuthUrl.searchParams.append("client_id", clientId)
     shopifyAuthUrl.searchParams.append("scope", scopes)
     shopifyAuthUrl.searchParams.append("redirect_uri", redirectUri)
     shopifyAuthUrl.searchParams.append("state", state)
