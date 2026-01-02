@@ -7,9 +7,10 @@ interface StatCardProps {
     positive: boolean
   }
   sublabel?: string
+  percentile?: string
 }
 
-export function StatCard({ label, value, suffix, trend, sublabel }: StatCardProps) {
+export function StatCard({ label, value, suffix, trend, sublabel, percentile }: StatCardProps) {
   return (
     <div className="bg-card border-2 border-border brutal-shadow p-6 brutal-hover">
       <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">{label}</div>
@@ -17,6 +18,9 @@ export function StatCard({ label, value, suffix, trend, sublabel }: StatCardProp
         <span className="text-4xl font-mono font-bold">{value}</span>
         {suffix && <span className="text-lg text-muted-foreground">{suffix}</span>}
       </div>
+      {percentile && (
+        <div className="mt-2 text-xs font-bold uppercase tracking-wide text-primary">{percentile}</div>
+      )}
       {trend && (
         <div className={`mt-2 text-sm font-bold ${trend.positive ? "text-primary" : "text-destructive"}`}>
           {trend.positive ? "↑" : "↓"} {trend.value}

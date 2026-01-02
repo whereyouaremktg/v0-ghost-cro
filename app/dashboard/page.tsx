@@ -10,8 +10,11 @@ export default async function DashboardPage() {
     error,
   } = await supabase.auth.getUser()
 
-  // In development, show demo data
-  if (process.env.NODE_ENV !== "production" && (error || !user)) {
+  // Optional demo mode (OFF by default). Enable only when explicitly set.
+  // This prevents accidentally shipping dummy data paths.
+  const demoMode = process.env.DEMO_MODE === "true"
+
+  if (demoMode && (error || !user)) {
     return (
       <DashboardContent
         user={{
@@ -28,11 +31,13 @@ export default async function DashboardPage() {
           plan: "starter",
         }}
         tests={[]}
+        latestTestResult={null}
       />
     )
   }
 
   if (error || !user) {
+    // In non-demo mode, always require auth (even in development)
     redirect("/login")
   }
 
@@ -61,6 +66,10 @@ export default async function DashboardPage() {
       return testDate.getMonth() === now.getMonth() && testDate.getFullYear() === now.getFullYear()
     }).length || 0
 
+  // Latest test result (stored as JSON in Supabase)
+  const latestTest = completedTests[0]
+  const latestTestResult = (latestTest?.results ?? null) as unknown
+
   const stats = {
     currentScore,
     previousScore,
@@ -79,6 +88,7 @@ export default async function DashboardPage() {
       }}
       stats={stats}
       tests={tests || []}
+      latestTestResult={latestTestResult}
     />
   )
 }
