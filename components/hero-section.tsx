@@ -1,11 +1,12 @@
 "use client"
 
-import { AnalyzeForm } from "./analyze-form"
-import { Ghost } from "lucide-react"
+import Link from "next/link"
+import { Ghost, ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20 pt-32">
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -42,13 +43,29 @@ export function HeroSection() {
           fixes in 5 minutes, not 5 weeks.
         </p>
 
-        {/* Form */}
-        <div className="pt-6">
-          <AnalyzeForm />
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+          <Link href="#pricing">
+            <Button
+              size="lg"
+              className="bg-foreground text-background border-3 border-foreground brutal-shadow-primary hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all font-bold uppercase tracking-wide text-lg px-8 py-6"
+            >
+              View Pricing
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+          <Link href="/login">
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-3 border-foreground bg-background brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all font-bold uppercase tracking-wide text-lg px-8 py-6"
+            >
+              Login to Dashboard
+            </Button>
+          </Link>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-          {["One-time $79", "5 min report", "No subscription"].map((item, i) => (
+          {["14-day free trial", "Cancel anytime", "No credit card to start"].map((item, i) => (
             <span
               key={i}
               className="px-4 py-2 bg-card border-2 border-foreground text-sm font-bold uppercase tracking-wide"
