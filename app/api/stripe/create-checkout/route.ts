@@ -1,16 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { getSessionWithFallback } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-12-18.acacia",
 })
 
+const PRICE_TO_PLAN: Record<string, { plan: string; tests: number }> = {
+  price_starter: { plan: "starter", tests: 5 },
+  price_growth: { plan: "growth", tests: 15 },
+  price_scale: { plan: "scale", tests: 999 },
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionWithFallback()
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    if (!session?.user?.email) {
+    if (authError || !user) {
       return NextResponse.json({ error: "Please log in to continue", redirect: "/login" }, { status: 401 })
     }
 
@@ -21,11 +31,12 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl =
-      process.env.NEXTAUTH_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
     // Create Stripe Checkout Session
     const checkoutSession = await stripe.checkout.sessions.create({
-      customer_email: session.user.email,
+      customer_email: user.email,
       line_items: [
         {
           price: priceId,
@@ -39,7 +50,9 @@ export async function POST(request: NextRequest) {
         trial_period_days: 14,
       },
       metadata: {
-        userEmail: session.user.email,
+        userId: user.id,
+        userEmail: user.email || "",
+        plan: PRICE_TO_PLAN[priceId]?.plan || "unknown",
       },
     })
 

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { auth } from "@/auth"
+import { createClient } from "@/lib/supabase/server"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-12-18.acacia",
@@ -8,8 +8,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user?.email) {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -19,7 +24,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Customer ID is required" }, { status: 400 })
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
     // Create Stripe Customer Portal Session
     const portalSession = await stripe.billingPortal.sessions.create({
@@ -30,9 +37,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: portalSession.url })
   } catch (error) {
     console.error("Stripe portal error:", error)
-    return NextResponse.json(
-      { error: "Failed to create portal session" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to create portal session" }, { status: 500 })
   }
 }

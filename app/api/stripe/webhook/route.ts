@@ -1,11 +1,21 @@
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { createClient } from "@supabase/supabase-js"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-12-18.acacia",
 })
 
+// Use service role for webhook to bypass RLS
+const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+const PLAN_LIMITS: Record<string, number> = {
+  starter: 5,
+  growth: 15,
+  scale: 999,
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,31 +45,93 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.userId
+        const plan = session.metadata?.plan || "starter"
 
-        // Store subscription data
-        // For now, we'll return it in the response
-        // In production, you'd save this to a database
-        const subscriptionData = {
-          customerEmail: session.customer_email,
-          subscriptionId: session.subscription,
-          customerId: session.customer,
-          status: "active",
-          createdAt: new Date().toISOString(),
+        if (userId) {
+          // Update subscription in database
+          const { error } = await supabaseAdmin
+            .from("subscriptions")
+            .update({
+              stripe_customer_id: session.customer as string,
+              stripe_subscription_id: session.subscription as string,
+              plan: plan,
+              status: "active",
+              tests_limit: PLAN_LIMITS[plan] || 5,
+              tests_used: 0,
+              current_period_start: new Date().toISOString(),
+              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", userId)
+
+          if (error) {
+            console.error("Error updating subscription:", error)
+          } else {
+            console.log("Subscription created for user:", userId, "plan:", plan)
+          }
         }
-
-        console.log("Subscription created:", subscriptionData)
         break
       }
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription
-        console.log("Subscription updated:", subscription.id, subscription.status)
+        const customerId = subscription.customer as string
+
+        // Find user by Stripe customer ID and update
+        const { error } = await supabaseAdmin
+          .from("subscriptions")
+          .update({
+            status: subscription.status === "active" ? "active" : subscription.status,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_customer_id", customerId)
+
+        if (error) {
+          console.error("Error updating subscription:", error)
+        }
         break
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription
-        console.log("Subscription cancelled:", subscription.id)
+        const customerId = subscription.customer as string
+
+        // Downgrade to free plan
+        const { error } = await supabaseAdmin
+          .from("subscriptions")
+          .update({
+            plan: "free",
+            status: "canceled",
+            tests_limit: 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_customer_id", customerId)
+
+        if (error) {
+          console.error("Error canceling subscription:", error)
+        }
+        break
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = invoice.customer as string
+
+        // Mark subscription as past due
+        const { error } = await supabaseAdmin
+          .from("subscriptions")
+          .update({
+            status: "past_due",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_customer_id", customerId)
+
+        if (error) {
+          console.error("Error updating subscription status:", error)
+        }
         break
       }
 

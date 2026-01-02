@@ -10,27 +10,46 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-export default function LoginPage() {
+export default function SignUpPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [fullName, setFullName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
+          data: {
+            full_name: fullName,
+          },
+        },
       })
       if (error) throw error
-      router.push("/dashboard")
-      router.refresh()
+      router.push("/signup/success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
@@ -41,16 +60,29 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Login Card */}
+        {/* Signup Card */}
         <div className="bg-card border-2 border-border brutal-shadow-lg p-8">
           {/* Logo/Title */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold uppercase tracking-tight mb-2">Ghost CRO</h1>
-            <p className="text-muted-foreground">Sign in to access your dashboard</p>
+            <p className="text-muted-foreground">Create your account to get started</p>
           </div>
 
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-4">
+          {/* Signup Form */}
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName" className="font-bold uppercase text-sm">
+                Full Name
+              </Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="border-2 border-border bg-white"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="font-bold uppercase text-sm">
                 Email
@@ -78,13 +110,26 @@ export default function LoginPage() {
                 className="border-2 border-border bg-white"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="font-bold uppercase text-sm">
+                Confirm Password
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="border-2 border-border bg-white"
+              />
+            </div>
             {error && <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-sm">{error}</div>}
             <Button
               type="submit"
               disabled={isLoading}
               className="w-full py-6 bg-primary text-primary-foreground font-bold uppercase tracking-wide border-2 border-border brutal-shadow brutal-hover"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
 
@@ -94,62 +139,22 @@ export default function LoginPage() {
               <div className="w-full border-t-2 border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-card text-muted-foreground font-bold uppercase">New here?</span>
+              <span className="px-4 bg-card text-muted-foreground font-bold uppercase">Already have an account?</span>
             </div>
           </div>
 
-          {/* Sign up link */}
+          {/* Login link */}
           <Link
-            href="/signup"
+            href="/login"
             className="block w-full text-center py-4 bg-white text-foreground font-bold uppercase tracking-wide text-sm border-2 border-border brutal-shadow brutal-hover"
           >
-            Create an Account
+            Sign In Instead
           </Link>
-
-          {/* Benefits */}
-          <div className="mt-8 space-y-3 text-sm">
-            <div className="flex items-start gap-2">
-              <svg
-                className="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={3}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Access your checkout optimization dashboard</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <svg
-                className="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={3}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Run comprehensive checkout tests</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <svg
-                className="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={3}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Track performance improvements over time</span>
-            </div>
-          </div>
         </div>
 
         {/* Footer Text */}
         <p className="text-center text-sm text-muted-foreground mt-6">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+          By signing up, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
     </div>
