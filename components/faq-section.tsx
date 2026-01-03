@@ -1,28 +1,38 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Minus } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 
 const faqs = [
   {
-    question: "What do I get in the report?",
+    question: "How is Ghost different from Google Analytics or Hotjar?",
     answer:
-      "You'll receive a comprehensive analysis including: friction point mapping with severity ratings, synthetic shopper insights from multiple personas, prioritized fix recommendations ranked by revenue impact, and a detailed breakdown of what's working well. Each recommendation includes implementation guidance and expected impact.",
+      "Google Analytics shows you what happened. Hotjar shows you where people clicked. Ghost shows you why they left and what to fix first. We use AI to simulate real buyer behavior, identify revenue leaks, and prioritize fixes by dollar impact—not just data points.",
   },
   {
-    question: "How long does the analysis take?",
+    question: "How quickly will I see results?",
     answer:
-      "Our AI completes the full analysis in about 5 minutes. You'll receive an email notification as soon as your report is ready, along with a link to view it online or download as a PDF.",
+      "Most merchants see their first leak report within 5 minutes of connecting their store. After implementing the top 3 prioritized fixes, typical recovery is $2,000-$10,000/month within 2-4 weeks. Ghost continuously monitors and updates as you make changes.",
   },
   {
-    question: "Do you need access to my Shopify admin?",
+    question: "Do I need technical skills to use Ghost?",
     answer:
-      "No, we don't need any access to your Shopify admin or analytics. Our AI analyzes your checkout flow from the customer's perspective—just like a real shopper would. We only need your store URL.",
+      "No. Ghost provides step-by-step implementation guides for every fix. Most optimizations can be done in Shopify's theme editor or with simple copy changes. For more complex fixes, we provide clear instructions you can share with your developer.",
   },
   {
-    question: "What if I'm not satisfied?",
+    question: "What Shopify plans does Ghost work with?",
     answer:
-      "We offer a 100% money-back guarantee. If you don't find actionable insights in your report that can improve your conversion rate, we'll refund your payment in full—no questions asked.",
+      "Ghost works with all Shopify plans—Basic, Shopify, Advanced, and Plus. We connect via the Shopify API and analyze your checkout flow regardless of your plan tier.",
+  },
+  {
+    question: "What if Ghost doesn't find any leaks?",
+    answer:
+      "If your checkout is already optimized, Ghost will confirm that and provide competitive benchmarks showing how you compare. You can cancel anytime during your free trial with no charges.",
+  },
+  {
+    question: "Can I cancel anytime?",
+    answer:
+      "Yes. There are no long-term contracts. Cancel anytime from your account settings. Your data remains accessible for 30 days after cancellation.",
   },
 ]
 
@@ -30,36 +40,35 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <section className="py-24 px-4">
-      <div className="max-w-3xl mx-auto">
+    <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground uppercase mb-4">FAQ</h2>
-          <p className="text-xl text-muted-foreground font-medium">Everything you need to know about Ghost CRO</p>
+          <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+            Questions? Answered.
+          </h2>
         </div>
 
         <div className="space-y-4">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-card border-3 border-foreground brutal-shadow"
-              style={{ transform: `rotate(${index % 2 === 0 ? "-0.3" : "0.3"}deg)` }}
+              className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full text-left p-6 flex items-center justify-between gap-4 font-bold text-lg sm:text-xl uppercase tracking-wide hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors"
               >
-                <span>{faq.question}</span>
-                <div className="w-10 h-10 bg-primary border-2 border-foreground flex items-center justify-center shrink-0">
-                  {openIndex === index ? (
-                    <Minus className="w-5 h-5" strokeWidth={3} />
-                  ) : (
-                    <Plus className="w-5 h-5" strokeWidth={3} />
-                  )}
-                </div>
+                <span className="text-lg font-semibold text-gray-900 pr-8">{faq.question}</span>
+                <ChevronDown
+                  className={`h-5 w-5 text-gray-400 flex-shrink-0 transition-transform ${
+                    openIndex === index ? "rotate-180" : ""
+                  }`}
+                  strokeWidth={2.5}
+                />
               </button>
               {openIndex === index && (
-                <div className="px-6 pb-6 border-t-3 border-foreground pt-4">
-                  <p className="text-muted-foreground text-lg leading-relaxed">{faq.answer}</p>
+                <div className="px-6 pb-6">
+                  <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
                 </div>
               )}
             </div>

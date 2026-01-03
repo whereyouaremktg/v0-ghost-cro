@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getShopifyScopesString } from "@/lib/shopify/scopes"
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
     const clientId = process.env.SHOPIFY_CLIENT_ID
     const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
     const redirectUri = `${nextAuthUrl}/api/auth/shopify/callback`
-    const scopes = "read_orders,read_products,read_analytics"
+    const scopes = getShopifyScopesString()
 
     // Validate required environment variables
     if (!clientId) {

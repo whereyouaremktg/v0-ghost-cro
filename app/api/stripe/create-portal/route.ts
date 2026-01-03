@@ -2,9 +2,16 @@ import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createClient } from "@/lib/supabase/server"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-})
+// Lazy initialize Stripe to avoid build errors when key is missing
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured")
+  }
+  return new Stripe(key, {
+    apiVersion: "2024-12-18.acacia",
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +36,7 @@ export async function POST(request: NextRequest) {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
     // Create Stripe Customer Portal Session
+    const stripe = getStripe()
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${baseUrl}/dashboard/settings`,

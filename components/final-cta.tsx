@@ -1,57 +1,34 @@
 "use client"
-import { Clock, Shield, Zap, Ghost } from "lucide-react"
+
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function FinalCTA() {
   return (
-    <section className="py-24 px-4 bg-foreground text-background">
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase leading-[0.95] mb-8">
-          Every day you wait,{" "}
-          <span className="bg-primary text-foreground px-3 inline-block rotate-1">you're losing sales</span>
+    <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent" />
+      
+      <div className="relative max-w-4xl mx-auto text-center">
+        <h2 className="text-4xl sm:text-5xl font-semibold text-gray-900 mb-4 tracking-tight">
+          Stop guessing. Start knowing.
         </h2>
-
-        <p className="text-xl sm:text-2xl text-background/70 mb-12 max-w-2xl mx-auto font-medium">
-          Join 50+ Shopify stores that have already discovered their hidden conversion killers.
+        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          Connect your Shopify store in 60 seconds. Get your first leak report free.
         </p>
-
-        <div className="max-w-2xl mx-auto mb-12">
-          <form className="flex flex-col sm:flex-row gap-4">
-            <input
-              type="text"
-              placeholder="yourstore.myshopify.com"
-              className="flex-1 bg-background text-foreground px-6 py-5 border-3 border-background text-lg font-medium focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="bg-primary text-foreground font-bold px-8 py-5 text-lg uppercase tracking-wide border-3 border-background hover:bg-primary/90 transition-colors flex items-center justify-center gap-3"
-            >
-              Analyze — $79
-            </button>
-          </form>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-20">
-          {[
-            { icon: Clock, text: "5 minute analysis" },
-            { icon: Shield, text: "100% money-back" },
-            { icon: Zap, text: "No access needed" },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-2 px-4 py-2 bg-background/10 border-2 border-background/30">
-              <item.icon className="w-4 h-4" strokeWidth={2.5} />
-              <span className="text-sm font-bold uppercase tracking-wide">{item.text}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="pt-8 border-t-3 border-background/20 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Ghost className="w-5 h-5" strokeWidth={3} />
-            <span className="font-bold uppercase tracking-wide">Ghost CRO</span>
-          </div>
-          <p className="text-sm text-background/60 font-medium">
-            © {new Date().getFullYear()} Ghost CRO. All rights reserved.
-          </p>
-        </div>
+        <Link href="/signup">
+          <Button
+            size="lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-10 py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl"
+          >
+            Find My Revenue Leaks
+            <ArrowRight className="ml-2 h-5 w-5" strokeWidth={2.5} />
+          </Button>
+        </Link>
+        <p className="text-sm text-gray-500 mt-6">
+          Free 7-day trial · No credit card required · Cancel anytime
+        </p>
       </div>
     </section>
   )

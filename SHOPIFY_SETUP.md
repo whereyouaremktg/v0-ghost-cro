@@ -113,12 +113,49 @@ NEXTAUTH_URL=http://localhost:3000
 
 ## Required Scopes
 
-The app requests these scopes:
-- `read_orders` - To analyze order data and conversion metrics
-- `read_products` - To understand product information
-- `read_analytics` - To access store analytics data
+The app requests these read-only scopes (no write permissions):
+- `read_analytics` - Access to store analytics data
+- `read_customer_events` - Customer behavior tracking
+- `read_orders` - Order data and conversion metrics
+- `read_product_listings` - Product listing information
+- `read_products` - Product details and inventory
+- `read_reports` - Store performance reports
+- `read_themes` - Theme information for checkout analysis
+- `read_checkouts` - Abandoned checkout data (critical for CRO analysis)
+- `read_shipping` - Shipping rates and zones
+- `read_customers` - Customer segments and data
 
-These are read-only scopes and won't modify your store.
+**Important**: These are all read-only scopes. Ghost CRO will never modify your store, products, orders, or customer data.
+
+### Updating Scopes
+
+If you've previously connected your store with older scopes, you'll need to re-authenticate:
+
+1. **Disconnect the store** in Ghost CRO (Settings page)
+2. **Reconnect** to grant the new permissions
+3. The app will request all required scopes during re-authentication
+
+**Note**: Existing users who connected before scope updates will need to disconnect and reconnect to grant the new permissions. The OAuth flow will automatically request all required scopes.
+
+### Configuring Scopes in Shopify Partners Dashboard
+
+1. Go to your app in [Shopify Partners Dashboard](https://partners.shopify.com/)
+2. Navigate to "App setup" → "Scopes"
+3. Ensure all required scopes are enabled:
+   - ✅ read_analytics
+   - ✅ read_customer_events
+   - ✅ read_orders
+   - ✅ read_product_listings
+   - ✅ read_products
+   - ✅ read_reports
+   - ✅ read_themes
+   - ✅ read_checkouts
+   - ✅ read_shipping
+   - ✅ read_customers
+
+**Important**: If you're updating scopes for an existing app, you may need to:
+- Submit the app for review (if it's published)
+- Or test on a development store to verify the new scopes work correctly
 
 ## Security Notes
 

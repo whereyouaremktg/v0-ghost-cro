@@ -60,7 +60,20 @@ export async function GET(request: Request) {
       )
     }
 
-    const { access_token } = await accessTokenResponse.json()
+    const tokenData = await accessTokenResponse.json()
+    
+    if (!tokenData.access_token) {
+      console.error("No access token in response:", tokenData)
+      return NextResponse.redirect(
+        `${nextAuthUrl}/dashboard/settings?error=token_exchange_failed&message=${encodeURIComponent("No access token received from Shopify")}`,
+      )
+    }
+
+    const access_token = tokenData.access_token
+
+    // Properly escape values for safe injection into HTML/JavaScript
+    const shopJson = JSON.stringify(shop)
+    const tokenJson = JSON.stringify(access_token)
 
     // Create HTML page that stores the token in localStorage and automatically triggers first scan
     const html = `
@@ -111,6 +124,11 @@ export async function GET(request: Request) {
       color: #8b949e;
       font-size: 0.875rem;
     }
+    .error {
+      color: #f85149;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+    }
   </style>
 </head>
 <body>
@@ -118,20 +136,33 @@ export async function GET(request: Request) {
     <div class="loader"></div>
     <h2>Connecting your store...</h2>
     <p>Setting up Ghost and starting your first analysis</p>
+    <div id="error" class="error" style="display: none;"></div>
   </div>
   <script>
-    const shopifyData = {
-      shop: "${shop}",
-      accessToken: "${access_token}",
-      connectedAt: new Date().toISOString()
-    };
+    try {
+      const shopifyData = {
+        shop: ${shopJson},
+        accessToken: ${tokenJson},
+        connectedAt: new Date().toISOString()
+      };
 
-    localStorage.setItem("shopifyStore", JSON.stringify(shopifyData));
+      localStorage.setItem("shopifyStore", JSON.stringify(shopifyData));
 
-    // Redirect to run-test page to automatically trigger first scan
-    setTimeout(() => {
-      window.location.href = "/dashboard/run-test?auto=true";
-    }, 1500);
+      // Redirect to run-test page to automatically trigger first scan
+      setTimeout(() => {
+        window.location.href = "/ghost?auto=true#simulation";
+      }, 1500);
+    } catch (error) {
+      console.error("Error storing Shopify data:", error);
+      const errorEl = document.getElementById("error");
+      if (errorEl) {
+        errorEl.textContent = "Failed to store connection data. Please try again.";
+        errorEl.style.display = "block";
+      }
+      setTimeout(() => {
+        window.location.href = "/ghost#settings";
+      }, 3000);
+    }
   </script>
 </body>
 </html>
@@ -144,6 +175,10 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error("Shopify OAuth callback error:", error)
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/dashboard/settings?error=callback_failed`)
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+    const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+    return NextResponse.redirect(
+      `${nextAuthUrl}/dashboard/settings?error=callback_failed&message=${encodeURIComponent(errorMessage)}`
+    )
   }
 }

@@ -53,7 +53,7 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
       <div className="flex items-center justify-between p-4 border-b border-border/30">
         <h3 className="text-xs font-medium tracking-wide text-muted-foreground font-heading">Recent Scans</h3>
         <Link
-          href="/dashboard/history"
+          href="/ghost#timeline"
           className="text-xs font-medium tracking-wide hover:text-primary transition-colors duration-300"
         >
           View All →
@@ -118,7 +118,7 @@ export function RecentTestsTable({ tests = [] }: RecentTestsTableProps) {
                     </td>
                     <td className="p-4">
                       <Link
-                        href={`/dashboard/test/${test.id}`}
+                        href={`/ghost/test/${test.id}`}
                         className="inline-block px-4 py-2 text-xs font-medium tracking-wide rounded-xl border border-border/30 bg-card/50 hover:bg-muted/50 transition-all duration-300 hover:-translate-y-0.5"
                       >
                         View

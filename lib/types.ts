@@ -1,3 +1,5 @@
+import type { StoreAnalysis } from "./analysis/schema"
+
 export interface FrictionPoint {
   id: string
   title: string
@@ -50,6 +52,8 @@ export interface TestResult {
   personaResults: PersonaResult[]
   recommendations: Recommendation[]
   funnelData: FunnelData
+  // Optional detailed store analysis from structured schema
+  storeAnalysis?: StoreAnalysis
 }
 
 export interface AnalyzeRequest {
@@ -60,3 +64,13 @@ export interface AnalyzeRequest {
 export interface AnalyzeResponse {
   result: TestResult
 }
+
+// Re-export Shopify types for convenience
+export type {
+  AbandonedCheckout,
+  AbandonedCheckoutStats,
+  ShippingZone,
+  ShippingRate,
+  Country,
+  ShippingShockAnalysis,
+} from "./shopify/client"

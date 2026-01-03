@@ -3,81 +3,99 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Gumroad-inspired Visual System */
+/* Premium SaaS Visual System - Light Mode Primary */
 :root {
-  --background: #0F1115;
-  --foreground: #E6E8EC;
-  --card: #161A20;
-  --card-foreground: #E6E8EC;
-  --popover: #161A20;
-  --popover-foreground: #E6E8EC;
-  --primary: #A8E063;
-  --primary-foreground: #0F1115;
-  --secondary: #222833;
-  --secondary-foreground: #E6E8EC;
-  --muted: #222833;
-  --muted-foreground: #9AA1AD;
-  --accent: #A8E063;
-  --accent-foreground: #0F1115;
-  --destructive: #FF5D5D;
-  --destructive-foreground: #E6E8EC;
-  --border: #222833;
-  --input: #222833;
-  --ring: #A8E063;
-  --chart-1: #A8E063;
-  --chart-2: #9AA1AD;
-  --chart-3: #FF5D5D;
-  --chart-4: #E6E8EC;
-  --chart-5: #222833;
-  --radius: 1rem;
-  --sidebar: #161A20;
-  --sidebar-foreground: #E6E8EC;
-  --sidebar-primary: #A8E063;
-  --sidebar-primary-foreground: #0F1115;
-  --sidebar-accent: #222833;
-  --sidebar-accent-foreground: #E6E8EC;
-  --sidebar-border: #222833;
-  --sidebar-ring: #A8E063;
+  /* Base Colors */
+  --background: #FFFFFF;
+  --foreground: #0A0A0A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+  
+  /* Primary Accent - Electric Lime */
+  --primary: #BFFF00;
+  --primary-foreground: #0A0A0A;
+  
+  /* Secondary */
+  --secondary: #F5F5F5;
+  --secondary-foreground: #0A0A0A;
+  
+  /* Muted */
+  --muted: #F5F5F5;
+  --muted-foreground: #6B7280;
+  
+  /* Accent */
+  --accent: #BFFF00;
+  --accent-foreground: #0A0A0A;
+  
+  /* Semantic Colors */
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  
+  /* Borders & Dividers */
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #BFFF00;
+  
+  /* Charts */
+  --chart-1: #BFFF00;
+  --chart-2: #10B981;
+  --chart-3: #EF4444;
+  --chart-4: #F59E0B;
+  --chart-5: #3B82F6;
+  
+  /* Radius */
+  --radius: 0.75rem;
+  
+  /* Sidebar (for dashboard) */
+  --sidebar: #FAFAFA;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #BFFF00;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #F5F5F5;
+  --sidebar-accent-foreground: #0A0A0A;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #BFFF00;
 }
 
 .dark {
-  --background: #0F1115;
-  --foreground: #E6E8EC;
-  --card: #161A20;
-  --card-foreground: #E6E8EC;
-  --popover: #161A20;
-  --popover-foreground: #E6E8EC;
-  --primary: #A8E063;
-  --primary-foreground: #0F1115;
-  --secondary: #222833;
-  --secondary-foreground: #E6E8EC;
-  --muted: #222833;
-  --muted-foreground: #9AA1AD;
-  --accent: #A8E063;
-  --accent-foreground: #0F1115;
-  --destructive: #FF5D5D;
-  --destructive-foreground: #E6E8EC;
-  --border: #222833;
-  --input: #222833;
-  --ring: #A8E063;
-  --chart-1: #A8E063;
-  --chart-2: #9AA1AD;
-  --chart-3: #FF5D5D;
-  --chart-4: #E6E8EC;
-  --chart-5: #222833;
-  --sidebar: #161A20;
-  --sidebar-foreground: #E6E8EC;
-  --sidebar-primary: #A8E063;
-  --sidebar-primary-foreground: #0F1115;
-  --sidebar-accent: #222833;
-  --sidebar-accent-foreground: #E6E8EC;
-  --sidebar-border: #222833;
-  --sidebar-ring: #A8E063;
+  /* Dark mode support (optional) */
+  --background: #0A0A0A;
+  --foreground: #FAFAFA;
+  --card: #111111;
+  --card-foreground: #FAFAFA;
+  --popover: #111111;
+  --popover-foreground: #FAFAFA;
+  --primary: #BFFF00;
+  --primary-foreground: #0A0A0A;
+  --secondary: #1A1A1A;
+  --secondary-foreground: #FAFAFA;
+  --muted: #1A1A1A;
+  --muted-foreground: #9CA3AF;
+  --accent: #BFFF00;
+  --accent-foreground: #0A0A0A;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #2A2A2A;
+  --input: #2A2A2A;
+  --ring: #BFFF00;
+  --sidebar: #111111;
+  --sidebar-foreground: #FAFAFA;
+  --sidebar-primary: #BFFF00;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #1A1A1A;
+  --sidebar-accent-foreground: #FAFAFA;
+  --sidebar-border: #2A2A2A;
+  --sidebar-ring: #BFFF00;
 }
 
 @theme inline {
-  --font-sans: var(--font-sans), "Plus Jakarta Sans", system-ui, sans-serif;
-  --font-heading: var(--font-heading), "DM Sans", system-ui, sans-serif;
+  --font-sans: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --font-heading: var(--font-heading), "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
   --font-mono: "Space Mono", "Geist Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -193,7 +211,7 @@ html {
     background-color: transparent;
   }
   50% {
-    background-color: rgba(168, 224, 99, 0.15);
+    background-color: rgba(191, 255, 0, 0.15);
   }
 }
 
@@ -248,29 +266,25 @@ html {
 }
 
 .button-glow:hover {
-  box-shadow: 0 0 20px rgba(168, 224, 99, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 20px rgba(191, 255, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Section scroll animation */
 .section-scroll-in {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.section-scroll-in.visible {
+  /* Start visible by default - animation is enhancement */
   opacity: 1;
   transform: translateY(0);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 /* Accent button glow effect */
 .accent-glow {
-  box-shadow: 0 0 20px rgba(168, 224, 99, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 20px rgba(191, 255, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
 }
 
 .accent-glow:hover {
-  box-shadow: 0 0 30px rgba(168, 224, 99, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 30px rgba(191, 255, 0, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
 }
 
@@ -285,4 +299,35 @@ html {
 .card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.3), 0 8px 16px -6px rgba(0, 0, 0, 0.2);
+}
+
+/* Premium hero animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.6s ease-out forwards;
 }

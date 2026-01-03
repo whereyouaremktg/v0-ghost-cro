@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+import {
+  fetchAbandonedCheckouts,
+  calculateAbandonedCheckoutStats,
+  fetchShippingZones,
+  analyzeShippingShock,
+} from "@/lib/shopify/client"
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,6 +59,46 @@ export async function POST(request: NextRequest) {
 
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
+    // Fetch abandoned checkouts for the last 30 days
+    let abandonedCheckouts = []
+    let abandonedCheckoutStats = null
+    
+    try {
+      abandonedCheckouts = await fetchAbandonedCheckouts(
+        { shop, accessToken },
+        {
+          status: "open",
+          limit: 250,
+          created_at_min: startDate.toISOString(),
+          created_at_max: endDate.toISOString(),
+        }
+      )
+      
+      abandonedCheckoutStats = calculateAbandonedCheckoutStats(abandonedCheckouts)
+    } catch (error) {
+      console.error("Failed to fetch abandoned checkouts:", error)
+      // Continue without abandoned checkout data - don't fail the entire request
+    }
+
+    // Fetch shipping zones and rates
+    let shippingZones = []
+    let shippingShockAnalysis = null
+    
+    try {
+      shippingZones = await fetchShippingZones({ shop, accessToken })
+      
+      // Analyze shipping shock using abandoned checkout data
+      if (abandonedCheckouts.length > 0) {
+        shippingShockAnalysis = analyzeShippingShock(shippingZones, abandonedCheckouts)
+      } else {
+        // Still analyze shipping zones even without checkout data
+        shippingShockAnalysis = analyzeShippingShock(shippingZones, [])
+      }
+    } catch (error) {
+      console.error("Failed to fetch shipping zones:", error)
+      // Continue without shipping data - don't fail the entire request
+    }
+
     // For sessions and conversion rate, we'd need Shopify Analytics API (requires Shopify Plus)
     // or access to Google Analytics. For now, we'll return what we can calculate from orders.
 
@@ -88,6 +134,32 @@ export async function POST(request: NextRequest) {
         // These would need to be calculated from external analytics or Shopify Plus
         estimatedConversionRate: null, // Requires Analytics API
         totalSessions: null, // Requires Analytics API
+      },
+      abandonedCheckouts: {
+        total: abandonedCheckoutStats?.total || 0,
+        totalValue: abandonedCheckoutStats?.totalValue || 0,
+        averageValue: abandonedCheckoutStats?.averageValue || 0,
+        dropOffPoints: abandonedCheckoutStats?.dropOffPoints || {
+          atCart: 0,
+          atShipping: 0,
+          atPayment: 0,
+          unknown: 0,
+        },
+        byDay: abandonedCheckoutStats?.byDay || [],
+      },
+      shipping: {
+        zones: shippingZones.length,
+        analysis: shippingShockAnalysis
+          ? {
+              hasFreeShipping: shippingShockAnalysis.hasFreeShipping,
+              freeShippingThreshold: shippingShockAnalysis.freeShippingThreshold,
+              averageShippingCost: shippingShockAnalysis.averageShippingCost,
+              shippingCostRange: shippingShockAnalysis.shippingCostRange,
+              hasHiddenShipping: shippingShockAnalysis.hasHiddenShipping,
+              countriesWithHighShipping: shippingShockAnalysis.countriesWithHighShipping,
+              recommendations: shippingShockAnalysis.recommendations,
+            }
+          : null,
       },
       shop: {
         name: shopData?.name || shop,

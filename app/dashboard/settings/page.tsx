@@ -117,7 +117,7 @@ export default function SettingsPage() {
     if (confirm("Disconnect your Shopify store? You'll need to reconnect to run scans.")) {
       localStorage.removeItem("shopifyStore")
       setShopifyStore(null)
-      router.push("/dashboard")
+      router.push("/ghost")
     }
   }
 
@@ -329,7 +329,7 @@ export default function SettingsPage() {
                       <div className="text-xs text-muted-foreground">Required to run scans</div>
                     </div>
                     <Button
-                      onClick={() => router.push("/dashboard")}
+                      onClick={() => router.push("/ghost")}
                       variant="outline"
                       size="sm"
                     >

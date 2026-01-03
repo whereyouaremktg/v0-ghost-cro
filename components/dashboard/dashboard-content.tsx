@@ -6,6 +6,7 @@ import { Play, TrendingDown, Store, Sparkles } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { ScoreChart } from "@/components/dashboard/score-chart"
 import { RecentTestsTable } from "@/components/dashboard/recent-tests-table"
+import { GhostTimeline } from "@/components/dashboard/ghost-timeline"
 import { RevenueCalculator } from "@/components/dashboard/revenue-calculator"
 import { AIInsightPanel } from "@/components/dashboard/ai-insight-panel"
 import { CircularScore } from "@/components/dashboard/circular-score"
@@ -144,11 +145,11 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
           )}
 
           <Link
-            href="/dashboard/run-test"
+            href="/ghost#simulation"
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium tracking-wide text-sm rounded-xl accent-glow transition-all duration-300 hover:-translate-y-1"
           >
             <Play className="h-4 w-4" strokeWidth={2.5} />
-            {hasTests ? "Re-scan Store" : "Scan Store"}
+            {hasTests ? "Re-run Simulation" : "Run First Simulation"}
           </Link>
         </div>
       </div>
@@ -336,13 +337,15 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
         />
       </div>
 
-      {/* Chart + Recent Tests */}
+      {/* Chart + Ghost Timeline */}
       {hasTests ? (
         <>
           <div className="mb-8">
             <ScoreChart tests={tests} />
           </div>
-          <RecentTestsTable tests={tests} />
+          <div className="mb-8">
+            <GhostTimeline tests={tests} shopifyMetrics={shopifyMetrics} />
+          </div>
         </>
       ) : (
         <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm p-6 animate-fade-in card-hover">

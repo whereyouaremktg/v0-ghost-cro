@@ -2,12 +2,26 @@ import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createClient } from "@supabase/supabase-js"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
-})
+// Lazy initialize Stripe to avoid build errors when key is missing
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured")
+  }
+  return new Stripe(key, {
+    apiVersion: "2024-12-18.acacia",
+  })
+}
 
-// Use service role for webhook to bypass RLS
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+// Lazy initialize Supabase to avoid build errors when keys are missing
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error("Supabase configuration is missing")
+  }
+  return createClient(url, key)
+}
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
@@ -29,6 +43,7 @@ export async function POST(request: NextRequest) {
     let event: Stripe.Event
 
     // Verify webhook signature
+    const stripe = getStripe()
     if (webhookSecret) {
       try {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
@@ -50,6 +65,7 @@ export async function POST(request: NextRequest) {
 
         if (userId) {
           // Update subscription in database
+          const supabaseAdmin = getSupabaseAdmin()
           const { error } = await supabaseAdmin
             .from("subscriptions")
             .update({
@@ -79,6 +95,7 @@ export async function POST(request: NextRequest) {
         const customerId = subscription.customer as string
 
         // Find user by Stripe customer ID and update
+        const supabaseAdmin = getSupabaseAdmin()
         const { error } = await supabaseAdmin
           .from("subscriptions")
           .update({
@@ -100,6 +117,7 @@ export async function POST(request: NextRequest) {
         const customerId = subscription.customer as string
 
         // Downgrade to free plan
+        const supabaseAdmin = getSupabaseAdmin()
         const { error } = await supabaseAdmin
           .from("subscriptions")
           .update({
@@ -121,6 +139,7 @@ export async function POST(request: NextRequest) {
         const customerId = invoice.customer as string
 
         // Mark subscription as past due
+        const supabaseAdmin = getSupabaseAdmin()
         const { error } = await supabaseAdmin
           .from("subscriptions")
           .update({

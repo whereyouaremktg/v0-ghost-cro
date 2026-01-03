@@ -1013,7 +1013,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         <div className="text-center">
           <p className="text-destructive mb-4">{error || "Test not found"}</p>
           <Link
-            href="/dashboard/history"
+            href="/ghost/history"
             className="inline-flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -1254,7 +1254,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         <div className="flex items-center justify-between mb-10">
           <div>
             <Link
-              href="/dashboard/history"
+              href="/ghost/history"
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
             >
               <ArrowLeft className="h-4 w-4" />

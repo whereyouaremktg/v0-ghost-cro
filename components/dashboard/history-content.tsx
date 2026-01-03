@@ -124,7 +124,7 @@ export function HistoryContent() {
                 </td>
                 <td className="p-4">
                   <Link
-                    href={`/dashboard/test/${test.id}`}
+                    href={`/ghost/test/${test.id}`}
                     className="inline-block px-4 py-2 text-xs font-bold uppercase tracking-wide border-2 border-border bg-card hover:bg-muted brutal-hover transition-all"
                   >
                     View

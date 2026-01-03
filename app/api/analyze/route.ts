@@ -2,10 +2,42 @@ import Anthropic from "@anthropic-ai/sdk"
 import { NextResponse } from "next/server"
 import * as cheerio from "cheerio"
 import type { TestResult } from "@/lib/types"
+import type { StoreAnalysis } from "@/lib/analysis/schema"
+import { buildStoreAnalysisPrompt } from "@/lib/analysis/prompts/store-analysis"
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+/**
+ * Extract JSON from Claude's response
+ * Handles cases where JSON is wrapped in markdown code blocks or has extra text
+ */
+function extractJSON(text: string): string {
+  // Remove markdown code blocks
+  let cleaned = text.trim()
+  
+  // Remove ```json and ``` markers
+  cleaned = cleaned.replace(/^```json\s*/i, "")
+  cleaned = cleaned.replace(/^```\s*/i, "")
+  cleaned = cleaned.replace(/\s*```$/i, "")
+  
+  // Try to find JSON object boundaries
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+  if (jsonMatch) {
+    return jsonMatch[0]
+  }
+  
+  // If no match, return cleaned text (will fail gracefully in JSON.parse)
+  return cleaned
+}
+
+// Lazy initialize Anthropic to avoid build errors and validate key
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY is not configured. Please add it to your .env.local file.")
+  }
+  return new Anthropic({
+    apiKey,
+  })
+}
 
 interface ScrapedData {
   title: string
@@ -189,26 +221,72 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 })
     }
 
+    // Validate Anthropic API key before proceeding
+    let anthropic
+    try {
+      anthropic = getAnthropicClient()
+    } catch (error) {
+      console.error("Anthropic API key error:", error)
+      return NextResponse.json(
+        {
+          error: "Anthropic API key is not configured",
+          message: error instanceof Error ? error.message : "Please add ANTHROPIC_API_KEY to your .env.local file",
+        },
+        { status: 500 }
+      )
+    }
+
     const personas = getPersonas(personaMix)
 
     // Scrape the URL to get real data
     const scrapedData = await scrapeURL(url)
 
-    const prompt = `You are an expert Shopify conversion optimization analyst specializing in cart-to-checkout flow analysis.
+    // Build the structured store analysis prompt
+    const storeAnalysisPrompt = buildStoreAnalysisPrompt(url, scrapedData)
+
+    // First, get the detailed structured analysis
+    const storeAnalysisMessage = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content: storeAnalysisPrompt,
+        },
+      ],
+    })
+
+    const storeAnalysisText =
+      storeAnalysisMessage.content[0].type === "text" ? storeAnalysisMessage.content[0].text : ""
+
+    let storeAnalysis: StoreAnalysis
+    try {
+      const jsonText = extractJSON(storeAnalysisText)
+      storeAnalysis = JSON.parse(jsonText)
+    } catch (parseError) {
+      console.error("Failed to parse store analysis response:")
+      console.error("Raw response:", storeAnalysisText.substring(0, 500))
+      console.error("Parse error:", parseError)
+      // Return a more helpful error
+      return NextResponse.json(
+        {
+          error: "Failed to parse AI analysis response",
+          details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
+          hint: "The AI response may not be in valid JSON format. Please try again.",
+        },
+        { status: 500 }
+      )
+    }
+
+    // Now get the persona-based analysis and friction points
+    const personaPrompt = `You are an expert Shopify conversion optimization analyst specializing in cart-to-checkout flow analysis.
 
 URL PROVIDED: ${url}
 
-ACTUAL PAGE DATA SCRAPED:
-- Product/Page Title: ${scrapedData.title}
-- Price Shown: ${scrapedData.price}
-- Description: ${scrapedData.description}
-- Trust Signals Found: ${scrapedData.trustSignals.length > 0 ? scrapedData.trustSignals.join(", ") : "None visible"}
-- Shipping Info: ${scrapedData.shippingInfo}
-- Reviews: ${scrapedData.reviews.count} reviews, ${scrapedData.reviews.rating} rating
-- Payment Methods Visible: ${scrapedData.paymentMethods.length > 0 ? scrapedData.paymentMethods.join(", ") : "None visible"}
-- Cart Information: ${scrapedData.cartInfo}
+STRUCTURED STORE ANALYSIS (from detailed review):
+${JSON.stringify(storeAnalysis, null, 2)}
 
-Use this REAL DATA from the actual page to inform your analysis. Don't guess - base your recommendations on what you actually see.
+Use this detailed analysis to inform your persona evaluation and friction point identification.
 
 ANALYSIS SCOPE:
 Analyze the ENTIRE cart-to-checkout experience for this Shopify store. This includes:
@@ -216,14 +294,7 @@ Analyze the ENTIRE cart-to-checkout experience for this Shopify store. This incl
 2. **Cart Page** → Where customers see their items, shipping costs preview, and proceed to checkout
 3. **Checkout Flow** → Account/guest checkout, shipping, payment, and final purchase
 
-Focus heavily on the CART PAGE as this is where most friction and abandonment happens in Shopify stores. Common cart friction points include:
-- Hidden shipping costs (only shown at checkout)
-- No payment method visibility (Apple Pay, Shop Pay, etc.)
-- Missing trust signals (returns, security, reviews)
-- Forced account creation
-- Unclear total cost
-- Poor mobile experience
-- No progress indicators
+Focus heavily on the CART PAGE as this is where most friction and abandonment happens in Shopify stores.
 
 Evaluate this cart-to-checkout journey from the perspective of these 5 different shopper personas:
 ${personas.map((p, i) => `${i + 1}. ${p}`).join("\n")}
@@ -235,18 +306,13 @@ For each persona, determine:
 
 Then, provide a comprehensive analysis including:
 - Overall score (0-100) based on Shopify cart-to-checkout best practices
-- Critical friction points (high impact issues causing abandonment)
+- Critical friction points (high impact issues causing abandonment) - use the issues from the structured analysis
 - High priority issues (significant but not critical)
 - Medium priority issues (minor improvements)
 - Things working well (positive elements)
 - Prioritized fix recommendations with estimated conversion impact
 
-IMPORTANT: Base your analysis on the ACTUAL SCRAPED DATA provided above. Be specific about what IS or ISN'T visible on the page:
-- If shipping info is missing, note it
-- If payment methods aren't shown, call it out
-- If trust signals are present, acknowledge them
-- Use the actual price and product info in your analysis
-- Reference specific elements you can see (or can't see) in the scraped data
+IMPORTANT: Base your analysis on the STRUCTURED ANALYSIS provided above. Reference specific issues found in the storeAnalysis.overallIssues array.
 
 Return your analysis as a JSON object with this EXACT structure:
 {
@@ -292,34 +358,52 @@ Return your analysis as a JSON object with this EXACT structure:
 }
 
 IMPORTANT:
-- Return ONLY valid JSON, no markdown formatting, no code blocks, no explanations
+- **CRITICAL: Return ONLY valid JSON, no markdown formatting, no code blocks, no explanations, no text before or after the JSON**
+- The response must start with { and end with }
+- Do not wrap the JSON in \`\`\`json\`\`\` code blocks
 - Be specific and actionable in your feedback
 - Base the score on real conversion optimization principles
 - Persona reasoning should sound authentic and human
-- Prioritize fixes by impact vs effort`
+- Prioritize fixes by impact vs effort
+- Reference the structured analysis issues when identifying friction points`
 
-    const message = await anthropic.messages.create({
+    // Get persona-based analysis
+    const personaMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       messages: [
         {
           role: "user",
-          content: prompt,
+          content: personaPrompt,
         },
       ],
     })
 
     // Extract the text content from Claude's response
-    const responseText = message.content[0].type === "text" ? message.content[0].text : ""
+    const responseText = personaMessage.content[0].type === "text" ? personaMessage.content[0].text : ""
 
     // Parse the JSON response
     let analysisData
     try {
-      analysisData = JSON.parse(responseText)
+      const jsonText = extractJSON(responseText)
+      analysisData = JSON.parse(jsonText)
     } catch (parseError) {
-      console.error("Failed to parse Claude response:", responseText)
-      throw new Error("Invalid JSON response from Claude")
+      console.error("Failed to parse Claude persona analysis response:")
+      console.error("Raw response:", responseText.substring(0, 500))
+      console.error("Parse error:", parseError)
+      // Return a more helpful error
+      return NextResponse.json(
+        {
+          error: "Failed to parse AI analysis response",
+          details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
+          hint: "The AI response may not be in valid JSON format. Please try again.",
+        },
+        { status: 500 }
+      )
     }
+
+    // Merge the structured analysis into the result
+    // The storeAnalysis is already available from the first API call
 
     // Generate unique ID for this test
     const testId = `test_${Date.now()}_${Math.random().toString(36).substring(7)}`
@@ -363,6 +447,8 @@ IMPORTANT:
       personaResults,
       recommendations: analysisData.recommendations,
       funnelData: analysisData.funnelData,
+      // Store the detailed analysis for future reference
+      storeAnalysis: storeAnalysis,
     }
 
     return NextResponse.json({ result })
