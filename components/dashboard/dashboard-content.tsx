@@ -157,7 +157,7 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
       {/* Hero Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
         {/* Compact Circular Score - 1 column */}
-        <div className="lg:col-span-3 bg-card/50 border border-border/30 rounded-2xl shadow-sm p-5 animate-fade-in card-hover">
+        <div className="lg:col-span-3 card-premium p-6 animate-fade-in">
           <CircularScore
             score={stats.currentScore}
             previousScore={stats.previousScore}
@@ -168,28 +168,28 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
               .map((t) => t.overall_score || 0)
               .reverse()}
           />
-          <div className="mt-6 pt-4 border-t border-border/20 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground/70">Scans this month</span>
-              <span className="font-medium">{stats.testsThisMonth}</span>
+          <div className="mt-6 pt-4 border-t border-border/30 space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Scans this month</span>
+              <span className="font-semibold">{stats.testsThisMonth}</span>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground/70">Scans remaining</span>
-              <span className="font-medium">{stats.testsRemaining}</span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Scans remaining</span>
+              <span className="font-semibold">{stats.testsRemaining}</span>
             </div>
           </div>
         </div>
 
         {/* Live Money Leak - Dominant Hero Metric - 2 columns */}
-        <div className="lg:col-span-9 bg-gradient-to-br from-destructive/15 via-destructive/10 to-destructive/5 border border-destructive/40 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 card-hover animate-fade-in relative overflow-hidden">
+        <div className="lg:col-span-9 bg-gradient-to-br from-rose-50 via-rose-25 to-white dark:from-rose-950/20 dark:via-rose-950/10 dark:to-background border border-rose-200/50 dark:border-rose-800/30 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-8 card-hover animate-fade-in relative overflow-hidden">
           {/* Subtle glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-destructive/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-rose-100/30 to-transparent dark:from-rose-900/10 pointer-events-none" />
           
           <div className="relative">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-destructive/30 border border-destructive/50 rounded-xl backdrop-blur-sm">
-                  <TrendingDown className="h-5 w-5 text-destructive" strokeWidth={2.5} />
+                <div className="p-3 bg-rose-100/50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800/50 rounded-xl backdrop-blur-sm">
+                  <TrendingDown className="h-5 w-5 text-rose-600 dark:text-rose-400" strokeWidth={2.5} />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold tracking-tight font-heading">Live Money Leak</h2>
@@ -204,26 +204,26 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
-                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-2 mb-3">Daily Leak</div>
-                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
+              <div className="bg-background/40 backdrop-blur-sm border-0 rounded-xl p-8 shadow-sm">
+                <p className="metric-label">Daily Leak</p>
+                <p className="metric-primary text-leak mt-2">
                   {hasScore && revenueLeak.daily > 0 ? `$${revenueLeak.daily.toLocaleString()}` : "—"}
-                </div>
-                <div className="text-xs text-muted-foreground/60">per day</div>
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">per day</p>
               </div>
-              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
-                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-3">Weekly Leak</div>
-                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
+              <div className="bg-background/40 backdrop-blur-sm border-0 rounded-xl p-8 shadow-sm">
+                <p className="metric-label">Weekly Leak</p>
+                <p className="metric-primary text-leak mt-2">
                   {hasScore && revenueLeak.weekly > 0 ? `$${revenueLeak.weekly.toLocaleString()}` : "—"}
-                </div>
-                <div className="text-xs text-muted-foreground/60">per week</div>
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">per week</p>
               </div>
-              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
-                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-3">Monthly Leak</div>
-                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
+              <div className="bg-background/40 backdrop-blur-sm border-0 rounded-xl p-8 shadow-sm">
+                <p className="metric-label">Monthly Leak</p>
+                <p className="metric-primary text-leak mt-2">
                   {hasScore && revenueLeak.monthly > 0 ? `$${revenueLeak.monthly.toLocaleString()}` : "—"}
-                </div>
-                <div className="text-xs text-muted-foreground/60">per month</div>
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">per month</p>
               </div>
             </div>
 
@@ -237,25 +237,25 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
       </div>
 
       {/* Secondary Actions - De-emphasized */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm p-5 animate-fade-in card-hover">
-          <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-3">Next Actions</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="card-premium p-6 animate-fade-in">
+          <p className="metric-label mb-4">Next Actions</p>
           {!hasScore ? (
             <div>
-              <div className="text-base font-medium mb-1.5">Ghost is analyzing your store</div>
-              <p className="text-xs text-muted-foreground/70 mb-3">Your first checkout analysis is in progress. Results will appear here shortly.</p>
+              <div className="text-base font-medium mb-2">Ghost is analyzing your store</div>
+              <p className="text-sm text-muted-foreground">Your first checkout analysis is in progress. Results will appear here shortly.</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
-              <div className="bg-background/30 border border-border/10 rounded-md p-3">
-                <div className="text-[10px] font-medium tracking-wide text-muted-foreground/60">This week</div>
-                <div className="mt-1 text-sm font-medium">Fix 3 high-impact friction points</div>
-                <div className="mt-0.5 text-xs text-muted-foreground/70">Trust signals + CTA clarity + shipping transparency</div>
+            <div className="space-y-3">
+              <div className="bg-muted/30 border-0 rounded-lg p-4">
+                <p className="metric-label mb-1">This week</p>
+                <p className="text-sm font-medium mb-1">Fix 3 high-impact friction points</p>
+                <p className="text-xs text-muted-foreground">Trust signals + CTA clarity + shipping transparency</p>
               </div>
-              <div className="bg-background/30 border border-border/10 rounded-md p-3">
-                <div className="text-[10px] font-medium tracking-wide text-muted-foreground/60">Then</div>
-                <div className="mt-1 text-sm font-medium">Re-run scan to verify lift</div>
-                <div className="mt-0.5 text-xs text-muted-foreground/70">Track score movement and leak reduction</div>
+              <div className="bg-muted/30 border-0 rounded-lg p-4">
+                <p className="metric-label mb-1">Then</p>
+                <p className="text-sm font-medium mb-1">Re-run scan to verify lift</p>
+                <p className="text-xs text-muted-foreground">Track score movement and leak reduction</p>
               </div>
             </div>
           )}
@@ -263,16 +263,16 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
       </div>
 
       {/* Welcome Banner - De-emphasized */}
-      <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm p-4 mb-6 animate-fade-in card-hover">
+      <div className="card-premium p-5 mb-6 animate-fade-in">
         <p className="text-sm">
           <span className="font-medium">{user.name.split(" ")[0]}, here's what Ghost sees.</span>{" "}
           {hasScore ? (
             <>
               Checkout score is{" "}
               {scoreDiff >= 0 ? (
-                <span className="text-primary font-medium">up {scoreDiff} points</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">up {scoreDiff} points</span>
               ) : (
-                <span className="text-destructive font-medium">down {Math.abs(scoreDiff)} points</span>
+                <span className="text-rose-600 dark:text-rose-400 font-medium">down {Math.abs(scoreDiff)} points</span>
               )}{" "}
               since last scan.
             </>
@@ -281,17 +281,17 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
           )}
         </p>
         {stats.plan === "free" && (
-          <p className="text-xs text-muted-foreground/70 mt-1.5">
+          <p className="text-xs text-muted-foreground mt-2">
             Free plan: {stats.testsRemaining} test remaining.{" "}
-            <Link href="/#pricing" className="text-primary font-medium underline hover:no-underline">
+            <Link href="/#pricing" className="text-lime-600 dark:text-lime-400 font-medium underline hover:no-underline">
               Upgrade
             </Link>
           </p>
         )}
       </div>
 
-      {/* Stats Grid - De-emphasized */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           label="Checkout Score"
           value={stats.currentScore || "—"}

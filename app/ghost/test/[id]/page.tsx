@@ -1108,16 +1108,31 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
   const abandonCount = test.personaResults.filter((p) => p.verdict === "abandon").length
   const totalSimulated = test.personaResults.length
   const currentConversionRate = totalSimulated > 0 ? purchaseCount / totalSimulated : 0.025 // Default 2.5%
-  
+
   // Category benchmark (e.g., 2.8% for e-commerce)
   const categoryBenchmarkCR = 0.028
 
-  // Calculate revenue opportunity using new system
+  // Calculate revenue opportunity using new system with validation
+  console.log('=== REVENUE CALCULATION ===')
+  console.log('Inputs:', {
+    monthlyVisitors: monthlySessions || 50000,
+    currentConversionRate: isNaN(currentConversionRate) ? 0.025 : currentConversionRate,
+    aov: aov || 85,
+    categoryBenchmarkCR: categoryBenchmarkCR || 0.028,
+  })
+
   const revenueOpportunity = calculateRevenueOpportunity({
-    monthlyVisitors: monthlySessions,
-    currentConversionRate,
-    aov,
-    categoryBenchmarkCR,
+    monthlyVisitors: monthlySessions || 50000,
+    currentConversionRate: isNaN(currentConversionRate) ? 0.025 : currentConversionRate,
+    aov: aov || 85,
+    categoryBenchmarkCR: categoryBenchmarkCR || 0.028,
+  })
+
+  console.log('Revenue Opportunity:', {
+    monthlyMin: revenueOpportunity.monthlyOpportunity.min,
+    monthlyMax: revenueOpportunity.monthlyOpportunity.max,
+    currentRevenue: revenueOpportunity.currentMonthlyRevenue,
+    potentialRevenue: revenueOpportunity.potentialMonthlyRevenue,
   })
 
   // Legacy revenue leak calculation (for backward compatibility in some places)
@@ -1132,13 +1147,35 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     ...test.frictionPoints.critical.map((fp) => ({ ...fp, severity: "critical" as const })),
     ...test.frictionPoints.high.map((fp) => ({ ...fp, severity: "high" as const })),
     ...test.frictionPoints.medium.map((fp) => ({ ...fp, severity: "medium" as const })),
-  ].map((threat) => {
+  ].map((threat, threatIndex) => {
     // Count how many buyers cited this threat
+    // Extract meaningful keywords (filter out short/common words)
+    const stopWords = ['the', 'this', 'that', 'with', 'from', 'your', 'have', 'and', 'for', 'not', 'but', 'are', 'was', 'were']
+
+    const threatKeywords = threat.title.toLowerCase()
+      .split(/\s+/)
+      .filter(word => word.length > 3 && !stopWords.includes(word))
+
+    const locationKeywords = threat.location.toLowerCase()
+      .split(/\s+/)
+      .filter(word => word.length > 3 && !stopWords.includes(word))
+
+    const allKeywords = [...new Set([...threatKeywords, ...locationKeywords])] // Deduplicate
+
     const buyersCitingThreat = test.personaResults.filter((p) => {
-      const reason = p.reason?.toLowerCase() || ""
-      const threatTitle = threat.title.toLowerCase()
-      return reason.includes(threatTitle) || reason.includes(threat.location.toLowerCase())
+      const reasoning = p.reasoning?.toLowerCase() || ""
+      // Check if reasoning mentions ANY of the keywords
+      return allKeywords.some(keyword => reasoning.includes(keyword))
     }).length
+
+    // Debug log for first threat only (using index instead of array reference)
+    if (threatIndex === 0) {
+      console.log('=== THREAT ATTRIBUTION DEBUG (First Threat) ===')
+      console.log('Threat:', threat.title)
+      console.log('Keywords extracted:', allKeywords)
+      console.log('Buyers citing this threat:', buyersCitingThreat, '/', test.personaResults.length)
+      console.log('Attribution rate:', Math.round((buyersCitingThreat / test.personaResults.length) * 100) + '%')
+    }
 
     // Get estimated CR lift for this threat
     const estimatedCRLift = getEstimatedCRLift(threat.severity, threat.title)
@@ -1399,9 +1436,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
   // Extract top reasons from persona results
   const reasonCounts = new Map<string, number>()
   test.personaResults.forEach((p) => {
-    if (p.reason) {
-      const reason = p.reason
-      reasonCounts.set(reason, (reasonCounts.get(reason) || 0) + 1)
+    if (p.reasoning) {
+      const reasoning = p.reasoning
+      reasonCounts.set(reasoning, (reasonCounts.get(reasoning) || 0) + 1)
     }
   })
   const topReasons = Array.from(reasonCounts.entries())

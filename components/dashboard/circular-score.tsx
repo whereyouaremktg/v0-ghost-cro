@@ -80,9 +80,15 @@ export function CircularScore({ score, previousScore, percentile, historicalScor
 
   // Determine color based on score
   const getScoreColor = () => {
-    if (score >= 80) return "text-primary"
-    if (score >= 60) return "text-chart-2"
-    return "text-destructive"
+    if (score >= 80) return "text-emerald-600 dark:text-emerald-400"
+    if (score >= 60) return "text-amber-600 dark:text-amber-400"
+    return "text-rose-600 dark:text-rose-400"
+  }
+
+  const getStrokeColor = () => {
+    if (score >= 80) return "rgb(16 185 129)" // emerald-500
+    if (score >= 60) return "rgb(245 158 11)" // amber-500
+    return "rgb(244 63 94)" // rose-500
   }
 
   return (
@@ -100,31 +106,20 @@ export function CircularScore({ score, previousScore, percentile, historicalScor
             strokeWidth="6"
             className="text-border/20"
           />
-          {/* Progress circle with gradient effect */}
+          {/* Progress circle */}
           {hasScore && (
-            <>
-              <defs>
-                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="var(--primary)" />
-                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.7} />
-                </linearGradient>
-              </defs>
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="url(#scoreGradient)"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                className="transition-all duration-1000 ease-out"
-                style={{
-                  filter: "drop-shadow(0 0 8px rgba(168,224,99,0.3))",
-                }}
-              />
-            </>
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke={getStrokeColor()}
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              className="transition-all duration-1000 ease-out"
+            />
           )}
         </svg>
         {/* Score text in center */}
@@ -140,23 +135,25 @@ export function CircularScore({ score, previousScore, percentile, historicalScor
 
       {/* Right side info */}
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] font-medium tracking-wide text-muted-foreground mb-1.5">Ghost Score</div>
+        <p className="metric-label mb-2">Checkout Score</p>
         {previousScore && scoreDiff !== 0 && (
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-2">
             <Sparkline data={sparklineData} positive={scoreDiff >= 0} />
-            <span className={`text-xs font-medium ${scoreDiff >= 0 ? "text-primary" : "text-destructive"}`}>
+            <span className={`text-sm font-medium ${scoreDiff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
               {scoreDiff >= 0 ? `+${scoreDiff}` : `${scoreDiff}`}
             </span>
-            <span className="text-[10px] text-muted-foreground">vs last</span>
+            <span className="text-xs text-muted-foreground">vs last</span>
           </div>
         )}
         {!previousScore && sparklineData.length > 0 && (
-          <div className="mb-1.5">
+          <div className="mb-2">
             <Sparkline data={sparklineData} positive={true} />
           </div>
         )}
         {percentile && (
-          <div className="text-[10px] text-muted-foreground">{percentile}</div>
+          <div className="inline-flex items-center px-2 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/30 mt-1">
+            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">{percentile}</span>
+          </div>
         )}
       </div>
     </div>

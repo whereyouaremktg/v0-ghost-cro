@@ -151,29 +151,29 @@ export function AIInsightPanel({ latestTestResult, revenueLeak }: AIInsightPanel
   }
 
   return (
-    <div className="flex flex-col h-full bg-card/40 border border-border/30 rounded-2xl shadow-lg animate-fade-in overflow-hidden card-hover">
+    <div className="flex flex-col h-full bg-card/30 border border-border/20 rounded-2xl shadow-sm animate-fade-in overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
-        <div className="p-1.5 bg-primary/20 border border-primary/40 rounded-xl shadow-sm">
-          <Sparkles className="h-4 w-4 text-primary" strokeWidth={2.5} />
+      <div className="flex items-center gap-2.5 p-4 border-b border-border/20">
+        <div className="p-1.5 bg-muted/50 border border-border/30 rounded-lg">
+          <Sparkles className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
         </div>
-        <h3 className="text-sm font-semibold tracking-tight font-heading">Ask Ghost</h3>
+        <h3 className="text-sm font-medium tracking-tight">Ask Ghost</h3>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {messages.length === 0 && (
           <div className="text-center py-8 animate-fade-in">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 border border-primary/30 rounded-full mb-3 animate-pulse">
-              <Sparkles className="h-6 w-6 text-primary" strokeWidth={2.5} />
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-muted/50 border border-border/30 rounded-full mb-3">
+              <Sparkles className="h-5 w-5 text-muted-foreground" strokeWidth={2} />
             </div>
-            <p className="text-sm text-muted-foreground mb-4">Ask me anything about your checkout performance</p>
-            <div className="space-y-2">
+            <p className="text-sm text-muted-foreground mb-4">Ask me about your checkout</p>
+            <div className="space-y-1.5">
               {SUGGESTED_QUESTIONS.map((question, i) => (
                 <button
                   key={i}
                   onClick={() => handleSuggestedQuestion(question)}
-                  className="block w-full text-left px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-xl transition-all duration-300 hover:translate-x-1"
+                  className="block w-full text-left px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-lg transition-colors"
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
                   {question}
@@ -217,13 +217,13 @@ export function AIInsightPanel({ latestTestResult, revenueLeak }: AIInsightPanel
 
       {/* Suggested Questions (when messages exist) */}
       {messages.length > 0 && (
-        <div className="px-4 pb-2 border-t border-border/30 pt-3 animate-fade-in">
+        <div className="px-4 pb-2 border-t border-border/20 pt-3 animate-fade-in">
           <div className="flex flex-wrap gap-2">
             {SUGGESTED_QUESTIONS.map((question, i) => (
               <button
                 key={i}
                 onClick={() => handleSuggestedQuestion(question)}
-                className="text-[11px] px-2.5 py-1.5 bg-muted/30 hover:bg-primary/10 border border-border/20 rounded-xl transition-all duration-300 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-sm hover:-translate-y-0.5"
+                className="text-xs px-2.5 py-1.5 text-muted-foreground hover:text-foreground hover:underline transition-colors"
               >
                 {question}
               </button>
@@ -232,31 +232,23 @@ export function AIInsightPanel({ latestTestResult, revenueLeak }: AIInsightPanel
         </div>
       )}
 
-      {/* Input with Glow Effect */}
-      <div className="p-4 border-t border-border/30 bg-gradient-to-t from-card to-transparent">
+      {/* Input */}
+      <div className="p-4 border-t border-border/20">
         <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask about your checkout..."
-              disabled={isLoading}
-              className="flex-1 pr-8 bg-background/50 border-border/30 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 focus-visible:shadow-[0_0_20px_rgba(168,224,99,0.25)] transition-all duration-300"
-            />
-            {/* Blinking Caret */}
-            {input && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-blink font-heading">
-                |
-              </span>
-            )}
-          </div>
-          <Button 
-            onClick={handleSend} 
-            disabled={!input.trim() || isLoading} 
+          <Input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask about your checkout..."
+            disabled={isLoading}
+            className="flex-1 bg-muted/30 border-border/30 rounded-full text-sm focus-visible:ring-1 focus-visible:ring-lime-500/50 dark:focus-visible:ring-lime-400/50 transition-all"
+          />
+          <Button
+            onClick={handleSend}
+            disabled={!input.trim() || isLoading}
             size="default"
-            className="bg-primary hover:bg-primary/90 accent-glow transition-all duration-300 hover:-translate-y-1"
+            className="bg-lime-500 hover:bg-lime-600 dark:bg-lime-400 dark:hover:bg-lime-500 text-black rounded-full transition-all"
           >
             <Send className="h-4 w-4" strokeWidth={2.5} />
           </Button>

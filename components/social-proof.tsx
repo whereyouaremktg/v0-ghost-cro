@@ -54,20 +54,55 @@ export function SocialProof() {
   }, [counted])
 
   return (
-    <section id="social-proof" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-      <div className="max-w-7xl mx-auto" ref={sectionRef}>
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+    <section id="social-proof" className="py-24 md:py-32 px-4 sm:px-6 lg:px-8 bg-gray-950 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-20 right-20 w-72 h-72 bg-lime-400/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl" />
+
+      {/* Dot pattern overlay */}
+      <div
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+          backgroundSize: '30px 30px',
+        }}
+      />
+
+      <div className="max-w-7xl mx-auto relative z-10" ref={sectionRef}>
+        <div className="text-center mb-20">
+          <h2
+            className="text-5xl md:text-6xl font-normal text-white mb-4"
+            style={{ letterSpacing: '-0.03em', lineHeight: '1.05' }}
+          >
             Revenue recovered.
           </h2>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        {/* Stats with huge numbers */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
           {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="text-5xl font-bold text-gray-900 mb-2">{stat.value}</div>
-              <div className="text-gray-600">{stat.label}</div>
+            <div
+              key={index}
+              className="relative group"
+            >
+              {/* Card background with gradient */}
+              <div className="relative p-10 rounded-2xl bg-gradient-to-br from-[#BFFF00]/20 to-emerald-400/10 border border-[#BFFF00]/20 backdrop-blur-sm hover:from-[#BFFF00]/30 hover:to-emerald-400/20 transition-all duration-300 hover:translate-y-[-4px]">
+                {/* Abstract circle decoration */}
+                <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#BFFF00]/10 rounded-full blur-3xl" />
+
+                {/* Floating dots decoration */}
+                <div className="absolute top-4 left-4 w-2 h-2 rounded-full bg-[#BFFF00]/40" />
+                <div className="absolute bottom-8 right-8 w-3 h-3 rounded-full bg-[#BFFF00]/30" />
+
+                <div className="relative text-center">
+                  <div className="text-6xl md:text-7xl font-bold text-white mb-3">
+                    {stat.value}
+                  </div>
+                  <div className="text-gray-400 text-lg font-normal" style={{ lineHeight: '1.7' }}>
+                    {stat.label}
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -77,19 +112,19 @@ export function SocialProof() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-lime-400/30 transition-all duration-300 hover:-translate-y-1"
             >
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-semibold">
+                <div className="w-12 h-12 rounded-full bg-lime-400/10 border border-lime-400/20 flex items-center justify-center text-lime-400 font-semibold">
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                  <div className="text-sm text-gray-600">{testimonial.role}</div>
-                  <div className="text-xs text-gray-500">{testimonial.category}</div>
+                  <div className="font-semibold text-white">{testimonial.name}</div>
+                  <div className="text-sm text-gray-300">{testimonial.role}</div>
+                  <div className="text-xs text-gray-400">{testimonial.category}</div>
                 </div>
               </div>
-              <p className="text-gray-700 leading-relaxed italic">&ldquo;{testimonial.quote}&rdquo;</p>
+              <p className="text-gray-200 leading-relaxed italic">&ldquo;{testimonial.quote}&rdquo;</p>
             </div>
           ))}
         </div>

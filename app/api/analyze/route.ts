@@ -217,6 +217,9 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { url, personaMix = "balanced" } = body
 
+    console.log('=== ANALYZE API START ===')
+    console.log('Input:', { url, personaMix })
+
     if (!url) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 })
     }
@@ -263,6 +266,8 @@ export async function POST(request: Request) {
     try {
       const jsonText = extractJSON(storeAnalysisText)
       storeAnalysis = JSON.parse(jsonText)
+      console.log('✓ Store Analysis parsed successfully')
+      console.log('  - Issues found:', storeAnalysis.overallIssues?.length || 0)
     } catch (parseError) {
       console.error("Failed to parse store analysis response:")
       console.error("Raw response:", storeAnalysisText.substring(0, 500))
@@ -387,6 +392,12 @@ IMPORTANT:
     try {
       const jsonText = extractJSON(responseText)
       analysisData = JSON.parse(jsonText)
+      console.log('✓ Persona Analysis parsed successfully')
+      console.log('  - Score:', analysisData.score)
+      console.log('  - Persona results:', analysisData.personaResults?.length || 0)
+      console.log('  - Critical threats:', analysisData.frictionPoints?.critical?.length || 0)
+      console.log('  - High threats:', analysisData.frictionPoints?.high?.length || 0)
+      console.log('  - Medium threats:', analysisData.frictionPoints?.medium?.length || 0)
     } catch (parseError) {
       console.error("Failed to parse Claude persona analysis response:")
       console.error("Raw response:", responseText.substring(0, 500))
@@ -450,6 +461,19 @@ IMPORTANT:
       // Store the detailed analysis for future reference
       storeAnalysis: storeAnalysis,
     }
+
+    console.log('=== ANALYSIS COMPLETE ===')
+    console.log('Result ID:', testId)
+    console.log('Total threats:', issuesFound)
+    console.log('Personas:', personaResults.length)
+    console.log('  - Would purchase:', personaResults.filter(p => p.verdict === 'purchase').length)
+    console.log('  - Would abandon:', personaResults.filter(p => p.verdict === 'abandon').length)
+    console.log('Funnel data:', {
+      landed: analysisData.funnelData.landed,
+      cart: analysisData.funnelData.cart,
+      checkout: analysisData.funnelData.checkout,
+      purchased: analysisData.funnelData.purchased
+    })
 
     return NextResponse.json({ result })
   } catch (error) {

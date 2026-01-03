@@ -69,37 +69,37 @@ export function RevenueCalculator({
       name: "Current",
       value: calculations.currentRevenue,
       label: `${cvr}% CVR`,
-      color: "var(--muted-foreground)",
+      color: "rgb(148 163 184)", // slate-400
     },
     {
       name: "3.5% CVR",
       value: calculations.revenue35,
       label: "+" + formatCurrency(calculations.delta35),
-      color: "var(--chart-2)",
+      color: "rgb(16 185 129)", // emerald-500
     },
     {
       name: "4% CVR",
       value: calculations.revenue40,
       label: "+" + formatCurrency(calculations.delta40),
-      color: "var(--primary)",
+      color: "rgb(191 255 0)", // lime accent
     },
   ], [calculations, cvr])
 
   return (
-    <div className="bg-card/40 border border-border/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-5 card-hover animate-fade-in">
-      <div className="flex items-center justify-between mb-6">
+    <div className="card-premium p-8 animate-fade-in">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 border border-primary/30 rounded-xl">
-            <Calculator className="h-4 w-4 text-primary" strokeWidth={2.5} />
+          <div className="p-2.5 bg-lime-50 dark:bg-lime-950/30 border border-lime-200 dark:border-lime-800/50 rounded-xl">
+            <Calculator className="h-5 w-5 text-lime-600 dark:text-lime-400" strokeWidth={2.5} />
           </div>
-          <h2 className="text-base font-medium tracking-tight font-heading">Revenue Opportunity</h2>
+          <h2 className="text-lg font-semibold tracking-tight font-heading">Revenue Opportunity</h2>
         </div>
 
         {/* Shopify Connection Status */}
         {shopifyStore ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/30 rounded-xl">
-            <Store className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
-            <span className="text-xs font-medium text-primary tracking-wide">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-lg">
+            <Store className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" strokeWidth={2.5} />
+            <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300 tracking-wide">
               Connected: {shopifyStore.shop.split(".")[0]}
               {loadingMetrics && <span className="ml-2">...</span>}
             </span>
@@ -107,7 +107,7 @@ export function RevenueCalculator({
         ) : (
           <Link
             href="/dashboard/settings"
-            className="text-xs font-medium tracking-wide text-muted-foreground hover:text-primary transition-colors underline hover:no-underline"
+            className="text-xs font-medium tracking-wide text-muted-foreground hover:text-lime-600 dark:hover:text-lime-400 transition-colors underline hover:no-underline"
           >
             Connect Shopify for auto-sync
           </Link>
@@ -116,64 +116,60 @@ export function RevenueCalculator({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Inputs */}
-        <div className="space-y-4">
-          <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-3">
-            Your Current Metrics
-          </div>
+        <div className="space-y-6">
+          <p className="metric-label">Your Current Metrics</p>
 
           {/* Monthly Sessions */}
           <div>
-            <label className="block text-[11px] font-medium tracking-wide mb-1.5 text-muted-foreground/70">Monthly Sessions</label>
+            <label className="metric-label block mb-2">Monthly Sessions</label>
             <input
               type="number"
               value={sessions}
               onChange={(e) => setSessions(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-background/50 border border-border/30 rounded-md font-mono text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+              className="w-full px-0 py-2 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-lime-500 dark:focus:border-lime-400 transition-colors"
             />
           </div>
 
           {/* Current CVR */}
           <div>
-            <label className="block text-[11px] font-medium tracking-wide mb-1.5 text-muted-foreground/70">Current Conversion Rate (%)</label>
+            <label className="metric-label block mb-2">Current Conversion Rate</label>
             <div className="relative">
               <input
                 type="number"
                 step="0.1"
                 value={cvr}
                 onChange={(e) => setCvr(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-background/50 border border-border/30 rounded-md font-mono text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all pr-10"
+                className="w-full px-0 py-2 pr-8 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-lime-500 dark:focus:border-lime-400 transition-colors"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 font-medium text-sm">%</span>
+              <span className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
             </div>
           </div>
 
           {/* AOV */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[11px] font-medium tracking-wide text-muted-foreground/70">Average Order Value ($)</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="metric-label">Average Order Value</label>
               {shopifyMetrics?.metrics?.averageOrderValue && (
-                <span className="text-[10px] text-primary font-medium tracking-wide">
+                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                   ✓ Synced
                 </span>
               )}
             </div>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 font-medium text-sm">$</span>
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
               <input
                 type="number"
                 value={aov}
                 onChange={(e) => setAov(Number(e.target.value))}
-                className="w-full px-3 py-2 pl-7 bg-background/50 border border-border/30 rounded-md font-mono text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                className="w-full px-0 py-2 pl-6 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-lime-500 dark:focus:border-lime-400 transition-colors"
               />
             </div>
           </div>
 
           {/* Current Revenue */}
-          <div className="pt-3 border-t border-border/20">
-            <div className="text-[11px] font-medium tracking-wide text-muted-foreground/70 mb-1">
-              Current Monthly Revenue
-            </div>
-            <div className="text-2xl font-mono font-bold">{formatCurrency(calculations.currentRevenue)}</div>
+          <div className="pt-6 border-t border-border/30">
+            <p className="metric-label mb-2">Current Monthly Revenue</p>
+            <p className="metric-secondary">{formatCurrency(calculations.currentRevenue)}</p>
           </div>
 
           {/* Manual Override Note */}
@@ -189,21 +185,21 @@ export function RevenueCalculator({
           <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60 mb-3">Projected Outcomes</div>
 
           {/* Bar Chart Comparison */}
-          <div className="bg-background/20 border border-border/20 rounded-xl p-4 mb-4">
-            <div className="h-48 mb-3">
+          <div className="bg-muted/30 border-0 rounded-2xl p-6 mb-6">
+            <div className="h-56 mb-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 10, fontFamily: "var(--font-heading)", fill: "var(--muted-foreground)" }}
+                    tick={{ fontSize: 11, fontFamily: "var(--font-heading)", fill: "hsl(var(--muted-foreground))" }}
                     tickLine={false}
-                    axisLine={false}
+                    axisLine={{ stroke: "hsl(var(--border))", strokeWidth: 0.5 }}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fontFamily: "var(--font-heading)", fill: "var(--muted-foreground)" }}
+                    tick={{ fontSize: 11, fontFamily: "var(--font-heading)", fill: "hsl(var(--muted-foreground))" }}
                     tickLine={false}
                     axisLine={false}
-                    width={50}
+                    width={60}
                     tickFormatter={(value) => {
                       if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`
                       if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`
@@ -215,11 +211,11 @@ export function RevenueCalculator({
                       if (active && payload && payload.length) {
                         const data = payload[0].payload
                         return (
-                          <div className="bg-card border border-border/50 rounded-xl shadow-xl p-3 backdrop-blur-sm">
-                            <p className="text-xs text-muted-foreground mb-1">{data.name}</p>
-                            <p className="text-sm font-heading font-semibold">{formatCurrency(data.value)}</p>
+                          <div className="bg-card border border-border/50 rounded-xl shadow-lg p-4 backdrop-blur-sm">
+                            <p className="metric-label mb-1">{data.name}</p>
+                            <p className="metric-tertiary">{formatCurrency(data.value)}</p>
                             {data.label && data.name !== "Current" && (
-                              <p className="text-xs text-primary mt-1">{data.label}</p>
+                              <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2 font-medium">{data.label}</p>
                             )}
                           </div>
                         )
@@ -229,7 +225,7 @@ export function RevenueCalculator({
                   />
                   <Bar
                     dataKey="value"
-                    radius={[8, 8, 0, 0]}
+                    radius={[10, 10, 0, 0]}
                     className="transition-all duration-300 hover:opacity-80"
                   >
                     {chartData.map((entry, index) => (
@@ -239,27 +235,24 @@ export function RevenueCalculator({
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground/60">
+            <div className="flex items-center justify-center gap-6 text-sm">
               {chartData.map((item, i) => (
-                <div key={i} className="flex items-center gap-1.5">
+                <div key={i} className="flex items-center gap-2">
                   <div
-                    className="w-2 h-2 rounded-full"
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span>{item.name}</span>
+                  <span className="text-muted-foreground font-medium">{item.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Max Upside Highlight */}
-          <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="h-4 w-4 text-primary/80" strokeWidth={2.5} />
-              <span className="text-xs font-medium tracking-wide text-primary/80">Potential Monthly Upside</span>
-            </div>
-            <div className="text-2xl font-heading font-bold text-primary">{formatCurrency(calculations.maxUpside)}</div>
-            <div className="text-[10px] text-muted-foreground/60 mt-1">Additional revenue per month at 4% CVR</div>
+          <div className="bg-gradient-to-br from-lime-50 to-emerald-50 dark:from-lime-950/20 dark:to-emerald-950/20 border border-lime-200/50 dark:border-lime-800/30 rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center text-center">
+            <p className="metric-label mb-3">Potential Monthly Upside</p>
+            <p className="metric-hero text-lime-600 dark:text-lime-400">{formatCurrency(calculations.maxUpside)}</p>
+            <p className="text-sm text-muted-foreground mt-3">Additional revenue at 4% CVR</p>
           </div>
         </div>
       </div>

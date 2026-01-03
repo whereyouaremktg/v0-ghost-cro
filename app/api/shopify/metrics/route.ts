@@ -4,12 +4,13 @@ import {
   calculateAbandonedCheckoutStats,
   fetchShippingZones,
   analyzeShippingShock,
+  fetchAnalytics,
 } from "@/lib/shopify/client"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { shop, accessToken } = body
+    const { shop, accessToken, ga4PropertyId, ga4Credentials } = body
 
     if (!shop || !accessToken) {
       return NextResponse.json(
@@ -99,8 +100,51 @@ export async function POST(request: NextRequest) {
       // Continue without shipping data - don't fail the entire request
     }
 
-    // For sessions and conversion rate, we'd need Shopify Analytics API (requires Shopify Plus)
-    // or access to Google Analytics. For now, we'll return what we can calculate from orders.
+    // Fetch analytics data - prioritize GA4 if available
+    let analyticsData
+    let ga4Demographics = null
+
+    if (ga4PropertyId && ga4Credentials) {
+      // Try GA4 first if credentials are provided
+      try {
+        const { fetchGA4Metrics } = await import('@/lib/analytics/ga4-client')
+        const ga4Data = await fetchGA4Metrics(
+          {
+            propertyId: ga4PropertyId,
+            credentials: ga4Credentials,
+          },
+          startDate,
+          endDate
+        )
+
+        analyticsData = {
+          sessions: ga4Data.sessions,
+          conversionRate: ga4Data.conversionRate,
+          source: 'ga4' as const,
+        }
+
+        ga4Demographics = ga4Data.demographics
+
+        console.log('✅ Using GA4 analytics data')
+      } catch (error) {
+        console.warn('GA4 failed, falling back to Shopify Analytics:', error)
+        // Fall back to Shopify Analytics
+        analyticsData = await fetchAnalytics(
+          { shop, accessToken },
+          startDate,
+          endDate,
+          totalOrders
+        )
+      }
+    } else {
+      // No GA4 credentials, use Shopify Analytics
+      analyticsData = await fetchAnalytics(
+        { shop, accessToken },
+        startDate,
+        endDate,
+        totalOrders
+      )
+    }
 
     // Try to fetch shop data to get some additional context
     const shopUrl = `https://${shop}/admin/api/2024-01/shop.json`
@@ -130,10 +174,11 @@ export async function POST(request: NextRequest) {
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
         averageOrderValue: parseFloat(averageOrderValue.toFixed(2)),
         currency: orders[0]?.currency || shopData?.currency || "USD",
-        // Note: Sessions and conversion rate require Analytics API access
-        // These would need to be calculated from external analytics or Shopify Plus
-        estimatedConversionRate: null, // Requires Analytics API
-        totalSessions: null, // Requires Analytics API
+        // Use Analytics API data if available
+        conversionRate: analyticsData.conversionRate,
+        totalSessions: analyticsData.sessions,
+        // Include flag to indicate data source
+        dataSource: analyticsData.source,
       },
       abandonedCheckouts: {
         total: abandonedCheckoutStats?.total || 0,
@@ -166,7 +211,14 @@ export async function POST(request: NextRequest) {
         domain: shopData?.domain || shop,
         email: shopData?.email || null,
       },
-      note: "Session data and conversion rates require Shopify Analytics API (Shopify Plus) or external analytics integration.",
+      dataQuality: analyticsData.source === "ga4"
+        ? "✅ Real analytics data from Google Analytics 4"
+        : analyticsData.source === "graphql"
+          ? "Real analytics data from Shopify Analytics API"
+          : analyticsData.source === "reports"
+            ? "Data from Shopify Reports API"
+            : "⚠️ Analytics API not available. Connect Google Analytics 4 for accurate session data and demographic insights.",
+      demographics: ga4Demographics || null,
     })
   } catch (error) {
     console.error("Error fetching Shopify metrics:", error)

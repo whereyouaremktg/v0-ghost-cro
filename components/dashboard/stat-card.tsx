@@ -37,7 +37,7 @@ function Sparkline({ data, positive }: { data?: number[]; positive: boolean }) {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={positive ? "text-primary" : "text-destructive"}
+          className={positive ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}
         />
       </svg>
     )
@@ -57,7 +57,7 @@ function Sparkline({ data, positive }: { data?: number[]; positive: boolean }) {
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className={positive ? "text-primary" : "text-destructive"}
+        className={positive ? "text-emerald-500 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}
       />
     </svg>
   )
@@ -65,29 +65,31 @@ function Sparkline({ data, positive }: { data?: number[]; positive: boolean }) {
 
 export function StatCard({ label, value, suffix, trend, sublabel, percentile, sparklineData }: StatCardProps) {
   return (
-    <div className="bg-card/40 border border-border/20 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-4 card-hover animate-fade-in group">
-      <div className="flex items-start justify-between mb-2">
-        <div className="text-[11px] font-medium tracking-wide text-muted-foreground/60">{label}</div>
+    <div className="card-premium p-6 animate-fade-in group">
+      <div className="flex items-start justify-between mb-3">
+        <p className="metric-label">{label}</p>
         {trend && (
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Sparkline data={sparklineData} positive={trend.positive} />
           </div>
         )}
       </div>
-      <div className="flex items-baseline gap-1 mb-1.5">
-        <span className="text-2xl font-heading font-bold">{value}</span>
-        {suffix && <span className="text-sm text-muted-foreground/70">{suffix}</span>}
+      <div className="flex items-baseline gap-1.5 mb-2">
+        <span className="metric-secondary">{value}</span>
+        {suffix && <span className="text-sm text-muted-foreground/70 font-medium">{suffix}</span>}
       </div>
       {percentile && (
-        <div className="mt-1.5 text-[10px] font-medium tracking-wide text-primary/70">{percentile}</div>
+        <div className="mt-2 inline-flex items-center px-2 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/30">
+          <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">{percentile}</span>
+        </div>
       )}
       {trend && (
-        <div className={`mt-1.5 text-[11px] font-medium flex items-center gap-1 ${trend.positive ? "text-primary/80" : "text-destructive/80"}`}>
-          <span>{trend.positive ? "↑" : "↓"}</span>
+        <div className={`mt-2 text-xs font-medium flex items-center gap-1.5 ${trend.positive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+          <span className="text-sm">{trend.positive ? "↑" : "↓"}</span>
           <span>{trend.value}</span>
         </div>
       )}
-      {sublabel && <div className="mt-1.5 text-[11px] text-muted-foreground/60">{sublabel}</div>}
+      {sublabel && <p className="mt-2 text-xs text-muted-foreground">{sublabel}</p>}
     </div>
   )
 }

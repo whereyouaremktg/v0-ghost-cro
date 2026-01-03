@@ -344,3 +344,4 @@ function FunnelVisualization({ stages }: { stages: FunnelStage[] }) {
   )
 }
 
+

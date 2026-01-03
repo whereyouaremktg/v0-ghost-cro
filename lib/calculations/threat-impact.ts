@@ -146,7 +146,7 @@ export function formatRecoveryRange(min: number, max: number): string {
     return `$${roundedMin.toLocaleString()}`
   }
 
-  return `$${roundedMin.toLocaleString()} - $${roundedMax.toLocaleString}`
+  return `$${roundedMin.toLocaleString()} - $${roundedMax.toLocaleString()}`
 }
 
 /**
@@ -178,4 +178,5 @@ export function getConfidenceBadge(confidence: "high" | "medium" | "low"): {
       }
   }
 }
+
 

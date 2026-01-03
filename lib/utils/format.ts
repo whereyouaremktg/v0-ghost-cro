@@ -1,8 +1,12 @@
 /**
  * Formatting utilities for numbers, currency, percentages, and dates
+ * All functions include null safety to prevent NaN display
  */
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return "$0"
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -11,11 +15,17 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function formatPercent(decimal: number): string {
+export function formatPercent(decimal: number | null | undefined): string {
+  if (decimal === null || decimal === undefined || isNaN(decimal)) {
+    return "0%"
+  }
   return `${(decimal * 100).toFixed(1)}%`
 }
 
-export function formatNumber(num: number): string {
+export function formatNumber(num: number | null | undefined): string {
+  if (num === null || num === undefined || isNaN(num)) {
+    return "0"
+  }
   return new Intl.NumberFormat("en-US").format(num)
 }
 
@@ -40,4 +50,5 @@ export function formatRelativeTime(date: Date | string): string {
   const diffMonths = Math.floor(diffDays / 30)
   return `${diffMonths} month${diffMonths > 1 ? "s" : ""} ago`
 }
+
 

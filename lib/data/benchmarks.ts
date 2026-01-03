@@ -82,3 +82,4 @@ export function getCategoryBenchmarks(industry: string | null | undefined): Cate
   return CATEGORY_BENCHMARKS.default
 }
 
+

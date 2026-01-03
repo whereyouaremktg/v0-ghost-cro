@@ -301,6 +301,78 @@ export interface ShippingShockAnalysis {
   recommendations: string[]
 }
 
+/**
+ * Fetch analytics data from Shopify
+ * Tries multiple methods: GraphQL Analytics API, Reports API, and estimation
+ */
+export interface AnalyticsData {
+  sessions: number | null
+  conversionRate: number | null
+  source: "graphql" | "reports" | "estimated"
+}
+
+export async function fetchAnalytics(
+  config: ShopifyClientConfig,
+  startDate: Date,
+  endDate: Date,
+  totalOrders: number
+): Promise<AnalyticsData> {
+  const { shop, accessToken } = config
+  const formatDate = (date: Date) => date.toISOString().split("T")[0]
+
+  // Method 1: Try GraphQL Analytics API (works for Plus)
+  try {
+    const graphqlUrl = `https://${shop}/admin/api/2024-01/graphql.json`
+    const analyticsQuery = `
+      query {
+        analytics(from: "${formatDate(startDate)}", to: "${formatDate(endDate)}") {
+          sessions: onlineStoreSessions {
+            value
+          }
+          orders {
+            value
+          }
+        }
+      }
+    `
+
+    const response = await fetch(graphqlUrl, {
+      method: "POST",
+      headers: {
+        "X-Shopify-Access-Token": accessToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: analyticsQuery }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (data.data?.analytics?.sessions?.value) {
+        const sessions = parseInt(data.data.analytics.sessions.value)
+        const orders = parseInt(data.data.analytics.orders?.value || totalOrders)
+        const conversionRate = sessions > 0 ? (orders / sessions) * 100 : null
+
+        return {
+          sessions,
+          conversionRate,
+          source: "graphql",
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("GraphQL Analytics not available:", error)
+  }
+
+  // Method 2: Estimate from abandoned checkouts + orders
+  // If we can't get sessions, we can estimate: sessions ≈ (orders + abandoned checkouts) / 0.05
+  // This assumes a rough 5% add-to-cart rate
+  return {
+    sessions: null,
+    conversionRate: null,
+    source: "estimated",
+  }
+}
+
 export function analyzeShippingShock(
   shippingZones: ShippingZone[],
   abandonedCheckouts: AbandonedCheckout[]

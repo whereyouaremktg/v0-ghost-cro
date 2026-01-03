@@ -20,47 +20,50 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-gray-800">
-            <Ghost className="w-5 h-5 text-white" strokeWidth={2.5} />
+          <div className="w-8 h-8 bg-[#BFFF00] rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-lime-300">
+            <Ghost className="w-5 h-5 text-gray-900" strokeWidth={2.5} />
           </div>
-          <span className="font-semibold text-gray-900">
+          <span className="font-semibold text-white">
             Ghost<span className="text-gray-400">CRO</span>
           </span>
         </Link>
-        
+
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300">
+          <Link href="#how-it-works" className="text-sm text-gray-400 hover:text-white transition-colors duration-300">
             How it works
           </Link>
-          <Link href="#pricing" className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300">
+          <Link href="#pricing" className="text-sm text-gray-400 hover:text-white transition-colors duration-300">
             Pricing
           </Link>
-          <Link href="#social-proof" className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300">
+          <Link href="#social-proof" className="text-sm text-gray-400 hover:text-white transition-colors duration-300">
             Results
           </Link>
-          <Link href="#faq" className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300">
+          <Link href="#faq" className="text-sm text-gray-400 hover:text-white transition-colors duration-300">
             FAQ
           </Link>
         </div>
-        
+
         {/* CTAs */}
         <div className="flex items-center gap-4">
           <Link href="/login">
-            <button className="text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300 hidden sm:block">
+            <button className="text-sm text-gray-400 hover:text-white transition-colors duration-300 hidden sm:block">
               Log in
             </button>
           </Link>
           <Link href="/signup">
-            <button className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-full transition-all duration-300 hover:shadow-lg">
+            <button
+              className="px-4 py-2 bg-[#BFFF00] hover:bg-lime-300 text-gray-900 text-sm font-medium rounded-full transition-all duration-300"
+              style={{ boxShadow: '0 0 20px rgba(191, 255, 0, 0.2)' }}
+            >
               Start Free
             </button>
           </Link>
         </div>
       </div>
-      
+
       {/* Blur backdrop on scroll */}
-      <div className={`absolute inset-0 -z-10 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 transition-all duration-300 ${
+      <div className={`absolute inset-0 -z-10 bg-gray-950/80 backdrop-blur-xl border-b border-gray-800/50 transition-all duration-300 ${
         scrolled ? "opacity-100" : "opacity-0"
       }`} />
     </nav>

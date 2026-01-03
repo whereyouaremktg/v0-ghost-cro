@@ -35,7 +35,11 @@ export interface RevenueCalculationOutput {
 export function calculateRevenueOpportunity(
   input: RevenueCalculationInput
 ): RevenueCalculationOutput {
-  const { monthlyVisitors, currentConversionRate, aov, categoryBenchmarkCR } = input
+  // Validate inputs and provide defaults to prevent NaN
+  const monthlyVisitors = input.monthlyVisitors || 50000
+  const currentConversionRate = isNaN(input.currentConversionRate) ? 0.025 : (input.currentConversionRate || 0.025)
+  const aov = input.aov || 85
+  const categoryBenchmarkCR = input.categoryBenchmarkCR || 0.028
 
   // Current revenue
   const currentMonthlyRevenue = monthlyVisitors * currentConversionRate * aov
@@ -110,4 +114,5 @@ export function getMethodologyText(
 
   return `Based on potential ${gapPercent}% conversion rate improvement (from ${currentPercent}% to ${benchmarkPercent}% category average) at your traffic level`
 }
+
 

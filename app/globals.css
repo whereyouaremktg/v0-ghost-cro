@@ -35,6 +35,14 @@
   --success: #10B981;
   --warning: #F59E0B;
   --info: #3B82F6;
+
+  /* Premium Dashboard Colors */
+  --leak: #F43F5E;           /* Rose for money leaks */
+  --leak-light: #FFF1F2;     /* Subtle leak background */
+  --win: #10B981;            /* Emerald for positive metrics */
+  --win-light: #ECFDF5;      /* Subtle win background */
+  --opportunity: #BFFF00;    /* Lime for revenue opportunities */
+  --opportunity-light: #F7FEE7; /* Subtle opportunity background */
   
   /* Borders & Dividers */
   --border: #E5E7EB;
@@ -50,6 +58,20 @@
   
   /* Radius */
   --radius: 0.75rem;
+
+  /* Premium Typography Scale for Metrics */
+  --metric-xs: 0.875rem;    /* 14px - labels */
+  --metric-sm: 1.125rem;    /* 18px - tertiary metrics */
+  --metric-md: 1.5rem;      /* 24px - secondary metrics */
+  --metric-lg: 2.25rem;     /* 36px - primary metrics */
+  --metric-xl: 3rem;        /* 48px - hero metrics */
+  --metric-2xl: 3.75rem;    /* 60px - dominant metrics */
+
+  /* Premium Shadows - Subtle and sophisticated */
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -1px rgb(0 0 0 / 0.03);
+  --shadow-metric: 0 0 0 1px rgb(0 0 0 / 0.03);
+  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -2px rgb(0 0 0 / 0.03);
   
   /* Sidebar (for dashboard) */
   --sidebar: #FAFAFA;
@@ -63,7 +85,7 @@
 }
 
 .dark {
-  /* Dark mode support (optional) */
+  /* Dark mode support */
   --background: #0A0A0A;
   --foreground: #FAFAFA;
   --card: #111111;
@@ -83,6 +105,15 @@
   --border: #2A2A2A;
   --input: #2A2A2A;
   --ring: #BFFF00;
+
+  /* Premium Dashboard Colors - Dark Mode */
+  --leak: #FB7185;           /* Lighter rose for dark mode */
+  --leak-light: #1A0A0D;     /* Dark rose background */
+  --win: #34D399;            /* Lighter emerald for dark mode */
+  --win-light: #0A1F17;      /* Dark emerald background */
+  --opportunity: #BFFF00;    /* Lime stays bright */
+  --opportunity-light: #1A1F0A; /* Dark lime background */
+
   --sidebar: #111111;
   --sidebar-foreground: #FAFAFA;
   --sidebar-primary: #BFFF00;
@@ -94,9 +125,9 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-sans), "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
-  --font-heading: var(--font-heading), "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "Space Mono", "Geist Mono", monospace;
+  --font-sans: var(--font-geist-sans), "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --font-heading: var(--font-geist-sans), "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Geist Mono", "Space Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -133,6 +164,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-leak: var(--leak);
+  --color-leak-light: var(--leak-light);
+  --color-win: var(--win);
+  --color-win-light: var(--win-light);
+  --color-opportunity: var(--opportunity);
+  --color-opportunity-light: var(--opportunity-light);
 }
 
 @layer base {
@@ -330,4 +367,91 @@ html {
 
 .animate-fade-in-right {
   animation: fadeInRight 0.6s ease-out forwards;
+}
+
+/* Premium Dashboard Utilities */
+.metric-hero {
+  font-size: var(--metric-2xl);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.metric-primary {
+  font-size: var(--metric-xl);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.metric-secondary {
+  font-size: var(--metric-lg);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.metric-tertiary {
+  font-size: var(--metric-md);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.metric-label {
+  font-size: var(--metric-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+}
+
+.card-premium {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.card-metric {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.3);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-metric);
+}
+
+.card-elevated {
+  background: hsl(var(--card));
+  border: 0;
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-elevated);
+}
+
+.bg-leak-subtle {
+  background: hsl(var(--leak-light));
+}
+
+.bg-win-subtle {
+  background: hsl(var(--win-light));
+}
+
+.bg-opportunity-subtle {
+  background: hsl(var(--opportunity-light));
+}
+
+.text-leak {
+  color: hsl(var(--leak));
+}
+
+.text-win {
+  color: hsl(var(--win));
+}
+
+.text-opportunity {
+  color: hsl(var(--opportunity));
 }
