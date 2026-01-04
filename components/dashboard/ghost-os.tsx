@@ -29,6 +29,7 @@ import { saveTestResult, getTestResult, getAllTestResults } from "@/lib/client-s
 import { calculateRevenueOpportunity, formatOpportunityRange } from "@/lib/calculations/revenue-opportunity"
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils/format"
 import type { TestResult } from "@/lib/types"
+import { DashboardContent } from "@/components/dashboard/dashboard-content"
 import {
   Dialog,
   DialogContent,
@@ -136,6 +137,9 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
   const [selectedFix, setSelectedFix] = useState<any | null>(null)
   const [showFixModal, setShowFixModal] = useState(false)
   const [simulationProgress, setSimulationProgress] = useState(0)
+  const [viewMode, setViewMode] = useState<'scanner' | 'dashboard'>(
+    latestTestResult ? 'dashboard' : 'scanner'
+  )
   
   // Refs
   const logContainerRef = useRef<HTMLDivElement>(null)
@@ -160,6 +164,9 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
     }
   }, [ghostLogs])
 
+  // Check if user is a demo account (for theatrical simulation)
+  const isDemoUser = user.email.toLowerCase().includes("demo")
+
   // Run auto-discovery and analysis
   const runFullSimulation = useCallback(async (store: ShopifyStore) => {
     if (isRunning) return
@@ -168,15 +175,14 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
     setGhostLogs([])
     setSimulationProgress(0)
     
-    // Initial logs
-    addLog({ type: "info", message: "Ghost Mission Control initialized", detail: store.shop })
-    await new Promise(r => setTimeout(r, 500))
-    
-    addLog({ type: "scan", message: "Auto-discovering primary product..." })
+    // MILESTONE 1: Initialization (0% -> 10%)
+    addLog({ type: "info", message: "Initializing analysis...", detail: store.shop })
     setSimulationProgress(10)
     
     try {
-      // Call auto-discover API
+      // MILESTONE 2: Product Discovery (10% -> 25%)
+      addLog({ type: "scan", message: "Discovering primary product..." })
+      
       const discoverResponse = await fetch("/api/shopify/auto-discover", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,9 +193,10 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
       
       const discoverData = await discoverResponse.json()
       const targetUrl = discoverData.productUrl || discoverData.storeUrl
+      const productTitle = discoverData.product?.title || "Store Homepage"
       
       setDiscoveredProduct({
-        title: discoverData.product?.title || "Store Homepage",
+        title: productTitle,
         handle: discoverData.product?.handle || "",
         image: discoverData.product?.image || null,
         price: discoverData.product?.price || null,
@@ -198,40 +205,38 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
       
       addLog({ 
         type: "success", 
-        message: `Product discovered: ${discoverData.product?.title || "Homepage"}`,
+        message: `Product discovered: ${productTitle}`,
         detail: targetUrl
       })
-      setSimulationProgress(20)
+      setSimulationProgress(25)
       
-      await new Promise(r => setTimeout(r, 400))
-      addLog({ type: "scan", message: "Deploying ghost squad to storefront..." })
-      
-      // Deploy ghosts with staggered logs
-      for (let i = 0; i < GHOST_PERSONAS.length; i++) {
-        await new Promise(r => setTimeout(r, 300 + Math.random() * 200))
-        const persona = GHOST_PERSONAS[i]
-        setActivePersona(persona.id)
-        addLog({
-          type: "ghost",
-          persona: persona.name,
-          message: `${persona.emoji} Ghost #${i + 1} (${persona.name}) entering storefront`,
-        })
-        setSimulationProgress(20 + ((i + 1) / GHOST_PERSONAS.length) * 20)
+      // DEMO ONLY: Theatrical ghost deployment
+      if (isDemoUser) {
+        await new Promise(r => setTimeout(r, 400))
+        addLog({ type: "scan", message: "Deploying ghost squad to storefront..." })
+        
+        for (let i = 0; i < GHOST_PERSONAS.length; i++) {
+          await new Promise(r => setTimeout(r, 300 + Math.random() * 200))
+          const persona = GHOST_PERSONAS[i]
+          setActivePersona(persona.id)
+          addLog({
+            type: "ghost",
+            persona: persona.name,
+            message: `${persona.emoji} Ghost #${i + 1} (${persona.name}) entering storefront`,
+          })
+          setSimulationProgress(25 + ((i + 1) / GHOST_PERSONAS.length) * 15)
+        }
+        setSimulationProgress(40)
       }
       
-      await new Promise(r => setTimeout(r, 500))
-      addLog({ type: "scan", message: "Scanning Liquid templates for shipping shock..." })
-      setSimulationProgress(45)
+      // MILESTONE 3: Friction Analysis (25%/40% -> 50%)
+      addLog({ type: "scan", message: "Analyzing checkout friction points..." })
+      setSimulationProgress(isDemoUser ? 45 : 40)
       
-      await new Promise(r => setTimeout(r, 400))
-      addLog({ type: "scan", message: "Analyzing trust signals and social proof..." })
-      setSimulationProgress(55)
+      // MILESTONE 4: Running AI Analysis (50% -> 80%)
+      addLog({ type: "info", message: "Generating comprehensive report..." })
+      setSimulationProgress(50)
       
-      await new Promise(r => setTimeout(r, 400))
-      addLog({ type: "scan", message: "Evaluating payment options and checkout friction..." })
-      setSimulationProgress(65)
-      
-      // Run actual analysis
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -246,39 +251,19 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
       const { result } = await response.json()
       setSimulationProgress(80)
       
-      // Log threats
+      // MILESTONE 5: Results Summary (80% -> 100%)
       const criticalCount = result.frictionPoints?.critical?.length || 0
       const highCount = result.frictionPoints?.high?.length || 0
+      const totalIssues = criticalCount + highCount + (result.frictionPoints?.medium?.length || 0)
       
-      await new Promise(r => setTimeout(r, 400))
-      
-      if (criticalCount > 0) {
+      if (totalIssues > 0) {
         addLog({
           type: "threat",
-          message: `🚨 ${criticalCount} CRITICAL threat${criticalCount > 1 ? "s" : ""} detected`,
-          detail: result.frictionPoints.critical[0]?.title,
-          severity: "critical",
+          message: `${totalIssues} friction point${totalIssues > 1 ? "s" : ""} identified`,
+          detail: criticalCount > 0 ? `${criticalCount} critical` : `${highCount} high priority`,
+          severity: criticalCount > 0 ? "critical" : "high",
         })
       }
-      
-      if (highCount > 0) {
-        await new Promise(r => setTimeout(r, 300))
-        addLog({
-          type: "threat",
-          message: `⚠️ ${highCount} high-priority issue${highCount > 1 ? "s" : ""} found`,
-          severity: "high",
-        })
-      }
-      
-      // Log verdicts
-      const purchaseCount = result.personaResults?.filter((p: any) => p.verdict === "purchase").length || 0
-      const abandonCount = result.personaResults?.filter((p: any) => p.verdict === "abandon").length || 0
-      
-      await new Promise(r => setTimeout(r, 500))
-      addLog({
-        type: "info",
-        message: `Ghost verdict: ${purchaseCount}/5 would purchase, ${abandonCount}/5 would abandon`,
-      })
       
       setSimulationProgress(90)
       
@@ -286,11 +271,10 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
       saveTestResult(result)
       setCurrentResult(result)
       
-      await new Promise(r => setTimeout(r, 400))
       addLog({
         type: "success",
-        message: `✅ Ghost Score: ${result.score}/100`,
-        detail: `${result.issuesFound || 0} friction points identified`,
+        message: `Analysis complete — Ghost Score: ${result.score}/100`,
+        detail: `${totalIssues} issues found with actionable fixes`,
       })
       
       setSimulationProgress(100)
@@ -300,12 +284,13 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
       console.error("Simulation failed:", error)
       addLog({
         type: "threat",
-        message: `Mission aborted: ${error instanceof Error ? error.message : "Unknown error"}`,
+        message: `Analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       })
     } finally {
       setIsRunning(false)
+      setViewMode('dashboard')
     }
-  }, [isRunning, addLog])
+  }, [isRunning, addLog, isDemoUser])
 
   // Initialize on mount
   useEffect(() => {
@@ -334,6 +319,24 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
     }
     setIsConnecting(false)
   }, [searchParams, runFullSimulation, currentResult])
+
+  // Handle URL hash #simulation to switch to scanner view
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#simulation') {
+        setViewMode('scanner')
+        // Clear the hash after processing
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+    }
+    
+    // Check on mount
+    handleHashChange()
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
 
   // Calculate revenue metrics
   const revenueOpportunity = currentResult ? calculateRevenueOpportunity({
@@ -385,6 +388,18 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           </div>
         </div>
       </div>
+    )
+  }
+
+  // Render DashboardContent when not running and in dashboard mode
+  if (!isRunning && viewMode === 'dashboard') {
+    return (
+      <DashboardContent
+        user={user}
+        stats={stats}
+        tests={tests}
+        latestTestResult={currentResult || latestTestResult}
+      />
     )
   }
 
