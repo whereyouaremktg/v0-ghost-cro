@@ -934,6 +934,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set())
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const recoveryPlanRef = useRef<HTMLDivElement | null>(null)
+  const overviewRef = useRef<HTMLDivElement | null>(null)
+  const threatsRef = useRef<HTMLDivElement | null>(null)
 
   // Stable ref setter to prevent hydration issues
   const setSectionRef = useCallback((sectionId: string) => (el: HTMLDivElement | null) => {
@@ -987,6 +989,12 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
 
     return () => observer.disconnect()
   }, [test])
+
+  // Sync individual refs with sectionRefs object
+  useEffect(() => {
+    sectionRefs.current.overview = overviewRef.current
+    sectionRefs.current.threats = threatsRef.current
+  })
 
   // Scroll spy for sections
   useEffect(() => {
@@ -1377,7 +1385,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   <Sparkline data={[revenueLeak.monthly * 0.8, revenueLeak.monthly * 0.9, revenueLeak.monthly * 0.85, revenueLeak.monthly]} color="red" />
             </div>
                 <div className="text-5xl font-heading font-bold text-red-600 leading-none mb-2">
-                  $<AnimatedCounter value={revenueLeak.monthly} />
+                  <AnimatedCounter value={revenueLeak.monthly || 0} />
           </div>
                 <div className="text-xs text-gray-500">per month</div>
         </div>
@@ -1390,7 +1398,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   <Sparkline data={[revenueLeak.weekly * 0.8, revenueLeak.weekly * 0.9, revenueLeak.weekly * 0.85, revenueLeak.weekly]} color="red" />
                 </div>
                 <div className="text-4xl font-heading font-bold text-red-600 leading-none mb-2">
-                  $<AnimatedCounter value={revenueLeak.weekly} />
+                  <AnimatedCounter value={revenueLeak.weekly || 0} />
             </div>
                 <div className="text-xs text-gray-500">per week</div>
               </div>
@@ -1403,7 +1411,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   <Sparkline data={[revenueLeak.daily * 0.8, revenueLeak.daily * 0.9, revenueLeak.daily * 0.85, revenueLeak.daily]} color="red" />
                 </div>
                 <div className="text-4xl font-heading font-bold text-red-600 leading-none mb-2">
-                  $<AnimatedCounter value={revenueLeak.daily} />
+                  <AnimatedCounter value={revenueLeak.daily || 0} />
             </div>
                 <div className="text-xs text-gray-500">per day</div>
               </div>

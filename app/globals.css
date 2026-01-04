@@ -63,6 +63,25 @@
   /* Radius - ZERO for brutalist (or minimal) */
   --radius: 0rem;
 
+  /* Ghost OS Variables - Moved from .ghost-os class */
+  --ghost-bg: #020202;
+  --ghost-card: #0a0a0a;
+  --ghost-card-border: rgba(255, 255, 255, 0.08);
+  --ghost-card-glow: rgba(0, 112, 243, 0.03);
+  --ghost-blue: #0070F3;
+  --ghost-blue-bright: #3291ff;
+  --ghost-blue-dim: #0050b3;
+  --ghost-blue-glow: rgba(0, 112, 243, 0.25);
+  --ghost-blue-soft: rgba(0, 112, 243, 0.08);
+  --ghost-danger: #f87171;
+  --ghost-danger-glow: rgba(248, 113, 113, 0.2);
+  --ghost-warning: #fbbf24;
+  --ghost-success: #10b981;
+  --ghost-info: #0070F3;
+  --ghost-text: #e5e5e5;
+  --ghost-text-muted: #a1a1aa;
+  --ghost-text-dim: #71717a;
+
   /* Premium Typography Scale for Metrics */
   --metric-xs: 0.875rem;
   --metric-sm: 1.125rem;

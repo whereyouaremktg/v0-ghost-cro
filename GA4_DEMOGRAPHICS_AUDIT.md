@@ -133,3 +133,4 @@ Note: Using Expert CRO default personas (GA4 demographics not available).
 - [ ] Verify fallback personas are used when GA4 unavailable
 - [ ] Verify no errors when GA4 fetch fails
 
+

@@ -23,13 +23,12 @@ export default async function GhostLayout({
 
   return (
     <div className="ghost-os min-h-screen bg-[#050505] text-[#e5e5e5] overflow-hidden">
-      {/* Background Effects */}
-      <div className="fixed inset-0 ghost-grid opacity-30 pointer-events-none" />
-      <div className="fixed inset-0 ghost-scanline pointer-events-none" />
+      {/* Background Effects - Subtle grid for texture */}
+      <div className="fixed inset-0 ghost-grid opacity-5 pointer-events-none" />
       
-      {/* Ambient Glow */}
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-[#bef264]/5 rounded-full blur-[128px] pointer-events-none" />
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-[#bef264]/3 rounded-full blur-[128px] pointer-events-none" />
+      {/* Ambient Glow - Very subtle for depth without distraction */}
+      <div className="fixed top-0 left-1/4 w-96 h-96 bg-[#bef264]/2 rounded-full blur-[128px] pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-[#bef264]/2 rounded-full blur-[128px] pointer-events-none" />
       
       {/* Main Content */}
       <main className="relative z-10 min-h-screen">
