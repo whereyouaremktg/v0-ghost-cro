@@ -2,14 +2,14 @@
  * Store Analysis Prompt
  * 
  * Structured prompt for Claude to analyze Shopify stores with specific,
- * actionable detail extraction.
+ * actionable detail extraction AND production-ready code fixes.
  */
 
 export const STORE_ANALYSIS_PROMPT = `
-You are an expert CRO analyst examining a Shopify store. Analyze the provided screenshots and/or HTML and return a structured analysis.
+You are an expert CRO analyst and Shopify theme developer examining a Shopify store. Analyze the provided screenshots and/or HTML and return a structured analysis WITH production-ready code fixes.
 
 ## Your Task
-Evaluate the store against conversion rate optimization best practices. Be specific and cite exactly what you observe.
+Evaluate the store against conversion rate optimization best practices. Be specific and cite exactly what you observe. For each issue found, you MUST provide a production-ready Shopify Liquid/CSS code fix.
 
 ## Analysis Framework
 
@@ -18,6 +18,7 @@ For each element, note:
 2. QUALITY: How well executed? (specific observations)
 3. IMPACT: How does this affect conversion? (cite CRO principles)
 4. RECOMMENDATION: What specific change would help?
+5. CODE FIX: Production-ready Shopify Liquid/CSS/HTML to fix the issue
 
 ## Elements to Analyze
 
@@ -103,6 +104,22 @@ For each element, note:
 - Any visible errors or broken elements?
 - Any console errors or broken links?
 
+## CODE FIX REQUIREMENTS
+
+For EVERY issue in overallIssues, you MUST provide a codeFix object with:
+
+1. **Reasoning Trace** (REQUIRED): Before generating code, explain step-by-step:
+   - What specific problem exists
+   - Why it causes conversion issues (cite behavioral psychology or CRO research)
+   - How your code fix addresses this
+   - Expected impact on user behavior
+
+2. **Production-Ready Code** (REQUIRED): Shopify Liquid/CSS/HTML that:
+   - Is syntactically correct for Shopify themes
+   - Uses proper Liquid objects (product, shop, settings, etc.)
+   - Includes relevant CSS styling
+   - Is copy-paste ready for theme injection
+
 ## Output Format
 
 Return a JSON object matching this EXACT structure:
@@ -182,6 +199,16 @@ Return a JSON object matching this EXACT structure:
       "estimatedCRImpact": {
         "min": <number as decimal, e.g., 0.003 for 0.3%>,
         "max": <number as decimal, e.g., 0.008 for 0.8%>
+      },
+      "codeFix": {
+        "type": "<liquid|css|html|javascript>",
+        "targetFile": "<e.g., sections/product-template.liquid>",
+        "targetLocation": "<description of where in the file>",
+        "reasoningTrace": "<DETAILED Chain of Thought explaining the fix strategy>",
+        "originalCode": "<current code if known, or empty string>",
+        "optimizedCode": "<PRODUCTION-READY Shopify Liquid/CSS/HTML code>",
+        "effort": "<low|medium|high>",
+        "requiresThemeAccess": true
       }
     }
   ]
@@ -202,6 +229,40 @@ Base these on:
 - Industry CRO case studies
 - A/B test results from similar stores
 
+## CODE FIX EXAMPLES
+
+### Example 1: Missing Shipping Information
+\`\`\`json
+{
+  "codeFix": {
+    "type": "liquid",
+    "targetFile": "sections/product-template.liquid",
+    "targetLocation": "Below the add-to-cart button",
+    "reasoningTrace": "Hidden shipping costs are the #1 cause of checkout abandonment (Baymard Institute, 2023). By displaying shipping information early, we reduce the cognitive load at checkout and set accurate expectations. Users who see shipping upfront are 23% more likely to complete purchase. The fix adds a non-intrusive shipping preview that leverages Shopify's shipping settings.",
+    "originalCode": "",
+    "optimizedCode": "{%- comment -%}\\n  Ghost CRO: Shipping Transparency Fix\\n{%- endcomment -%}\\n<div class=\\"ghost-shipping-preview\\">\\n  {% if settings.free_shipping_threshold %}\\n    {% if cart.total_price >= settings.free_shipping_threshold %}\\n      <div class=\\"shipping-badge shipping-badge--free\\">\\n        <svg width=\\"16\\" height=\\"16\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\">\\n          <path d=\\"M5 12h14M12 5l7 7-7 7\\"/>\\n        </svg>\\n        <span>Free shipping on this order!</span>\\n      </div>\\n    {% else %}\\n      <div class=\\"shipping-badge\\">\\n        <span>Free shipping on orders over {{ settings.free_shipping_threshold | money }}</span>\\n      </div>\\n    {% endif %}\\n  {% endif %}\\n</div>\\n\\n<style>\\n.ghost-shipping-preview {\\n  margin: 16px 0;\\n  padding: 12px 16px;\\n  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);\\n  border: 1px solid #86efac;\\n  border-radius: 8px;\\n}\\n.shipping-badge {\\n  display: flex;\\n  align-items: center;\\n  gap: 8px;\\n  font-size: 14px;\\n  color: #16a34a;\\n  font-weight: 500;\\n}\\n.shipping-badge--free {\\n  color: #15803d;\\n}\\n</style>",
+    "effort": "low",
+    "requiresThemeAccess": true
+  }
+}
+\`\`\`
+
+### Example 2: Missing Trust Signals
+\`\`\`json
+{
+  "codeFix": {
+    "type": "liquid",
+    "targetFile": "sections/product-template.liquid",
+    "targetLocation": "Below product description",
+    "reasoningTrace": "Trust signals reduce perceived risk, which is critical for first-time visitors (who comprise 60-80% of ecommerce traffic). Research shows trust badges can increase conversions by 15-42% (ConversionXL). The fix adds a subtle but reassuring trust signal block that addresses the three main concerns: payment security, returns policy, and social proof.",
+    "originalCode": "",
+    "optimizedCode": "{%- comment -%}\\n  Ghost CRO: Trust Signal Injection\\n{%- endcomment -%}\\n<div class=\\"ghost-trust-signals\\">\\n  <div class=\\"trust-item\\">\\n    <svg width=\\"20\\" height=\\"20\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"#16a34a\\" stroke-width=\\"2\\">\\n      <rect x=\\"3\\" y=\\"11\\" width=\\"18\\" height=\\"11\\" rx=\\"2\\" ry=\\"2\\"/>\\n      <path d=\\"M7 11V7a5 5 0 0 1 10 0v4\\"/>\\n    </svg>\\n    <span>Secure Checkout</span>\\n  </div>\\n  <div class=\\"trust-item\\">\\n    <svg width=\\"20\\" height=\\"20\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"#16a34a\\" stroke-width=\\"2\\">\\n      <path d=\\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\\"/>\\n    </svg>\\n    <span>Money-Back Guarantee</span>\\n  </div>\\n  <div class=\\"trust-item\\">\\n    <svg width=\\"20\\" height=\\"20\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"#16a34a\\" stroke-width=\\"2\\">\\n      <polygon points=\\"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2\\"/>\\n    </svg>\\n    <span>Trusted by 1000+ Customers</span>\\n  </div>\\n</div>\\n\\n<style>\\n.ghost-trust-signals {\\n  display: flex;\\n  flex-wrap: wrap;\\n  gap: 16px;\\n  padding: 16px;\\n  margin: 16px 0;\\n  background: #fafafa;\\n  border-radius: 8px;\\n}\\n.trust-item {\\n  display: flex;\\n  align-items: center;\\n  gap: 8px;\\n  font-size: 13px;\\n  color: #374151;\\n}\\n</style>",
+    "effort": "low",
+    "requiresThemeAccess": true
+  }
+}
+\`\`\`
+
 ## Important Notes
 
 - Be precise with observations - only note what you can actually see
@@ -209,6 +270,7 @@ Base these on:
 - Use actual text/values when available (button text, title, etc.)
 - Estimate numbers when exact counts aren't possible
 - Focus on actionable, specific issues
+- **EVERY issue MUST include a codeFix with production-ready code**
 - **CRITICAL: Return ONLY valid JSON, no markdown formatting, no code blocks, no explanations, no text before or after the JSON**
 - The response must start with { and end with }
 - Do not wrap the JSON in markdown code blocks
@@ -249,6 +311,5 @@ URL: ${url}
 
 Use this REAL DATA from the actual page to inform your analysis. Don't guess - base your observations on what you actually see in the scraped data. If something isn't in the scraped data, note that it's not visible.
 
-Now analyze the store and return the structured JSON analysis.`
+Now analyze the store and return the structured JSON analysis with production-ready code fixes for every issue.`
 }
-

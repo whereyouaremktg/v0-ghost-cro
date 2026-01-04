@@ -46,3 +46,4 @@ export function isRequiredScope(scope: string): boolean {
 }
 
 
+

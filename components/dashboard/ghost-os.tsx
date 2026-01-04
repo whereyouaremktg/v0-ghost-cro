@@ -1,33 +1,68 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { Play, TrendingDown, Store, Sparkles, ArrowRight, Check, Loader2, Clock, Target } from "lucide-react"
-import { StatCard } from "@/components/dashboard/stat-card"
-import { ScoreChart } from "@/components/dashboard/score-chart"
-import { GhostTimeline } from "@/components/dashboard/ghost-timeline"
-import { RevenueCalculator } from "@/components/dashboard/revenue-calculator"
-import { AIInsightPanel } from "@/components/dashboard/ai-insight-panel"
-import { CircularScore } from "@/components/dashboard/circular-score"
-import { ConnectShopifyGate } from "@/components/dashboard/connect-shopify-gate"
-import { PersonaSelector } from "@/components/dashboard/persona-selector"
-import { calculateRevenueLeak, calculatePercentileBenchmark, getPercentileLabel } from "@/lib/ghostEngine"
-import { saveTestResult, getTestResult } from "@/lib/client-storage"
+import { 
+  Ghost, 
+  Zap, 
+  AlertTriangle, 
+  CheckCircle, 
+  ArrowRight, 
+  ExternalLink,
+  Activity,
+  Shield,
+  CreditCard,
+  Truck,
+  Clock,
+  TrendingUp,
+  Eye,
+  Loader2,
+  Play,
+  Store,
+  Scan,
+  Target,
+  DollarSign,
+  Users,
+  ChevronRight
+} from "lucide-react"
+import { saveTestResult, getTestResult, getAllTestResults } from "@/lib/client-storage"
+import { calculateRevenueOpportunity, formatOpportunityRange } from "@/lib/calculations/revenue-opportunity"
+import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils/format"
 import type { TestResult } from "@/lib/types"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
-type ViewMode = "overview" | "timeline" | "simulation"
-type TestState = "idle" | "running" | "complete"
-
-interface ProgressStep {
-  label: string
-  status: "done" | "current" | "pending"
-}
+// ============================================
+// TYPES
+// ============================================
 
 interface ShopifyStore {
   shop: string
   accessToken: string
   connectedAt: string
+}
+
+interface GhostLogEntry {
+  id: string
+  timestamp: Date
+  type: "ghost" | "scan" | "threat" | "success" | "info" | "action"
+  persona?: string
+  message: string
+  detail?: string
+  severity?: "critical" | "high" | "medium"
+}
+
+interface DiscoveredProduct {
+  title: string
+  handle: string
+  image: string | null
+  price: string | null
+  url: string
 }
 
 interface GhostOSProps {
@@ -48,540 +83,777 @@ interface GhostOSProps {
   latestTestResult?: TestResult | null
 }
 
+// ============================================
+// GHOST PERSONAS
+// ============================================
+
+const GHOST_PERSONAS = [
+  { id: "budget", name: "Budget Parent", emoji: "👨‍👩‍👧", color: "#60a5fa" },
+  { id: "impulse", name: "Impulse Buyer", emoji: "⚡", color: "#fbbf24" },
+  { id: "skeptic", name: "Skeptic Researcher", emoji: "🔍", color: "#f87171" },
+  { id: "busy", name: "Busy Professional", emoji: "💼", color: "#a78bfa" },
+  { id: "first", name: "First-Time Visitor", emoji: "🆕", color: "#34d399" },
+]
+
+// ============================================
+// SIMULATED LOGS FOR DEMO
+// ============================================
+
+const SIMULATED_LOGS: Omit<GhostLogEntry, "id" | "timestamp">[] = [
+  { type: "info", message: "Ghost Mission Control initialized" },
+  { type: "scan", message: "Deploying ghost squad to storefront..." },
+  { type: "ghost", persona: "Budget Parent", message: "👨‍👩‍👧 Ghost #1 entered product page" },
+  { type: "ghost", persona: "Impulse Buyer", message: "⚡ Ghost #2 scanning checkout flow" },
+  { type: "scan", message: "Analyzing Liquid templates for friction..." },
+  { type: "ghost", persona: "Skeptic Researcher", message: "🔍 Ghost #3 evaluating trust signals" },
+  { type: "threat", message: "⚠️ Shipping costs hidden until checkout", severity: "critical" },
+  { type: "ghost", persona: "Busy Professional", message: "💼 Ghost #4 testing mobile experience" },
+  { type: "scan", message: "Measuring page load performance..." },
+  { type: "threat", message: "Missing trust badges on product page", severity: "high" },
+  { type: "ghost", persona: "First-Time Visitor", message: "🆕 Ghost #5 simulating new visitor flow" },
+  { type: "scan", message: "Evaluating payment options..." },
+  { type: "success", message: "✓ Multiple payment methods detected" },
+  { type: "threat", message: "No free shipping threshold displayed", severity: "medium" },
+  { type: "info", message: "Compiling threat assessment..." },
+]
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [viewMode, setViewMode] = useState<ViewMode>("overview")
-  const [shopifyMetrics, setShopifyMetrics] = useState<any>(null)
-  const [shopifyStore, setShopifyStore] = useState<ShopifyStore | null>(null)
-  const [loadingMetrics, setLoadingMetrics] = useState(false)
-  const [isCheckingConnection, setIsCheckingConnection] = useState(true)
   
-  // Simulation state
-  const [persona, setPersona] = useState("balanced")
-  const [comparePrevious, setComparePrevious] = useState(true)
-  const [emailOnComplete, setEmailOnComplete] = useState(false)
-  const [testState, setTestState] = useState<TestState>("idle")
-  const [steps, setSteps] = useState<ProgressStep[]>([
-    { label: "Analyzing cart → checkout flow", status: "pending" },
-    { label: "Identifying friction points", status: "pending" },
-    { label: "Running synthetic shoppers", status: "pending" },
-    { label: "Generating recommendations", status: "pending" },
-  ])
+  // State
+  const [shopifyStore, setShopifyStore] = useState<ShopifyStore | null>(null)
+  const [isConnecting, setIsConnecting] = useState(true)
+  const [isRunning, setIsRunning] = useState(false)
+  const [ghostLogs, setGhostLogs] = useState<GhostLogEntry[]>([])
+  const [discoveredProduct, setDiscoveredProduct] = useState<DiscoveredProduct | null>(null)
+  const [currentResult, setCurrentResult] = useState<TestResult | null>(latestTestResult || null)
+  const [activePersona, setActivePersona] = useState<string | null>(null)
+  const [selectedFix, setSelectedFix] = useState<any | null>(null)
+  const [showFixModal, setShowFixModal] = useState(false)
+  const [simulationProgress, setSimulationProgress] = useState(0)
+  
+  // Refs
+  const logContainerRef = useRef<HTMLDivElement>(null)
+  const hasAutoRun = useRef(false)
 
-  const hasTests = (tests?.length || 0) > 0
-  const hasScore = (stats.currentScore || 0) > 0
+  // Add log entry
+  const addLog = useCallback((entry: Omit<GhostLogEntry, "id" | "timestamp">) => {
+    setGhostLogs(prev => [
+      ...prev,
+      {
+        ...entry,
+        id: `log_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        timestamp: new Date(),
+      },
+    ])
+  }, [])
 
-  // Check URL hash or query params for view mode
+  // Auto-scroll logs
   useEffect(() => {
-    const updateView = () => {
-      const hash = window.location.hash.replace("#", "")
-      const view = searchParams.get("view")
-      
-      if (hash === "timeline" || view === "timeline") {
-        setViewMode("timeline")
-      } else if (hash === "simulation" || view === "simulation") {
-        setViewMode("simulation")
-      } else {
-        setViewMode("overview")
-      }
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
     }
-    
-    updateView()
-    window.addEventListener("hashchange", updateView)
-    return () => window.removeEventListener("hashchange", updateView)
-  }, [searchParams])
+  }, [ghostLogs])
 
-  // Check for Shopify connection on mount
+  // Run auto-discovery and analysis
+  const runFullSimulation = useCallback(async (store: ShopifyStore) => {
+    if (isRunning) return
+    
+    setIsRunning(true)
+    setGhostLogs([])
+    setSimulationProgress(0)
+    
+    // Initial logs
+    addLog({ type: "info", message: "Ghost Mission Control initialized", detail: store.shop })
+    await new Promise(r => setTimeout(r, 500))
+    
+    addLog({ type: "scan", message: "Auto-discovering primary product..." })
+    setSimulationProgress(10)
+    
+    try {
+      // Call auto-discover API
+      const discoverResponse = await fetch("/api/shopify/auto-discover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shop: store.shop, accessToken: store.accessToken }),
+      })
+      
+      if (!discoverResponse.ok) throw new Error("Auto-discovery failed")
+      
+      const discoverData = await discoverResponse.json()
+      const targetUrl = discoverData.productUrl || discoverData.storeUrl
+      
+      setDiscoveredProduct({
+        title: discoverData.product?.title || "Store Homepage",
+        handle: discoverData.product?.handle || "",
+        image: discoverData.product?.image || null,
+        price: discoverData.product?.price || null,
+        url: targetUrl,
+      })
+      
+      addLog({ 
+        type: "success", 
+        message: `Product discovered: ${discoverData.product?.title || "Homepage"}`,
+        detail: targetUrl
+      })
+      setSimulationProgress(20)
+      
+      await new Promise(r => setTimeout(r, 400))
+      addLog({ type: "scan", message: "Deploying ghost squad to storefront..." })
+      
+      // Deploy ghosts with staggered logs
+      for (let i = 0; i < GHOST_PERSONAS.length; i++) {
+        await new Promise(r => setTimeout(r, 300 + Math.random() * 200))
+        const persona = GHOST_PERSONAS[i]
+        setActivePersona(persona.id)
+        addLog({
+          type: "ghost",
+          persona: persona.name,
+          message: `${persona.emoji} Ghost #${i + 1} (${persona.name}) entering storefront`,
+        })
+        setSimulationProgress(20 + ((i + 1) / GHOST_PERSONAS.length) * 20)
+      }
+      
+      await new Promise(r => setTimeout(r, 500))
+      addLog({ type: "scan", message: "Scanning Liquid templates for shipping shock..." })
+      setSimulationProgress(45)
+      
+      await new Promise(r => setTimeout(r, 400))
+      addLog({ type: "scan", message: "Analyzing trust signals and social proof..." })
+      setSimulationProgress(55)
+      
+      await new Promise(r => setTimeout(r, 400))
+      addLog({ type: "scan", message: "Evaluating payment options and checkout friction..." })
+      setSimulationProgress(65)
+      
+      // Run actual analysis
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: targetUrl, personaMix: "balanced" }),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        throw new Error(errorData.error || "Analysis failed")
+      }
+      
+      const { result } = await response.json()
+      setSimulationProgress(80)
+      
+      // Log threats
+      const criticalCount = result.frictionPoints?.critical?.length || 0
+      const highCount = result.frictionPoints?.high?.length || 0
+      
+      await new Promise(r => setTimeout(r, 400))
+      
+      if (criticalCount > 0) {
+        addLog({
+          type: "threat",
+          message: `🚨 ${criticalCount} CRITICAL threat${criticalCount > 1 ? "s" : ""} detected`,
+          detail: result.frictionPoints.critical[0]?.title,
+          severity: "critical",
+        })
+      }
+      
+      if (highCount > 0) {
+        await new Promise(r => setTimeout(r, 300))
+        addLog({
+          type: "threat",
+          message: `⚠️ ${highCount} high-priority issue${highCount > 1 ? "s" : ""} found`,
+          severity: "high",
+        })
+      }
+      
+      // Log verdicts
+      const purchaseCount = result.personaResults?.filter((p: any) => p.verdict === "purchase").length || 0
+      const abandonCount = result.personaResults?.filter((p: any) => p.verdict === "abandon").length || 0
+      
+      await new Promise(r => setTimeout(r, 500))
+      addLog({
+        type: "info",
+        message: `Ghost verdict: ${purchaseCount}/5 would purchase, ${abandonCount}/5 would abandon`,
+      })
+      
+      setSimulationProgress(90)
+      
+      // Save result
+      saveTestResult(result)
+      setCurrentResult(result)
+      
+      await new Promise(r => setTimeout(r, 400))
+      addLog({
+        type: "success",
+        message: `✅ Ghost Score: ${result.score}/100`,
+        detail: `${result.issuesFound || 0} friction points identified`,
+      })
+      
+      setSimulationProgress(100)
+      setActivePersona(null)
+      
+    } catch (error) {
+      console.error("Simulation failed:", error)
+      addLog({
+        type: "threat",
+        message: `Mission aborted: ${error instanceof Error ? error.message : "Unknown error"}`,
+      })
+    } finally {
+      setIsRunning(false)
+    }
+  }, [isRunning, addLog])
+
+  // Initialize on mount
   useEffect(() => {
     const stored = localStorage.getItem("shopifyStore")
     if (stored) {
       try {
         const store = JSON.parse(stored)
         setShopifyStore(store)
-        fetchShopifyMetrics(store)
         
-        // Auto-trigger simulation if coming from OAuth callback
-        const urlParams = new URLSearchParams(window.location.search)
-        if (urlParams.get("auto") === "true" && testState === "idle") {
-          setViewMode("simulation")
-          setTimeout(() => {
-            const form = document.querySelector("form")
-            if (form) {
-              form.requestSubmit()
-            }
-          }, 500)
+        // Check for auto-trigger from OAuth
+        const autoParam = searchParams.get("auto")
+        if (autoParam === "true" && !hasAutoRun.current) {
+          hasAutoRun.current = true
+          window.history.replaceState(null, "", "/ghost")
+          setTimeout(() => runFullSimulation(store), 500)
+        }
+        
+        // Load latest result if available
+        const allResults = getAllTestResults()
+        if (allResults.length > 0 && !currentResult) {
+          setCurrentResult(allResults[0])
         }
       } catch (error) {
-        console.error("Failed to parse shopify store data:", error)
+        console.error("Failed to parse shopify store:", error)
       }
     }
-    setIsCheckingConnection(false)
-  }, [testState])
+    setIsConnecting(false)
+  }, [searchParams, runFullSimulation, currentResult])
 
-  // Calculate revenue leak using Ghost Engine
-  const revenueLeak = useMemo(() => {
-    return calculateRevenueLeak(latestTestResult || null, {
-      averageOrderValue: shopifyMetrics?.metrics?.averageOrderValue,
-      monthlySessions: shopifyMetrics?.metrics?.totalSessions,
-      monthlyRevenue: shopifyMetrics?.metrics?.totalRevenue,
-    })
-  }, [latestTestResult, shopifyMetrics])
+  // Calculate revenue metrics
+  const revenueOpportunity = currentResult ? calculateRevenueOpportunity({
+    monthlyVisitors: 50000,
+    currentConversionRate: 0.025,
+    aov: 85,
+    categoryBenchmarkCR: 0.028,
+  }) : null
 
-  // Calculate percentile benchmark
-  const percentile = useMemo(() => {
-    if (!stats.currentScore || stats.currentScore === 0) return null
-    return calculatePercentileBenchmark(stats.currentScore)
-  }, [stats.currentScore])
+  // Get all threats from current result
+  const allThreats = currentResult ? [
+    ...currentResult.frictionPoints.critical.map(fp => ({ ...fp, severity: "critical" as const })),
+    ...currentResult.frictionPoints.high.map(fp => ({ ...fp, severity: "high" as const })),
+    ...currentResult.frictionPoints.medium.map(fp => ({ ...fp, severity: "medium" as const })),
+  ] : []
 
-  const fetchShopifyMetrics = async (store: any) => {
-    setLoadingMetrics(true)
-    try {
-      const response = await fetch("/api/shopify/metrics", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shop: store.shop,
-          accessToken: store.accessToken,
-        }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setShopifyMetrics(data)
-      }
-    } catch (error) {
-      console.error("Failed to fetch Shopify metrics:", error)
-    } finally {
-      setLoadingMetrics(false)
-    }
-  }
-
-  const handleSimulationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!shopifyStore) return
-
-    setTestState("running")
-
-    // Build store URL from shop name
-    const storeUrl = `https://${shopifyStore.shop}`
-
-    // Start progress animation
-    const stepTimings = [1000, 2000, 3000, 4500]
-    stepTimings.forEach((timing, index) => {
-      setTimeout(() => {
-        setSteps((prev) =>
-          prev.map((step, i) => ({
-            ...step,
-            status: i < index ? "done" : i === index ? "current" : "pending",
-          })),
-        )
-      }, timing)
-    })
-
-    try {
-      // Call the analyze API
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url: storeUrl,
-          personaMix: persona,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
-        throw new Error(errorData.error || `Analysis failed with status ${response.status}`)
-      }
-
-      const responseData = await response.json()
-      console.log("Analysis response:", responseData)
-      
-      if (!responseData.result) {
-        throw new Error("No result returned from analysis API")
-      }
-
-      const { result } = responseData
-      console.log("Saving test result with ID:", result.id)
-
-      // Save the result to localStorage
-      saveTestResult(result)
-      
-      // Verify it was saved
-      const saved = getTestResult(result.id)
-      console.log("Test result saved:", saved ? "Yes" : "No")
-      
-      if (!saved) {
-        throw new Error("Failed to save test result to localStorage")
-      }
-
-      // Complete and redirect
-      setSteps((prev) => prev.map((step => ({ ...step, status: "done" as const }))))
-      setTestState("complete")
-      setTimeout(() => {
-        console.log("Redirecting to:", `/ghost/test/${result.id}`)
-        router.push(`/ghost/test/${result.id}`)
-      }, 500)
-    } catch (error) {
-      console.error("Simulation failed:", error)
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-      alert(`Failed to run simulation: ${errorMessage}\n\nPlease check:\n1. Your ANTHROPIC_API_KEY is set in .env.local\n2. Your internet connection\n3. Try again in a moment`)
-      setTestState("idle")
-      setSteps([
-        { label: "Analyzing cart → checkout flow", status: "pending" },
-        { label: "Identifying friction points", status: "pending" },
-        { label: "Running synthetic shoppers", status: "pending" },
-        { label: "Generating recommendations", status: "pending" },
-      ])
-    }
-  }
-
-  const scoreDiff = stats.currentScore - stats.previousScore
-
-  // Show loading state while checking connection
-  if (isCheckingConnection) {
+  // Connect Shopify Gate
+  if (isConnecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  // Show connect gate if Shopify is not connected
-  if (!shopifyStore) {
-    return <ConnectShopifyGate />
-  }
-
-  // Show simulation running/complete state
-  if (viewMode === "simulation" && testState !== "idle") {
-    return (
-      <div className="p-8 max-w-2xl mx-auto">
-        <div className="bg-card border border-border/50 rounded-xl shadow-lg p-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-primary/10 border border-primary/30 rounded-xl">
-              <Sparkles className="h-5 w-5 text-primary" strokeWidth={2.5} />
-            </div>
-            <h2 className="text-xl font-semibold tracking-tight">
-              {testState === "complete" ? "Simulation Complete" : "Running Simulation..."}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
-            <Store className="h-4 w-4" strokeWidth={2.5} />
-            <span>{shopifyStore.shop}</span>
-          </div>
-
-          <div className="space-y-4">
-            {steps.map((step, index) => (
-              <div key={index} className="flex items-center gap-4">
-                <div
-                  className={`h-6 w-6 flex items-center justify-center border-2 border-border ${
-                    step.status === "done" ? "bg-primary" : step.status === "current" ? "bg-chart-5" : "bg-card"
-                  }`}
-                >
-                  {step.status === "done" ? (
-                    <Check className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
-                  ) : step.status === "current" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : null}
-                </div>
-                <span
-                  className={`text-sm ${
-                    step.status === "done"
-                      ? "text-foreground"
-                      : step.status === "current"
-                        ? "text-foreground font-bold"
-                        : "text-muted-foreground"
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {testState === "running" && (
-            <p className="text-xs text-muted-foreground mt-8">Estimated time remaining: ~1 min</p>
-          )}
+      <div className="h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-2 border-[#bef264]/30 border-t-[#bef264] animate-spin" />
+          <p className="text-[#737373] text-sm">Initializing Ghost OS...</p>
         </div>
       </div>
     )
   }
 
-  // Main unified Ghost OS view
-  return (
-    <div className="p-6 lg:p-10">
-      {/* View Mode Tabs */}
-      <div className="mb-8 flex items-center gap-2 border-b border-border/30 pb-4">
-        <button
-          onClick={() => {
-            setViewMode("overview")
-            window.history.replaceState(null, "", "/ghost")
-          }}
-          className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
-            viewMode === "overview"
-              ? "bg-primary/20 text-primary border border-primary/30"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Target className="h-4 w-4 inline mr-2" strokeWidth={2.5} />
-          Mission Control
-        </button>
-        <button
-          onClick={() => {
-            setViewMode("timeline")
-            window.history.replaceState(null, "", "/ghost#timeline")
-          }}
-          className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
-            viewMode === "timeline"
-              ? "bg-primary/20 text-primary border border-primary/30"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Clock className="h-4 w-4 inline mr-2" strokeWidth={2.5} />
-          Timeline
-        </button>
-        <button
-          onClick={() => {
-            setViewMode("simulation")
-            window.history.replaceState(null, "", "/ghost#simulation")
-          }}
-          className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
-            viewMode === "simulation"
-              ? "bg-primary/20 text-primary border border-primary/30"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          }`}
-        >
-          <Play className="h-4 w-4 inline mr-2" strokeWidth={2.5} />
-          Re-run Simulation
-        </button>
+  if (!shopifyStore) {
+    return (
+      <div className="h-screen flex items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          <div className="ghost-glass rounded-2xl p-8 text-center ghost-glow">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-[#bef264]/10 border border-[#bef264]/20 flex items-center justify-center">
+              <Ghost className="w-8 h-8 text-[#bef264]" />
+            </div>
+            <h1 className="text-2xl font-semibold mb-2">Connect Your Store</h1>
+            <p className="text-[#737373] mb-8">
+              Ghost needs access to your Shopify store to run the simulation.
+            </p>
+            <a
+              href="/api/auth/shopify"
+              className="ghost-fix-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
+            >
+              <Store className="w-5 h-5" />
+              Connect Shopify
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
       </div>
+    )
+  }
 
-      {/* Overview View */}
-      {viewMode === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-          <div className="lg:col-span-2 space-y-8">
-          {/* Hero: Live Money Leak */}
-          <div className="bg-gradient-to-br from-destructive/10 via-destructive/5 to-transparent border border-destructive/20 rounded-xl shadow-lg p-8 animate-fade-in">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="h-5 w-5 text-destructive" strokeWidth={2.5} />
-                  <span className="text-xs font-medium tracking-wide text-muted-foreground/80 uppercase">
-                    Live Money Leak
-                  </span>
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Top Bar */}
+      <header className="flex-shrink-0 h-14 border-b border-white/5 ghost-glass-strong flex items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Ghost className="w-6 h-6 text-[#bef264]" />
+            <span className="font-semibold tracking-tight">Ghost OS</span>
+          </div>
+          <div className="h-4 w-px bg-white/10" />
+          <div className="flex items-center gap-2 text-sm text-[#737373]">
+            <Store className="w-4 h-4" />
+            <span>{shopifyStore.shop}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {isRunning && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#bef264]/10 border border-[#bef264]/20">
+              <div className="w-2 h-2 rounded-full bg-[#bef264] animate-pulse" />
+              <span className="text-xs font-medium text-[#bef264]">SCANNING</span>
+            </div>
+          )}
+          <button
+            onClick={() => runFullSimulation(shopifyStore)}
+            disabled={isRunning}
+            className="ghost-fix-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRunning ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
+            {isRunning ? "Running..." : "Run Simulation"}
+          </button>
+        </div>
+      </header>
+
+      {/* Main Three-Pane Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* PANE 1: Ghost Stream (Left - 25%) */}
+        <aside className="w-[25%] border-r border-white/5 flex flex-col overflow-hidden">
+          <div className="flex-shrink-0 p-4 border-b border-white/5">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#bef264]" />
+                Ghost Stream
+              </h2>
+              <span className="text-[10px] text-[#737373] ghost-mono">
+                {ghostLogs.length} events
+              </span>
+            </div>
+            
+            {/* Ghost Avatars */}
+            <div className="flex items-center gap-1">
+              {GHOST_PERSONAS.map((persona) => (
+                <div
+                  key={persona.id}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
+                    activePersona === persona.id
+                      ? "ring-2 ring-[#bef264] ring-offset-2 ring-offset-[#050505] scale-110"
+                      : "opacity-40"
+                  }`}
+                  style={{ backgroundColor: `${persona.color}20` }}
+                  title={persona.name}
+                >
+                  {persona.emoji}
                 </div>
-                <div className="text-5xl font-heading font-bold text-destructive leading-none mb-2">
-                  {hasScore && revenueLeak.monthly > 0 ? `$${revenueLeak.monthly.toLocaleString()}` : "—"}
-                </div>
-                <div className="text-sm text-muted-foreground/70">per month</div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Log Entries */}
+          <div 
+            ref={logContainerRef}
+            className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs"
+          >
+            {ghostLogs.length === 0 ? (
+              <div className="text-center text-[#525252] py-8">
+                <Ghost className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                <p>Waiting for mission start...</p>
               </div>
-              {loadingMetrics && (
-                <span className="text-xs text-muted-foreground/70">Fetching metrics…</span>
+            ) : (
+              ghostLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className={`ghost-stream-entry ghost-log-enter p-2 rounded-lg ${
+                    log.type === "threat" 
+                      ? "bg-[#f87171]/10 border-l-[#f87171]" 
+                      : log.type === "success"
+                        ? "bg-[#4ade80]/10 border-l-[#4ade80]"
+                        : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#525252] flex-shrink-0">
+                      [{log.timestamp.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" })}]
+                    </span>
+                    <span className={`flex-1 ${
+                      log.type === "threat" ? "text-[#f87171]" :
+                      log.type === "success" ? "text-[#4ade80]" :
+                      log.type === "ghost" ? "text-[#bef264]" :
+                      "text-[#e5e5e5]"
+                    }`}>
+                      {log.message}
+                    </span>
+                  </div>
+                  {log.detail && (
+                    <p className="text-[#525252] mt-1 ml-[72px] truncate">{log.detail}</p>
+                  )}
+                </div>
+              ))
+            )}
+            
+            {/* Typing indicator */}
+            {isRunning && (
+              <div className="flex items-center gap-2 text-[#525252] p-2">
+                <span className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] animate-bounce" style={{ animationDelay: "300ms" }} />
+                </span>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* PANE 2: Simulation Deck (Center - 50%) */}
+        <main className="w-[50%] flex flex-col overflow-hidden">
+          {/* Status Bar */}
+          <div className="flex-shrink-0 p-4 border-b border-white/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`px-3 py-1.5 rounded-full text-xs font-medium ${
+                  isRunning 
+                    ? "bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20" 
+                    : currentResult
+                      ? "bg-[#4ade80]/10 text-[#4ade80] border border-[#4ade80]/20"
+                      : "bg-white/5 text-[#737373]"
+                }`}>
+                  {isRunning ? "SIMULATION IN PROGRESS" : currentResult ? "SCAN COMPLETE" : "READY"}
+                </div>
+                {isRunning && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div 
+                        className="h-full bg-[#bef264] rounded-full transition-all duration-300"
+                        style={{ width: `${simulationProgress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-[#737373] ghost-mono">{simulationProgress}%</span>
+                  </div>
+                )}
+              </div>
+              {currentResult && (
+                <div className="text-sm text-[#737373]">
+                  Last scan: {new Date(currentResult.date).toLocaleString()}
+                </div>
               )}
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
-                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-2 mb-3">Daily Leak</div>
-                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
-                  {hasScore && revenueLeak.daily > 0 ? `$${revenueLeak.daily.toLocaleString()}` : "—"}
+          {/* Viewport */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            {!currentResult && !isRunning ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center max-w-md">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[#bef264]/5 border border-[#bef264]/10 flex items-center justify-center ghost-breathe">
+                    <Scan className="w-10 h-10 text-[#bef264]/50" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No Scan Data</h3>
+                  <p className="text-[#737373] mb-6">
+                    Run a simulation to see Ghost analyze your checkout flow in real-time.
+                  </p>
+                  <button
+                    onClick={() => runFullSimulation(shopifyStore)}
+                    className="ghost-fix-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
+                  >
+                    <Play className="w-5 h-5" />
+                    Start First Scan
+                  </button>
                 </div>
-                <div className="text-xs text-muted-foreground/60">per day</div>
               </div>
-              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
-                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-3">Weekly Leak</div>
-                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
-                  {hasScore && revenueLeak.weekly > 0 ? `$${revenueLeak.weekly.toLocaleString()}` : "—"}
-                </div>
-                <div className="text-xs text-muted-foreground/60">per week</div>
+            ) : (
+              <>
+                {/* Product Preview with HUD */}
+                {discoveredProduct && (
+                  <div className="ghost-viewport mb-6 relative">
+                    <div className="ghost-glass rounded-xl p-4">
+                      <div className="flex items-start gap-4">
+                        {discoveredProduct.image ? (
+                          <img 
+                            src={discoveredProduct.image} 
+                            alt={discoveredProduct.title}
+                            className="w-24 h-24 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 bg-white/5 rounded-lg flex items-center justify-center">
+                            <Store className="w-8 h-8 text-[#525252]" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">{discoveredProduct.title}</h3>
+                          {discoveredProduct.price && (
+                            <p className="text-[#bef264] ghost-mono text-lg">${discoveredProduct.price}</p>
+                          )}
+                          <a 
+                            href={discoveredProduct.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-[#737373] hover:text-[#bef264] flex items-center gap-1 mt-1"
+                          >
+                            View on store <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        {currentResult && (
+                          <div className="text-right">
+                            <div className="text-xs text-[#737373] mb-1">Ghost Score</div>
+                            <div className={`text-3xl font-bold ghost-mono ${
+                              currentResult.score >= 70 ? "text-[#4ade80]" :
+                              currentResult.score >= 50 ? "text-[#fbbf24]" :
+                              "text-[#f87171]"
+                            }`}>
+                              {currentResult.score}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* HUD Overlay corners */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[#bef264]/50 rounded-tl-xl" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-[#bef264]/50 rounded-tr-xl" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-[#bef264]/50 rounded-bl-xl" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[#bef264]/50 rounded-br-xl" />
+                  </div>
+                )}
+
+                {/* Persona Grid */}
+                {currentResult && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#bef264]" />
+                      Ghost Verdicts
+                    </h3>
+                    <div className="grid grid-cols-5 gap-2">
+                      {currentResult.personaResults.map((result, i) => {
+                        const persona = GHOST_PERSONAS[i] || { emoji: "👤", color: "#737373" }
+                        return (
+                          <div 
+                            key={result.id}
+                            className={`ghost-glass rounded-lg p-3 text-center ghost-card-hover cursor-pointer ${
+                              result.verdict === "abandon" ? "border-[#f87171]/30" : "border-[#4ade80]/30"
+                            }`}
+                            title={result.reasoning}
+                          >
+                            <div className="text-2xl mb-1">{persona.emoji}</div>
+                            <div className={`text-xs font-medium ${
+                              result.verdict === "abandon" ? "text-[#f87171]" : "text-[#4ade80]"
+                            }`}>
+                              {result.verdict === "abandon" ? "ABANDON" : "PURCHASE"}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Threat Cards */}
+                {allThreats.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#f87171]" />
+                      Active Threats ({allThreats.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {allThreats.slice(0, 5).map((threat, i) => (
+                        <div 
+                          key={threat.id}
+                          className={`ghost-glass rounded-lg p-4 ghost-card-hover border-l-2 ${
+                            threat.severity === "critical" ? "border-l-[#f87171]" :
+                            threat.severity === "high" ? "border-l-[#fbbf24]" :
+                            "border-l-[#737373]"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                                  threat.severity === "critical" ? "bg-[#f87171]/20 text-[#f87171]" :
+                                  threat.severity === "high" ? "bg-[#fbbf24]/20 text-[#fbbf24]" :
+                                  "bg-white/10 text-[#737373]"
+                                }`}>
+                                  {threat.severity.toUpperCase()}
+                                </span>
+                                <span className="text-xs text-[#525252]">{threat.location}</span>
+                              </div>
+                              <h4 className="font-medium">{threat.title}</h4>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setSelectedFix(threat)
+                                setShowFixModal(true)
+                              }}
+                              className="ghost-fix-btn px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1"
+                            >
+                              View Fix
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </main>
+
+        {/* PANE 3: Recovery Queue (Right - 25%) */}
+        <aside className="w-[25%] border-l border-white/5 flex flex-col overflow-hidden">
+          {/* Revenue Leak Hero */}
+          <div className="flex-shrink-0 p-4 border-b border-white/5">
+            <div className="ghost-glass-strong rounded-xl p-4 ghost-glow-danger">
+              <div className="text-xs text-[#737373] mb-1 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                MONTHLY OPPORTUNITY
               </div>
-              <div className="bg-background/40 backdrop-blur-sm border border-destructive/20 rounded-xl p-6 shadow-sm">
-                <div className="text-xs font-medium tracking-wide text-muted-foreground/80 mb-3">Monthly Leak</div>
-                <div className="text-4xl font-heading font-bold text-destructive leading-none mb-1">
-                  {hasScore && revenueLeak.monthly > 0 ? `$${revenueLeak.monthly.toLocaleString()}` : "—"}
-                </div>
-                <div className="text-xs text-muted-foreground/60">per month</div>
+              <div className="ghost-mono text-3xl font-bold text-[#f87171] ghost-counter">
+                {revenueOpportunity 
+                  ? formatOpportunityRange(revenueOpportunity.monthlyOpportunity.min, revenueOpportunity.monthlyOpportunity.max)
+                  : "—"
+                }
+              </div>
+              <div className="text-xs text-[#525252] mt-1">
+                Recoverable revenue at benchmark CR
               </div>
             </div>
+          </div>
 
-            {!shopifyStore?.shop && (
-              <div className="mt-6 text-xs text-muted-foreground/70">
-                Connect Shopify to improve leak accuracy with real session and revenue data
+          {/* Prioritized Fixes */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Target className="w-4 h-4 text-[#bef264]" />
+              Recovery Queue
+            </h3>
+            
+            {currentResult?.recommendations && currentResult.recommendations.length > 0 ? (
+              <div className="space-y-3">
+                {currentResult.recommendations.slice(0, 5).map((rec, i) => (
+                  <div 
+                    key={i}
+                    className="ghost-glass rounded-xl p-4 ghost-card-hover"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <span className="w-6 h-6 rounded-lg bg-[#bef264]/10 text-[#bef264] flex items-center justify-center text-xs font-bold">
+                        {rec.priority}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                        rec.effort === "low" ? "bg-[#4ade80]/20 text-[#4ade80]" :
+                        rec.effort === "medium" ? "bg-[#fbbf24]/20 text-[#fbbf24]" :
+                        "bg-[#f87171]/20 text-[#f87171]"
+                      }`}>
+                        {rec.effort.toUpperCase()} EFFORT
+                      </span>
+                    </div>
+                    <h4 className="font-medium text-sm mb-1">{rec.title}</h4>
+                    <p className="text-xs text-[#737373] line-clamp-2">{rec.description}</p>
+                    <button
+                      onClick={() => {
+                        setSelectedFix(rec)
+                        setShowFixModal(true)
+                      }}
+                      className="ghost-fix-btn w-full mt-3 py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1"
+                    >
+                      Deploy Fix to Theme
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-[#525252] py-8">
+                <Target className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Run a scan to see prioritized fixes</p>
               </div>
             )}
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <StatCard
-              label="Checkout Score"
-              value={stats.currentScore || "—"}
-              suffix={stats.currentScore ? "/100" : ""}
-              trend={
-                stats.previousScore
-                  ? {
-                      value: `${scoreDiff >= 0 ? "+" : ""}${scoreDiff} vs last scan`,
-                      positive: scoreDiff >= 0,
-                    }
-                  : undefined
-              }
-              percentile={percentile ? getPercentileLabel(percentile) : undefined}
-              sparklineData={tests
-                .filter((t) => t.overall_score !== null)
-                .slice(0, 6)
-                .map((t) => t.overall_score || 0)
-                .reverse()}
-            />
-            <StatCard
-              label="Plan"
-              value={stats.plan.charAt(0).toUpperCase() + stats.plan.slice(1)}
-              sublabel={stats.plan === "free" ? "1 test included" : `${stats.testsLimit} tests/mo`}
-            />
-            <StatCard
-              label="Scans Run"
-              value={stats.testsThisMonth}
-              sublabel="this month"
-              trend={{
-                value: `${stats.testsRemaining} remaining`,
-                positive: stats.testsRemaining > 0,
-              }}
-            />
-            <StatCard label="Total Scans" value={tests.length} sublabel="all time" />
-          </div>
-
-          {/* Revenue Calculator */}
-          <div>
-            <RevenueCalculator
-              shopifyMetrics={shopifyMetrics}
-              shopifyStore={shopifyStore}
-              loadingMetrics={loadingMetrics}
-            />
-          </div>
-
-          {/* Chart */}
-          {hasTests && (
-            <div>
-              <ScoreChart tests={tests} />
-            </div>
-          )}
-          </div>
-          
-          {/* Desktop: AI Panel on right */}
-          <div className="hidden lg:block lg:col-span-1">
-            <div className="sticky top-6">
-              <AIInsightPanel latestTestResult={latestTestResult} revenueLeak={revenueLeak} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Timeline View */}
-      {viewMode === "timeline" && (
-        <div className="animate-fade-in">
-          <GhostTimeline tests={tests} shopifyMetrics={shopifyMetrics} />
-        </div>
-      )}
-
-      {/* Simulation View */}
-      {viewMode === "simulation" && testState === "idle" && (
-        <div className="max-w-3xl mx-auto animate-fade-in">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-primary/10 border border-primary/30 rounded-xl">
-                <Sparkles className="h-5 w-5 text-primary" strokeWidth={2.5} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Re-run Simulation</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">Run Ghost against your connected Shopify store</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-card/40 border border-border/30 rounded-lg text-sm">
-              <Store className="h-4 w-4 text-primary" strokeWidth={2.5} />
-              <span className="font-medium">{shopifyStore.shop}</span>
-            </div>
-          </div>
-
-          <form onSubmit={handleSimulationSubmit}>
-            <div className="bg-card border border-border/50 rounded-xl shadow-lg p-8">
-              {/* Store Info */}
-              <div className="mb-6 p-4 bg-background/50 border border-border/30 rounded-xl">
-                <div className="flex items-center gap-2 mb-1">
-                  <Store className="h-4 w-4 text-primary" strokeWidth={2.5} />
-                  <span className="text-sm font-medium">Connected Store</span>
+          {/* Stats Footer */}
+          <div className="flex-shrink-0 p-4 border-t border-white/5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="ghost-glass rounded-lg p-3">
+                <div className="text-xs text-[#525252] mb-1">Scans Used</div>
+                <div className="font-semibold ghost-mono">
+                  {stats.testsThisMonth}/{stats.testsLimit}
                 </div>
-                <p className="text-sm text-muted-foreground">{shopifyStore.shop}</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Ghost will re-run the simulation against your connected store
-                </p>
               </div>
-
-              {/* Persona Selection */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium tracking-wide mb-3">Select Persona Mix</label>
-                <PersonaSelector selected={persona} onSelect={setPersona} />
-              </div>
-
-              {/* Options */}
-              <div className="mb-6 space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <div
-                    className={`h-5 w-5 border border-border/50 flex items-center justify-center rounded-sm ${
-                      comparePrevious ? "bg-primary" : "bg-card"
-                    }`}
-                    onClick={() => setComparePrevious(!comparePrevious)}
-                  >
-                    {comparePrevious && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={comparePrevious}
-                    onChange={(e) => setComparePrevious(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <span className="text-sm">Compare to previous scan</span>
-                </label>
-
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <div
-                    className={`h-5 w-5 border border-border/50 flex items-center justify-center rounded-sm ${
-                      emailOnComplete ? "bg-primary" : "bg-card"
-                    }`}
-                    onClick={() => setEmailOnComplete(!emailOnComplete)}
-                  >
-                    {emailOnComplete && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={emailOnComplete}
-                    onChange={(e) => setEmailOnComplete(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <span className="text-sm">Email me when complete</span>
-                </label>
-              </div>
-
-              {/* Submit */}
-              <div>
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-medium tracking-wide rounded-xl accent-glow transition-all duration-300 hover:-translate-y-1 text-sm"
-                >
-                  Re-run Simulation
-                  <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-                </button>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Estimated time: ~2 minutes • Ghost will analyze your entire checkout flow
-                </p>
+              <div className="ghost-glass rounded-lg p-3">
+                <div className="text-xs text-[#525252] mb-1">Plan</div>
+                <div className="font-semibold capitalize">{stats.plan}</div>
               </div>
             </div>
-          </form>
-        </div>
-      )}
+          </div>
+        </aside>
+      </div>
 
+      {/* Fix Modal */}
+      <Dialog open={showFixModal} onOpenChange={setShowFixModal}>
+        <DialogContent className="bg-[#0d1117] border-white/10 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{selectedFix?.title}</DialogTitle>
+            <DialogDescription className="text-[#737373]">
+              {selectedFix?.description}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-4 space-y-4">
+            {/* Fix Details */}
+            <div className="ghost-glass rounded-lg p-4">
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <Target className="w-4 h-4 text-[#bef264]" />
+                Implementation Steps
+              </h4>
+              <div className="space-y-2 font-mono text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="text-[#bef264]">1.</span>
+                  <span>Navigate to your Shopify theme editor</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#bef264]">2.</span>
+                  <span>Locate the relevant Liquid template</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#bef264]">3.</span>
+                  <span>Apply the suggested changes</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#bef264]">4.</span>
+                  <span>Preview and publish changes</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Impact Estimate */}
+            <div className="ghost-glass rounded-lg p-4">
+              <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#4ade80]" />
+                Expected Impact
+              </h4>
+              <p className="text-sm text-[#737373]">{selectedFix?.impact || "Improved conversion rate"}</p>
+            </div>
+
+            <button
+              className="ghost-fix-btn w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2"
+              onClick={() => setShowFixModal(false)}
+            >
+              <CheckCircle className="w-5 h-5" />
+              Mark as Applied
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-

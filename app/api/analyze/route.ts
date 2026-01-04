@@ -1,9 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { NextResponse } from "next/server"
 import * as cheerio from "cheerio"
-import type { TestResult } from "@/lib/types"
+import type { TestResult, PersonaResult } from "@/lib/types"
 import type { StoreAnalysis } from "@/lib/analysis/schema"
 import { buildStoreAnalysisPrompt } from "@/lib/analysis/prompts/store-analysis"
+import { scrapeSandboxTheme, compareSandboxToOriginal } from "@/lib/shopify/sandbox-scraper"
+import { createClient } from "@/lib/supabase/server"
+import { 
+  hasGA4Connection, 
+  getSelectedPropertyId, 
+  createGA4ClientWithOAuth 
+} from "@/lib/analytics/ga4-oauth"
+import { 
+  fetchGA4Demographics, 
+  generatePersonasFromGA4Demographics,
+  type GA4Metrics 
+} from "@/lib/analytics/ga4-client"
 
 /**
  * Extract JSON from Claude's response
@@ -39,7 +51,7 @@ function getAnthropicClient() {
   })
 }
 
-interface ScrapedData {
+export interface ScrapedData {
   title: string
   price: string
   description: string
@@ -215,13 +227,18 @@ function getPersonas(personaMix: string): string[] {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { url, personaMix = "balanced" } = body
+    const { url, personaMix = "balanced", validationMode = false, originalTestId, sandboxPreviewUrl } = body
 
     console.log('=== ANALYZE API START ===')
-    console.log('Input:', { url, personaMix })
+    console.log('Input:', { url, personaMix, validationMode, originalTestId })
 
     if (!url) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 })
+    }
+
+    // Validation Mode: Compare sandbox against original test
+    if (validationMode && sandboxPreviewUrl) {
+      return await handleValidationMode(url, sandboxPreviewUrl, originalTestId, personaMix)
     }
 
     // Validate Anthropic API key before proceeding
@@ -239,7 +256,68 @@ export async function POST(request: Request) {
       )
     }
 
-    const personas = getPersonas(personaMix)
+    // Try to fetch GA4 demographics and generate personas from real data
+    let personas: string[] = []
+    let ga4Demographics: GA4Metrics['demographics'] | null = null
+    let usingGA4Personas = false
+
+    try {
+      // Get authenticated user to check for GA4 connection
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const hasConnection = await hasGA4Connection(user.id)
+        
+        if (hasConnection) {
+          const propertyId = await getSelectedPropertyId(user.id)
+          
+          if (propertyId) {
+            try {
+              // Create GA4 client with OAuth
+              const analyticsClient = await createGA4ClientWithOAuth(user.id)
+              
+              // Fetch demographics for last 30 days
+              const endDate = new Date()
+              const startDate = new Date()
+              startDate.setDate(startDate.getDate() - 30)
+              
+              ga4Demographics = await fetchGA4Demographics(
+                analyticsClient,
+                propertyId,
+                startDate,
+                endDate
+              )
+
+              if (ga4Demographics) {
+                // Generate personas from GA4 data
+                personas = generatePersonasFromGA4Demographics(ga4Demographics, 5)
+                
+                if (personas.length > 0) {
+                  usingGA4Personas = true
+                  console.log('✓ Using GA4 demographics for persona generation')
+                  console.log(`  - Age groups: ${ga4Demographics.ageGroups.length}`)
+                  console.log(`  - Devices: ${ga4Demographics.devices.length}`)
+                  console.log(`  - Generated personas: ${personas.length}`)
+                }
+              }
+            } catch (ga4Error) {
+              console.warn('GA4 demographics fetch failed, falling back to Expert CRO defaults:', ga4Error)
+              // Fall through to use defaults
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error checking GA4 connection, using defaults:', error)
+      // Fall through to use defaults
+    }
+
+    // Fallback to Expert CRO defaults if GA4 personas weren't generated
+    if (personas.length === 0) {
+      personas = getPersonas(personaMix)
+      console.log('✓ Using Expert CRO default personas (GA4 demographics not available)')
+    }
 
     // Scrape the URL to get real data
     const scrapedData = await scrapeURL(url)
@@ -284,6 +362,30 @@ export async function POST(request: Request) {
     }
 
     // Now get the persona-based analysis and friction points
+    // Build Digital Twin ICP context if GA4 demographics are available
+    const digitalTwinContext = ga4Demographics ? `
+DIGITAL TWIN ICP (Real Customer Demographics from GA4 Analytics):
+This analysis uses actual customer data from Google Analytics 4 to create authentic "Digital Twin" personas.
+
+Age Distribution:
+${ga4Demographics.ageGroups.map(g => `- ${g.ageRange}: ${g.percentage.toFixed(1)}% (${g.sessions} sessions)`).join('\n')}
+
+Gender Distribution:
+${ga4Demographics.genders.map(g => `- ${g.gender}: ${g.percentage.toFixed(1)}% (${g.sessions} sessions)`).join('\n')}
+
+Device Category:
+${ga4Demographics.devices.map(d => `- ${d.deviceCategory}: ${d.percentage.toFixed(1)}% (${d.sessions} sessions)`).join('\n')}
+
+Top Locations:
+${ga4Demographics.locations.slice(0, 3).map(l => `- ${l.city ? l.city + ', ' : ''}${l.country}: ${l.percentage.toFixed(1)}% (${l.sessions} sessions)`).join('\n')}
+
+Use this real demographic data to create authentic personas that match the actual customer base. The personas below are generated from this data.
+
+` : `
+Note: Using Expert CRO default personas (GA4 demographics not available or not connected).
+
+`
+
     const personaPrompt = `You are an expert Shopify conversion optimization analyst specializing in cart-to-checkout flow analysis.
 
 URL PROVIDED: ${url}
@@ -292,7 +394,7 @@ STRUCTURED STORE ANALYSIS (from detailed review):
 ${JSON.stringify(storeAnalysis, null, 2)}
 
 Use this detailed analysis to inform your persona evaluation and friction point identification.
-
+${digitalTwinContext}
 ANALYSIS SCOPE:
 Analyze the ENTIRE cart-to-checkout experience for this Shopify store. This includes:
 1. **Product Page** → Add to Cart experience
@@ -466,8 +568,8 @@ IMPORTANT:
     console.log('Result ID:', testId)
     console.log('Total threats:', issuesFound)
     console.log('Personas:', personaResults.length)
-    console.log('  - Would purchase:', personaResults.filter(p => p.verdict === 'purchase').length)
-    console.log('  - Would abandon:', personaResults.filter(p => p.verdict === 'abandon').length)
+    console.log('  - Would purchase:', personaResults.filter((p: PersonaResult) => p.verdict === 'purchase').length)
+    console.log('  - Would abandon:', personaResults.filter((p: PersonaResult) => p.verdict === 'abandon').length)
     console.log('Funnel data:', {
       landed: analysisData.funnelData.landed,
       cart: analysisData.funnelData.cart,
@@ -481,6 +583,176 @@ IMPORTANT:
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to analyze checkout" },
       { status: 500 },
+    )
+  }
+}
+
+/**
+ * Handle Validation Mode: Compare sandbox theme against original test results
+ */
+async function handleValidationMode(
+  url: string,
+  sandboxPreviewUrl: string,
+  originalTestId: string | undefined,
+  personaMix: string
+) {
+  try {
+    console.log('=== VALIDATION MODE START ===')
+    console.log('Sandbox URL:', sandboxPreviewUrl)
+    console.log('Original Test ID:', originalTestId)
+
+    // Scrape the sandbox theme
+    const sandboxScrape = await scrapeSandboxTheme(sandboxPreviewUrl)
+    
+    if (!sandboxScrape.success || !sandboxScrape.data) {
+      return NextResponse.json(
+        { error: `Failed to scrape sandbox: ${sandboxScrape.error}` },
+        { status: 500 }
+      )
+    }
+
+    // Get original test results if provided
+    let originalTest: TestResult | null = null
+    if (originalTestId && typeof window === "undefined") {
+      // Server-side: We can't access localStorage, so we'll need to get from database
+      // For now, we'll proceed without original comparison
+      console.warn("Original test ID provided but cannot access client storage on server")
+    }
+
+    // Scrape the original URL for comparison
+    const originalScrape = await scrapeURL(url)
+
+    // Compare sandbox to original
+    const comparison = compareSandboxToOriginal(originalScrape, sandboxScrape.data)
+
+    // Get Anthropic client for validation analysis
+    let anthropic
+    try {
+      anthropic = getAnthropicClient()
+    } catch (error) {
+      console.error("Anthropic API key error:", error)
+      return NextResponse.json(
+        {
+          error: "Anthropic API key is not configured",
+          message: error instanceof Error ? error.message : "Please add ANTHROPIC_API_KEY to your .env.local file",
+        },
+        { status: 500 }
+      )
+    }
+
+    // Run validation analysis on the sandbox
+    const personas = getPersonas(personaMix)
+    
+    // Build validation prompt
+    const validationPrompt = `You are validating a Ghost CRO optimized Shopify theme sandbox.
+
+ORIGINAL STORE ANALYSIS:
+URL: ${url}
+Original Scraped Data: ${JSON.stringify(originalScrape, null, 2)}
+
+SANDBOX STORE ANALYSIS:
+Sandbox URL: ${sandboxPreviewUrl}
+Sandbox Scraped Data: ${JSON.stringify(sandboxScrape.data, null, 2)}
+
+FIXES DETECTED IN SANDBOX:
+${comparison.fixesDetected.map(fix => `- ${fix}`).join("\n")}
+
+IMPROVEMENTS DETECTED:
+- Trust Signals: ${comparison.improvements.trustSignals ? "✅ Improved" : "❌ No change"}
+- Shipping Transparency: ${comparison.improvements.shippingTransparency ? "✅ Improved" : "❌ No change"}
+- Express Checkout: ${comparison.improvements.expressCheckout ? "✅ Improved" : "❌ No change"}
+
+Your task is to:
+1. Re-run the same 5 persona simulations on the SANDBOX theme
+2. Compare results against the original test
+3. Calculate the conversion lift improvement
+4. Identify which threats were resolved
+
+Return a JSON object with this structure:
+{
+  "score": <new score 0-100>,
+  "originalScore": <original score if available, or null>,
+  "scoreImprovement": <score difference>,
+  "personaResults": [
+    {
+      "name": "<persona name>",
+      "demographics": "<age, income, device>",
+      "verdict": "<purchase or abandon>",
+      "originalVerdict": "<purchase or abandon from original test, or null>",
+      "improved": <true if changed from abandon to purchase>,
+      "reasoning": "<first-person quote explaining their decision on sandbox>",
+      "abandonPoint": "<where they left, or null if purchased>"
+    }
+  ],
+  "threatsResolved": [
+    {
+      "threatId": "<id of resolved threat>",
+      "title": "<threat title>",
+      "status": "<resolved|partially-resolved|not-resolved>",
+      "impact": "<estimated conversion improvement>"
+    }
+  ],
+  "conversionLift": {
+    "estimatedCRLift": <percentage point improvement>,
+    "monthlyRevenueLift": <estimated monthly revenue increase>,
+    "confidence": "<high|medium|low>"
+  },
+  "validationStatus": "<success|partial|failed>"
+}
+
+IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.`
+
+    const validationMessage = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content: validationPrompt,
+        },
+      ],
+    })
+
+    const validationText =
+      validationMessage.content[0].type === "text" ? validationMessage.content[0].text : ""
+
+    let validationData
+    try {
+      const jsonText = extractJSON(validationText)
+      validationData = JSON.parse(jsonText)
+      console.log('✓ Validation Analysis parsed successfully')
+    } catch (parseError) {
+      console.error("Failed to parse validation response:", parseError)
+      return NextResponse.json(
+        {
+          error: "Failed to parse validation analysis response",
+          details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
+        },
+        { status: 500 }
+      )
+    }
+
+    // Build validation result
+    const validationResult = {
+      validationMode: true,
+      sandboxUrl: sandboxPreviewUrl,
+      originalUrl: url,
+      comparison,
+      validationData,
+      timestamp: new Date().toISOString(),
+    }
+
+    console.log('=== VALIDATION COMPLETE ===')
+    console.log('Threats Resolved:', validationData.threatsResolved?.length || 0)
+    console.log('Score Improvement:', validationData.scoreImprovement || 0)
+    console.log('Conversion Lift:', validationData.conversionLift?.estimatedCRLift || 0)
+
+    return NextResponse.json({ validationResult })
+  } catch (error) {
+    console.error("Validation error:", error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to validate sandbox" },
+      { status: 500 }
     )
   }
 }
