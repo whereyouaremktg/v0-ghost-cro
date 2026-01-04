@@ -81,13 +81,13 @@ export function CircularScore({ score, previousScore, percentile, historicalScor
   // Determine color based on score
   const getScoreColor = () => {
     if (score >= 80) return "text-emerald-600 dark:text-emerald-400"
-    if (score >= 60) return "text-amber-600 dark:text-amber-400"
+    if (score >= 60) return "text-gray-600 dark:text-gray-400"
     return "text-rose-600 dark:text-rose-400"
   }
 
   const getStrokeColor = () => {
     if (score >= 80) return "rgb(16 185 129)" // emerald-500
-    if (score >= 60) return "rgb(245 158 11)" // amber-500
+    if (score >= 60) return "rgb(245 158 11)" // gray-500
     return "rgb(244 63 94)" // rose-500
   }
 

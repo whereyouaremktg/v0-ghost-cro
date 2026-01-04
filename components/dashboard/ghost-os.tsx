@@ -355,7 +355,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-2 border-[#bef264]/30 border-t-[#bef264] animate-spin" />
+          <div className="w-12 h-12 rounded-full border-2 border-[#0070F3]/30 border-t-[#0070F3] animate-spin" />
           <p className="text-[#737373] text-sm">Initializing Ghost OS...</p>
         </div>
       </div>
@@ -462,9 +462,9 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           </div>
           
           {/* Log Entries */}
-          <div 
+          <div
             ref={logContainerRef}
-            className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs"
+            className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs backdrop-blur-xl"
           >
             {ghostLogs.length === 0 ? (
               <div className="text-center text-[#525252] py-8">

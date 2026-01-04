@@ -1,14 +1,27 @@
 import { NextResponse } from "next/server"
 import { getAllScopesString } from "@/lib/shopify/scopes"
 
+/**
+ * Sanitize shop domain by removing https:// and trailing slashes
+ */
+function sanitizeShopDomain(shop: string): string {
+  return shop
+    .replace(/^https?:\/\//, '') // Remove protocol
+    .replace(/\/$/, '') // Remove trailing slash
+    .trim()
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const shop = searchParams.get("shop")
+    const rawShop = searchParams.get("shop")
 
-    if (!shop) {
-      return NextResponse.json({ error: "Shop parameter is required" }, { status: 400 })
+    if (!rawShop) {
+      return NextResponse.redirect(new URL("/login?error=missing_shop", request.url))
     }
+
+    // Sanitize shop domain
+    const shop = sanitizeShopDomain(rawShop)
 
     const clientId = process.env.SHOPIFY_CLIENT_ID
     const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
@@ -19,7 +32,7 @@ export async function GET(request: Request) {
     if (!clientId) {
       console.error("SHOPIFY_CLIENT_ID is not set in environment variables")
       return NextResponse.json(
-        { 
+        {
           error: "Shopify OAuth is not configured. Please set SHOPIFY_CLIENT_ID in your environment variables.",
           details: "Contact your administrator or check your .env.local file"
         },

@@ -84,9 +84,9 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
           title: "Store Scan Completed",
           description: `Ghost analyzed your store and found ${testResult.frictionPoints.critical.length + testResult.frictionPoints.high.length + testResult.frictionPoints.medium.length} friction points`,
           icon: Scan,
-          color: "text-lime-600",
-          bgColor: "bg-lime-50",
-          borderColor: "border-lime-200",
+          color: "text-blue-600",
+          bgColor: "bg-blue-50",
+          borderColor: "border-blue-200",
           testId: test.id,
           score: test.overall_score || 0,
           scoreChange,
@@ -104,9 +104,9 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
             title: leakChange < 0 ? "Revenue Leak Improved" : "Revenue Leak Increased",
             description: `Monthly leak ${leakChange < 0 ? "decreased" : "increased"} by $${Math.abs(leakChange).toLocaleString()}`,
             icon: leakChange < 0 ? TrendingUp : TrendingDown,
-            color: leakChange < 0 ? "text-lime-600" : "text-orange-600",
-            bgColor: leakChange < 0 ? "bg-lime-50" : "bg-orange-50",
-            borderColor: leakChange < 0 ? "border-lime-200" : "border-orange-200",
+            color: leakChange < 0 ? "text-blue-600" : "text-orange-600",
+            bgColor: leakChange < 0 ? "bg-blue-50" : "bg-orange-50",
+            borderColor: leakChange < 0 ? "border-blue-200" : "border-orange-200",
             testId: test.id,
             revenueLeak: revenueLeak.monthly,
             previousLeak: previousLeak.monthly,
@@ -138,9 +138,9 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
           title: "Store Scan Running",
           description: "Ghost is analyzing your store...",
           icon: Clock,
-          color: "text-amber-600",
-          bgColor: "bg-amber-50",
-          borderColor: "border-amber-200",
+          color: "text-gray-600",
+          bgColor: "bg-gray-50",
+          borderColor: "border-gray-200",
           testId: test.id,
         })
       }
@@ -206,7 +206,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
         <p className="text-sm text-gray-600 mb-6">Run your first simulation to start building your Ghost timeline</p>
         <Link
           href="/ghost#simulation"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-lime-600 text-white rounded-xl text-sm font-medium hover:bg-lime-700 transition-colors button-glow"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors button-glow"
         >
           <Scan className="h-4 w-4" strokeWidth={2} />
           Run First Simulation
@@ -259,7 +259,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
                     <div className="flex-1">
                       <h3
                         className={`text-sm font-semibold font-heading text-gray-900 mb-1 ${
-                          isClickable ? "group-hover:text-lime-600 transition-colors" : ""
+                          isClickable ? "group-hover:text-blue-600 transition-colors" : ""
                         }`}
                       >
                         {event.title}
@@ -267,7 +267,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
                       <p className="text-xs text-gray-600 leading-relaxed">{event.description}</p>
                     </div>
                     {isClickable && (
-                      <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-lime-600 transition-colors flex-shrink-0 mt-1" />
+                      <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 mt-1" />
                     )}
                   </div>
 
@@ -285,7 +285,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
                         {event.scoreChange !== undefined && event.scoreChange !== 0 && (
                           <span
                             className={`font-medium ${
-                              event.scoreChange > 0 ? "text-lime-600" : "text-orange-600"
+                              event.scoreChange > 0 ? "text-blue-600" : "text-orange-600"
                             }`}
                           >
                             {event.scoreChange > 0 ? "+" : ""}

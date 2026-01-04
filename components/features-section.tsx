@@ -61,16 +61,16 @@ export function FeaturesSection() {
               <div
                 key={index}
                 className={`${colSpan} bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col ${
-                  isLarge ? "bg-gradient-to-br from-lime-50/50 to-white" : ""
+                  isLarge ? "bg-gradient-to-br from-blue-50/50 to-white" : ""
                 }`}
               >
                 <div
                   className={`${
                     isLarge ? "w-16 h-16" : "w-12 h-12"
-                  } rounded-xl bg-lime-400/10 border border-lime-400/20 flex items-center justify-center mb-6`}
+                  } rounded-xl bg-blue-400/10 border border-blue-400/20 flex items-center justify-center mb-6`}
                 >
                   <Icon
-                    className={`${isLarge ? "h-8 w-8" : "h-6 w-6"} text-lime-600`}
+                    className={`${isLarge ? "h-8 w-8" : "h-6 w-6"} text-blue-600`}
                     strokeWidth={2.5}
                   />
                 </div>

@@ -19,12 +19,12 @@ export function HeroSection() {
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] opacity-20"
           style={{
-            background: 'radial-gradient(ellipse at center, #BFFF00 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse at center, #0070F3 0%, transparent 70%)',
           }}
         />
 
         {/* Additional glow behind mockup */}
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-[#BFFF00] opacity-10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-[#0070F3] opacity-10 rounded-full blur-[150px]" />
 
         {/* Subtle grid */}
         <div
@@ -49,7 +49,7 @@ export function HeroSection() {
                 mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
               }`}
             >
-              <span className="px-2 py-0.5 bg-[#BFFF00] text-gray-900 text-xs font-bold rounded-full">
+              <span className="px-2 py-0.5 bg-[#0070F3] text-white text-xs font-bold rounded-full">
                 NEW
               </span>
               Synthetic Buyer Testing is here
@@ -67,13 +67,13 @@ export function HeroSection() {
               <br />
               tells you{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 text-[#BFFF00]">
+                <span className="relative z-10 text-[#0070F3]">
                   what to fix first
                 </span>
-                {/* Glow behind lime text */}
-                <span className="absolute inset-0 blur-2xl bg-[#BFFF00] opacity-30 -z-10" />
+                {/* Glow behind blue text */}
+                <span className="absolute inset-0 blur-2xl bg-[#0070F3] opacity-30 -z-10" />
               </span>
-              <span className="text-[#BFFF00]">.</span>
+              <span className="text-[#0070F3]">.</span>
             </h1>
 
             {/* Subhead */}
@@ -94,8 +94,8 @@ export function HeroSection() {
             >
               {/* Primary CTA */}
               <Link href="/signup">
-                <button className="group relative px-8 py-4 bg-[#BFFF00] text-gray-900 font-medium rounded-full transition-all duration-300 hover:scale-[1.02]" style={{
-                  boxShadow: '0 0 30px rgba(191, 255, 0, 0.3)',
+                <button className="group relative px-8 py-4 bg-[#0070F3] text-white font-medium rounded-full transition-all duration-300 hover:scale-[1.02]" style={{
+                  boxShadow: '0 0 30px rgba(0, 112, 243, 0.4)',
                 }}>
                   <span className="flex items-center gap-2">
                     Find My Revenue Leaks
@@ -123,15 +123,15 @@ export function HeroSection() {
             >
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-8 gap-y-4 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#BFFF00]" />
+                  <div className="w-2 h-2 rounded-full bg-[#0070F3]" />
                   <span>Trusted by 150+ Shopify stores</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#BFFF00]" />
+                  <div className="w-2 h-2 rounded-full bg-[#0070F3]" />
                   <span>$2.4M+ in leaks identified</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#BFFF00]" />
+                  <div className="w-2 h-2 rounded-full bg-[#0070F3]" />
                   <span>Works with Shopify Plus</span>
                 </div>
               </div>
@@ -148,13 +148,13 @@ export function HeroSection() {
             <div
               className="absolute inset-0 scale-110 -z-10 blur-[100px] opacity-40"
               style={{
-                background: 'radial-gradient(ellipse at center, #BFFF00 0%, transparent 70%)',
+                background: 'radial-gradient(ellipse at center, #0070F3 0%, transparent 70%)',
               }}
             />
 
             {/* Browser frame with floating animation */}
             <div className="relative bg-gray-900 rounded-2xl border border-gray-800/50 overflow-hidden transform rotate-1 animate-float" style={{
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 60px rgba(191, 255, 0, 0.1)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 60px rgba(0, 112, 243, 0.15)',
             }}>
               {/* Browser chrome */}
               <div className="flex items-center gap-2 px-4 py-3 bg-gray-950 border-b border-gray-800">
@@ -183,7 +183,7 @@ export function HeroSection() {
                       <div className="h-full w-[23%] bg-gradient-to-r from-red-400 to-orange-400 rounded-full" />
                     </div>
                   </div>
-                  <div className="flex-1 p-4 bg-gradient-to-br from-[#BFFF00]/20 to-emerald-400/10 rounded-xl border border-[#BFFF00]/20">
+                  <div className="flex-1 p-4 bg-gradient-to-br from-[#0070F3]/20 to-blue-400/10 rounded-xl border border-[#0070F3]/20">
                     <div className="text-xs text-gray-400 mb-1">Revenue Opportunity</div>
                     <div className="text-2xl font-semibold text-white">$8,200 - $12,400</div>
                     <div className="text-xs text-gray-500">per month vs category avg</div>

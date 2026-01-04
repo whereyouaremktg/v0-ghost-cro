@@ -56,8 +56,8 @@ export function SocialProof() {
   return (
     <section id="social-proof" className="py-24 md:py-32 px-4 sm:px-6 lg:px-8 bg-gray-950 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-20 right-20 w-72 h-72 bg-lime-400/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl" />
+      <div className="absolute top-20 right-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-400/5 rounded-full blur-3xl" />
 
       {/* Dot pattern overlay */}
       <div
@@ -86,13 +86,13 @@ export function SocialProof() {
               className="relative group"
             >
               {/* Card background with gradient */}
-              <div className="relative p-10 rounded-2xl bg-gradient-to-br from-[#BFFF00]/20 to-emerald-400/10 border border-[#BFFF00]/20 backdrop-blur-sm hover:from-[#BFFF00]/30 hover:to-emerald-400/20 transition-all duration-300 hover:translate-y-[-4px]">
+              <div className="relative p-10 rounded-2xl bg-gradient-to-br from-[#0070F3]/20 to-blue-400/10 border border-[#0070F3]/20 backdrop-blur-sm hover:from-[#0070F3]/30 hover:to-blue-400/20 transition-all duration-300 hover:translate-y-[-4px]">
                 {/* Abstract circle decoration */}
-                <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#BFFF00]/10 rounded-full blur-3xl" />
+                <div className="absolute -top-6 -right-6 w-32 h-32 bg-[#0070F3]/10 rounded-full blur-3xl" />
 
                 {/* Floating dots decoration */}
-                <div className="absolute top-4 left-4 w-2 h-2 rounded-full bg-[#BFFF00]/40" />
-                <div className="absolute bottom-8 right-8 w-3 h-3 rounded-full bg-[#BFFF00]/30" />
+                <div className="absolute top-4 left-4 w-2 h-2 rounded-full bg-[#0070F3]/40" />
+                <div className="absolute bottom-8 right-8 w-3 h-3 rounded-full bg-[#0070F3]/30" />
 
                 <div className="relative text-center">
                   <div className="text-6xl md:text-7xl font-bold text-white mb-3">
@@ -112,10 +112,10 @@ export function SocialProof() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-lime-400/30 transition-all duration-300 hover:-translate-y-1"
+              className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 hover:border-blue-400/30 transition-all duration-300 hover:-translate-y-1"
             >
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-lime-400/10 border border-lime-400/20 flex items-center justify-center text-lime-400 font-semibold">
+                <div className="w-12 h-12 rounded-full bg-blue-400/10 border border-blue-400/20 flex items-center justify-center text-blue-400 font-semibold">
                   {testimonial.avatar}
                 </div>
                 <div>
