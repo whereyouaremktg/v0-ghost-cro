@@ -550,7 +550,7 @@ function FixImplementationModal({
               </h3>
               <button
                 onClick={() => {
-                  const allSteps = details.steps.map((s) => s.text).join("\n")
+                  const allSteps = details.steps.join("\n")
                   navigator.clipboard.writeText(allSteps)
                 }}
                 className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1.5 transition-colors"
@@ -560,15 +560,30 @@ function FixImplementationModal({
               </button>
             </div>
             <div className="space-y-2">
-              {details.steps.map((step, index) => (
-                <AutomationStep
-                  key={index}
-                  step={step}
-                  index={index}
-                  totalSteps={details.steps.length}
-                  onCopy={(text) => handleCopyStep(text, index)}
-                />
-              ))}
+              {details.steps.map((stepText, index) => {
+                // Map string steps to AutomationStep format
+                const stepType = stepText.toLowerCase().includes("test") ? "test" :
+                  stepText.toLowerCase().includes("view") || stepText.toLowerCase().includes("review") ? "view" :
+                  stepText.toLowerCase().includes("edit") || stepText.toLowerCase().includes("change") ? "edit" :
+                  stepText.toLowerCase().includes("add") || stepText.toLowerCase().includes("create") || stepText.toLowerCase().includes("enable") ? "add" :
+                  stepText.toLowerCase().includes("deploy") || stepText.toLowerCase().includes("publish") ? "publish" : "view"
+                
+                const stepIcon = stepType === "test" ? TestTube :
+                  stepType === "view" ? Eye :
+                  stepType === "edit" ? Edit :
+                  stepType === "add" ? Plus :
+                  CheckCircle
+                
+                return (
+                  <AutomationStep
+                    key={index}
+                    step={{ text: stepText, type: stepType, icon: stepIcon }}
+                    index={index}
+                    totalSteps={details.steps.length}
+                    onCopy={(text) => handleCopyStep(text, index)}
+                  />
+                )
+              })}
             </div>
             {copiedIndex !== null && (
               <div className="mt-3 flex items-center gap-2 text-xs text-lime-600 animate-fade-in">
@@ -1056,6 +1071,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
    * Direct, specific, non-generic, references actual data
    */
   function generateExecutiveBrief(): string[] {
+    if (!test) return []
+    
     const brief: string[] = []
     const purchaseCount = test.personaResults.filter((p) => p.verdict === "purchase").length
     const abandonCount = test.personaResults.filter((p) => p.verdict === "abandon").length
@@ -1186,6 +1203,18 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     }
   }
 
+  // Defensive rendering check
+  if (!test) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Loading test results...</p>
+        </div>
+      </div>
+    )
+  }
+
   const purchaseRate = Math.round((test.funnelData.purchased / test.funnelData.landed) * 100)
   const purchaseCount = test.personaResults.filter((p) => p.verdict === "purchase").length
   const abandonCount = test.personaResults.filter((p) => p.verdict === "abandon").length
@@ -1286,7 +1315,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 1: Revenue Leak Hero */}
         <section
           id="overview"
-          ref={(el) => (sectionRefs.current.overview = el)}
+          ref={(el) => {
+            sectionRefs.current.overview = el as HTMLDivElement | null
+          }}
           data-section-id="overview"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("overview") ? "visible" : ""} ${isHighlighted ? "animate-highlight-flash" : ""}`}
         >
@@ -1410,7 +1441,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 2: Active Friction Threats */}
         <section
           id="threats"
-          ref={(el) => (sectionRefs.current.threats = el)}
+          ref={(el) => {
+            sectionRefs.current.threats = el as HTMLDivElement | null
+          }}
           data-section-id="threats"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("threats") ? "visible" : ""}`}
         >
@@ -1473,8 +1506,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         <section
           id="recovery"
           ref={(el) => {
-            sectionRefs.current.recovery = el
-            recoveryPlanRef.current = el
+            sectionRefs.current.recovery = el as HTMLDivElement | null
+            recoveryPlanRef.current = el as HTMLDivElement | null
           }}
           data-section-id="recovery"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("recovery") ? "visible" : ""}`}
@@ -1595,7 +1628,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 5: Live Buyer Simulation */}
         <section
           id="ghosts"
-          ref={(el) => (sectionRefs.current.ghosts = el)}
+          ref={(el) => {
+            sectionRefs.current.ghosts = el as HTMLDivElement | null
+          }}
           data-section-id="ghosts"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("ghosts") ? "visible" : ""}`}
         >
@@ -1674,7 +1709,9 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 6: Supporting Analytics */}
         <section
           id="analytics"
-          ref={(el) => (sectionRefs.current.analytics = el)}
+          ref={(el) => {
+            sectionRefs.current.analytics = el as HTMLDivElement | null
+          }}
           data-section-id="analytics"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("analytics") ? "visible" : ""}`}
         >
