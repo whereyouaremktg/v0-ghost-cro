@@ -1335,7 +1335,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 1: Revenue Leak Hero */}
         <section
           id="overview"
-          ref={setSectionRef("overview")}
+          ref={overviewRef}
           data-section-id="overview"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("overview") ? "visible" : ""} ${isHighlighted ? "animate-highlight-flash" : ""}`}
         >
@@ -1385,7 +1385,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   <Sparkline data={[revenueLeak.monthly * 0.8, revenueLeak.monthly * 0.9, revenueLeak.monthly * 0.85, revenueLeak.monthly]} color="red" />
             </div>
                 <div className="text-5xl font-heading font-bold text-red-600 leading-none mb-2">
-                  <AnimatedCounter value={revenueLeak.monthly || 0} />
+                  {formatCurrency(revenueLeak.monthly || 0)}
           </div>
                 <div className="text-xs text-gray-500">per month</div>
         </div>
@@ -1398,7 +1398,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   <Sparkline data={[revenueLeak.weekly * 0.8, revenueLeak.weekly * 0.9, revenueLeak.weekly * 0.85, revenueLeak.weekly]} color="red" />
                 </div>
                 <div className="text-4xl font-heading font-bold text-red-600 leading-none mb-2">
-                  <AnimatedCounter value={revenueLeak.weekly || 0} />
+                  {formatCurrency(revenueLeak.weekly || 0)}
             </div>
                 <div className="text-xs text-gray-500">per week</div>
               </div>
@@ -1411,7 +1411,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   <Sparkline data={[revenueLeak.daily * 0.8, revenueLeak.daily * 0.9, revenueLeak.daily * 0.85, revenueLeak.daily]} color="red" />
                 </div>
                 <div className="text-4xl font-heading font-bold text-red-600 leading-none mb-2">
-                  <AnimatedCounter value={revenueLeak.daily || 0} />
+                  {formatCurrency(revenueLeak.daily || 0)}
             </div>
                 <div className="text-xs text-gray-500">per day</div>
               </div>
@@ -1459,7 +1459,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 2: Active Friction Threats */}
         <section
           id="threats"
-          ref={setSectionRef("threats")}
+          ref={threatsRef}
           data-section-id="threats"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("threats") ? "visible" : ""}`}
         >
