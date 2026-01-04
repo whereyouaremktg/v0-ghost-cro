@@ -179,7 +179,7 @@ export function StoreSnapshot({
         </div>
 
         {/* Revenue Opportunity Card */}
-        <div className="bg-gradient-to-br from-lime-50 to-emerald-50 rounded-xl border border-lime-100 p-6">
+        <div className="bg-gradient-to-br from-blue-50 to-emerald-50 rounded-xl border border-blue-100 p-6">
           <div className="flex items-start justify-between">
             <div>
               <h3 className="text-sm font-medium text-gray-600 mb-1">
@@ -200,8 +200,8 @@ export function StoreSnapshot({
                 <span className="text-sm text-gray-600">
                   {formatCurrency(metrics.monthlyRevenue)}
                 </span>
-                <ArrowRight className="w-4 h-4 text-lime-600" />
-                <span className="text-sm font-semibold text-lime-700">
+                <ArrowRight className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-semibold text-blue-700">
                   {formatCurrency(opportunity.potentialMonthlyRevenue)}
                 </span>
               </div>
@@ -209,14 +209,14 @@ export function StoreSnapshot({
           </div>
 
           {/* Mini comparison bar */}
-          <div className="mt-4 pt-4 border-t border-lime-200">
+          <div className="mt-4 pt-4 border-t border-blue-200">
             <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
               <span>Your CR: {formatPercent(metrics.conversionRate)}</span>
               <span>Category avg: {formatPercent(benchmarks.avgConversionRate)}</span>
               <span>Top 10%: {formatPercent(benchmarks.topPerformerCR)}</span>
             </div>
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden relative">
-              <div className="h-full bg-gradient-to-r from-red-400 via-yellow-400 to-lime-400 rounded-full" />
+              <div className="h-full bg-gradient-to-r from-red-400 via-yellow-400 to-blue-400 rounded-full" />
               {/* Marker for user's position */}
               <div
                 className="absolute -top-1 w-1 h-4 bg-gray-900 rounded-full transform -translate-x-1/2"
@@ -263,7 +263,7 @@ function MetricCard({ icon, label, value, subtext, comparison }: MetricCardProps
             comparison.status === "positive"
               ? "text-emerald-600"
               : comparison.status === "warning"
-                ? "text-amber-600"
+                ? "text-gray-600"
                 : "text-red-600"
           }`}
         >
@@ -307,10 +307,10 @@ function FunnelVisualization({ stages }: { stages: FunnelStage[] }) {
                 stage.status === "critical"
                   ? "bg-red-400"
                   : stage.status === "warning"
-                    ? "bg-amber-400"
+                    ? "bg-gray-400"
                     : stage.status === "healthy"
                       ? "bg-emerald-400"
-                      : "bg-lime-400"
+                      : "bg-blue-400"
               }`}
               style={{ width: `${(stage.value / maxValue) * 100}%` }}
             />
@@ -330,7 +330,7 @@ function FunnelVisualization({ stages }: { stages: FunnelStage[] }) {
                   stage.status === "critical"
                     ? "text-red-600"
                     : stage.status === "warning"
-                      ? "text-amber-600"
+                      ? "text-gray-600"
                       : "text-gray-500"
                 }`}
               >

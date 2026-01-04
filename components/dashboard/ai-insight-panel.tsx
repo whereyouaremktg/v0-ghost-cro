@@ -242,13 +242,13 @@ export function AIInsightPanel({ latestTestResult, revenueLeak }: AIInsightPanel
             onKeyPress={handleKeyPress}
             placeholder="Ask about your checkout..."
             disabled={isLoading}
-            className="flex-1 bg-muted/30 border-border/30 rounded-full text-sm focus-visible:ring-1 focus-visible:ring-lime-500/50 dark:focus-visible:ring-lime-400/50 transition-all"
+            className="flex-1 bg-muted/30 border-border/30 rounded-full text-sm focus-visible:ring-1 focus-visible:ring-blue-500/50 dark:focus-visible:ring-blue-400/50 transition-all"
           />
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
             size="default"
-            className="bg-lime-500 hover:bg-lime-600 dark:bg-lime-400 dark:hover:bg-lime-500 text-black rounded-full transition-all"
+            className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-400 dark:hover:bg-blue-500 text-black rounded-full transition-all"
           >
             <Send className="h-4 w-4" strokeWidth={2.5} />
           </Button>

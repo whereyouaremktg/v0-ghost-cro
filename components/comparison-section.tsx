@@ -81,11 +81,11 @@ export function ComparisonSection() {
                     </th>
                     <th
                       scope="col"
-                      className="py-4 px-6 text-center text-sm font-semibold text-gray-900 bg-lime-50 border-x-2 border-lime-200"
+                      className="py-4 px-6 text-center text-sm font-semibold text-gray-900 bg-blue-50 border-x-2 border-blue-200"
                     >
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-base">Ghost CRO</span>
-                        <span className="text-xs text-lime-600 font-medium">← That's us</span>
+                        <span className="text-xs text-blue-600 font-medium">← That's us</span>
                       </div>
                     </th>
                     <th scope="col" className="py-4 px-6 text-center text-sm font-semibold text-gray-600">
@@ -108,10 +108,10 @@ export function ComparisonSection() {
                       <td className="py-5 px-6 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {row.feature}
                       </td>
-                      <td className="py-5 px-6 text-center bg-lime-50/50 border-x-2 border-lime-100">
+                      <td className="py-5 px-6 text-center bg-blue-50/50 border-x-2 border-blue-100">
                         {typeof row.ghost === "boolean" ? (
                           row.ghost ? (
-                            <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-lime-400">
+                            <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-400">
                               <Check className="w-4 h-4 text-gray-900" strokeWidth={3} />
                             </div>
                           ) : (

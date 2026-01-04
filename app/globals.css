@@ -82,12 +82,12 @@
   /* Sidebar (for dashboard) */
   --sidebar: #FAFAFA;
   --sidebar-foreground: #0A0A0A;
-  --sidebar-primary: #BFFF00;
+  --sidebar-primary: #0070F3;
   --sidebar-primary-foreground: #0A0A0A;
   --sidebar-accent: #F5F5F5;
   --sidebar-accent-foreground: #0A0A0A;
   --sidebar-border: #0A0A0A;
-  --sidebar-ring: #BFFF00;
+  --sidebar-ring: #0070F3;
 }
 
 .dark {

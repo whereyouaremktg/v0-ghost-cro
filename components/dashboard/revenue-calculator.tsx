@@ -81,7 +81,7 @@ export function RevenueCalculator({
       name: "4% CVR",
       value: calculations.revenue40,
       label: "+" + formatCurrency(calculations.delta40),
-      color: "rgb(191 255 0)", // lime accent
+      color: "rgb(0 112 243)", // electric blue accent
     },
   ], [calculations, cvr])
 
@@ -89,8 +89,8 @@ export function RevenueCalculator({
     <div className="card-premium p-8 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-lime-50 dark:bg-lime-950/30 border border-lime-200 dark:border-lime-800/50 rounded-xl">
-            <Calculator className="h-5 w-5 text-lime-600 dark:text-lime-400" strokeWidth={2.5} />
+          <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-xl">
+            <Calculator className="h-5 w-5 text-blue-600 dark:text-blue-400" strokeWidth={2.5} />
           </div>
           <h2 className="text-lg font-semibold tracking-tight font-heading">Revenue Opportunity</h2>
         </div>
@@ -107,7 +107,7 @@ export function RevenueCalculator({
         ) : (
           <Link
             href="/dashboard/settings"
-            className="text-xs font-medium tracking-wide text-muted-foreground hover:text-lime-600 dark:hover:text-lime-400 transition-colors underline hover:no-underline"
+            className="text-xs font-medium tracking-wide text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors underline hover:no-underline"
           >
             Connect Shopify for auto-sync
           </Link>
@@ -126,7 +126,7 @@ export function RevenueCalculator({
               type="number"
               value={sessions}
               onChange={(e) => setSessions(Number(e.target.value))}
-              className="w-full px-0 py-2 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-lime-500 dark:focus:border-lime-400 transition-colors"
+              className="w-full px-0 py-2 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
             />
           </div>
 
@@ -139,7 +139,7 @@ export function RevenueCalculator({
                 step="0.1"
                 value={cvr}
                 onChange={(e) => setCvr(Number(e.target.value))}
-                className="w-full px-0 py-2 pr-8 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-lime-500 dark:focus:border-lime-400 transition-colors"
+                className="w-full px-0 py-2 pr-8 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
               />
               <span className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">%</span>
             </div>
@@ -161,7 +161,7 @@ export function RevenueCalculator({
                 type="number"
                 value={aov}
                 onChange={(e) => setAov(Number(e.target.value))}
-                className="w-full px-0 py-2 pl-6 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-lime-500 dark:focus:border-lime-400 transition-colors"
+                className="w-full px-0 py-2 pl-6 bg-transparent border-0 border-b border-border/50 text-lg font-medium focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
               />
             </div>
           </div>
@@ -249,9 +249,9 @@ export function RevenueCalculator({
           </div>
 
           {/* Max Upside Highlight */}
-          <div className="bg-gradient-to-br from-lime-50 to-emerald-50 dark:from-lime-950/20 dark:to-emerald-950/20 border border-lime-200/50 dark:border-lime-800/30 rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center text-center">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-950/20 dark:to-blue-950/20 border border-blue-200/50 dark:border-blue-800/30 rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center text-center">
             <p className="metric-label mb-3">Potential Monthly Upside</p>
-            <p className="metric-hero text-lime-600 dark:text-lime-400">{formatCurrency(calculations.maxUpside)}</p>
+            <p className="metric-hero text-blue-600 dark:text-blue-400">{formatCurrency(calculations.maxUpside)}</p>
             <p className="text-sm text-muted-foreground mt-3">Additional revenue at 4% CVR</p>
           </div>
         </div>

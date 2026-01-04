@@ -31,10 +31,10 @@ const SEVERITY_STYLES = {
     indicator: "bg-red-500",
   },
   warning: {
-    bg: "bg-amber-50",
-    border: "border-amber-100",
-    icon: "text-amber-500",
-    indicator: "bg-amber-500",
+    bg: "bg-gray-50",
+    border: "border-gray-100",
+    icon: "text-gray-500",
+    indicator: "bg-gray-500",
   },
   info: {
     bg: "bg-gray-50",
@@ -58,8 +58,8 @@ export function GhostSummary(props: GhostSummaryInput) {
       {/* Header with Ghost Score */}
       <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-lime-100 flex items-center justify-center">
-            <Target className="w-5 h-5 text-lime-600" />
+          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+            <Target className="w-5 h-5 text-blue-600" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Ghost Summary</h2>
@@ -77,7 +77,7 @@ export function GhostSummary(props: GhostSummaryInput) {
                 props.analysis.ghostScore < 30
                   ? "text-red-500"
                   : props.analysis.ghostScore < 50
-                    ? "text-amber-500"
+                    ? "text-gray-500"
                     : props.analysis.ghostScore < 70
                       ? "text-yellow-500"
                       : "text-emerald-500"
@@ -160,14 +160,14 @@ export function GhostSummary(props: GhostSummaryInput) {
 
       {/* Primary Action Card */}
       <div className="px-6 pb-6">
-        <div className="bg-gradient-to-br from-lime-50 to-emerald-50 rounded-xl border border-lime-200 p-5">
+        <div className="bg-gradient-to-br from-blue-50 to-emerald-50 rounded-xl border border-blue-200 p-5">
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-lime-200 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-lime-700" />
+              <div className="w-10 h-10 rounded-xl bg-blue-200 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-blue-700" />
               </div>
               <div>
-                <div className="text-xs font-medium text-lime-700 uppercase tracking-wide mb-1">
+                <div className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">
                   Top Next Step
                 </div>
                 <h3 className="text-base font-semibold text-gray-900">
@@ -190,7 +190,7 @@ export function GhostSummary(props: GhostSummaryInput) {
                     summary.primaryAction.effort === "low"
                       ? "bg-emerald-100 text-emerald-700"
                       : summary.primaryAction.effort === "medium"
-                        ? "bg-amber-100 text-amber-700"
+                        ? "bg-gray-100 text-gray-700"
                         : "bg-red-100 text-red-700"
                   )}
                 >
@@ -203,10 +203,10 @@ export function GhostSummary(props: GhostSummaryInput) {
           </div>
 
           {/* Action button */}
-          <div className="mt-4 pt-4 border-t border-lime-200">
+          <div className="mt-4 pt-4 border-t border-blue-200">
             <a
               href={`#threat-${summary.primaryAction.threatId}`}
-              className="inline-flex items-center gap-2 text-sm font-medium text-lime-700 hover:text-lime-800 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
             >
               View fix details
               <ArrowRight className="w-4 h-4" />

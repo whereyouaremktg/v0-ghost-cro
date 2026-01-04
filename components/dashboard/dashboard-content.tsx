@@ -283,7 +283,7 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
         {stats.plan === "free" && (
           <p className="text-xs text-muted-foreground mt-2">
             Free plan: {stats.testsRemaining} test remaining.{" "}
-            <Link href="/#pricing" className="text-lime-600 dark:text-lime-400 font-medium underline hover:no-underline">
+            <Link href="/#pricing" className="text-blue-600 dark:text-blue-400 font-medium underline hover:no-underline">
               Upgrade
             </Link>
           </p>

@@ -20,8 +20,8 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-[#BFFF00] rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-lime-300">
-            <Ghost className="w-5 h-5 text-gray-900" strokeWidth={2.5} />
+          <div className="w-8 h-8 bg-[#0070F3] rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-blue-400">
+            <Ghost className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <span className="font-semibold text-white">
             Ghost<span className="text-gray-400">CRO</span>
@@ -53,8 +53,8 @@ export function Navbar() {
           </Link>
           <Link href="/signup">
             <button
-              className="px-4 py-2 bg-[#BFFF00] hover:bg-lime-300 text-gray-900 text-sm font-medium rounded-full transition-all duration-300"
-              style={{ boxShadow: '0 0 20px rgba(191, 255, 0, 0.2)' }}
+              className="px-4 py-2 bg-[#0070F3] hover:bg-blue-400 text-white text-sm font-medium rounded-full transition-all duration-300"
+              style={{ boxShadow: '0 0 20px rgba(0, 112, 243, 0.3)' }}
             >
               Start Free
             </button>
