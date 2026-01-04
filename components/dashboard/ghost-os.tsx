@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ConnectShopifyGate } from "@/components/dashboard/connect-shopify-gate"
 
 // ============================================
 // TYPES
@@ -363,29 +364,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
   }
 
   if (!shopifyStore) {
-    return (
-      <div className="h-screen flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
-          <div className="ghost-glass rounded-2xl p-8 text-center ghost-glow">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-[#bef264]/10 border border-[#bef264]/20 flex items-center justify-center">
-              <Ghost className="w-8 h-8 text-[#bef264]" />
-            </div>
-            <h1 className="text-2xl font-semibold mb-2">Connect Your Store</h1>
-            <p className="text-[#737373] mb-8">
-              Ghost needs access to your Shopify store to run the simulation.
-            </p>
-            <a
-              href="/api/auth/shopify"
-              className="ghost-fix-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
-            >
-              <Store className="w-5 h-5" />
-              Connect Shopify
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </div>
-    )
+    return <ConnectShopifyGate />
   }
 
   return (
@@ -394,7 +373,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
       <header className="flex-shrink-0 h-14 border-b border-white/5 ghost-glass-strong flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Ghost className="w-6 h-6 text-[#bef264]" />
+            <Ghost className="w-6 h-6 text-[#0070F3]" />
             <span className="font-semibold tracking-tight">Ghost OS</span>
           </div>
           <div className="h-4 w-px bg-white/10" />
@@ -406,9 +385,9 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
         
         <div className="flex items-center gap-4">
           {isRunning && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#bef264]/10 border border-[#bef264]/20">
-              <div className="w-2 h-2 rounded-full bg-[#bef264] animate-pulse" />
-              <span className="text-xs font-medium text-[#bef264]">SCANNING</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0070F3]/10 border border-[#0070F3]/20">
+              <div className="w-2 h-2 rounded-full bg-[#0070F3] animate-pulse" />
+              <span className="text-xs font-medium text-[#0070F3]">SCANNING</span>
             </div>
           )}
           <button
@@ -434,7 +413,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           <div className="flex-shrink-0 p-4 border-b border-white/5">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#bef264]" />
+                <Activity className="w-4 h-4 text-[#0070F3]" />
                 Ghost Stream
               </h2>
               <span className="text-[10px] text-[#737373] ghost-mono">
@@ -449,7 +428,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                   key={persona.id}
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
                     activePersona === persona.id
-                      ? "ring-2 ring-[#bef264] ring-offset-2 ring-offset-[#050505] scale-110"
+                      ? "ring-2 ring-[#0070F3] ring-offset-2 ring-offset-[#050505] scale-110"
                       : "opacity-40"
                   }`}
                   style={{ backgroundColor: `${persona.color}20` }}
@@ -490,7 +469,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                     <span className={`flex-1 ${
                       log.type === "threat" ? "text-[#f87171]" :
                       log.type === "success" ? "text-[#4ade80]" :
-                      log.type === "ghost" ? "text-[#bef264]" :
+                      log.type === "ghost" ? "text-[#0070F3]" :
                       "text-[#e5e5e5]"
                     }`}>
                       {log.message}
@@ -507,9 +486,9 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
             {isRunning && (
               <div className="flex items-center gap-2 text-[#525252] p-2">
                 <span className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#bef264] animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0070F3] animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0070F3] animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0070F3] animate-bounce" style={{ animationDelay: "300ms" }} />
                 </span>
               </div>
             )}
@@ -524,7 +503,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
               <div className="flex items-center gap-3">
                 <div className={`px-3 py-1.5 rounded-full text-xs font-medium ${
                   isRunning 
-                    ? "bg-[#bef264]/10 text-[#bef264] border border-[#bef264]/20" 
+                    ? "bg-[#0070F3]/10 text-[#0070F3] border border-[#0070F3]/20" 
                     : currentResult
                       ? "bg-[#4ade80]/10 text-[#4ade80] border border-[#4ade80]/20"
                       : "bg-white/5 text-[#737373]"
@@ -535,7 +514,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                   <div className="flex items-center gap-2">
                     <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div 
-                        className="h-full bg-[#bef264] rounded-full transition-all duration-300"
+                        className="h-full bg-[#0070F3] rounded-full transition-all duration-300"
                         style={{ width: `${simulationProgress}%` }}
                       />
                     </div>
@@ -556,8 +535,8 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
             {!currentResult && !isRunning ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center max-w-md">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[#bef264]/5 border border-[#bef264]/10 flex items-center justify-center ghost-breathe">
-                    <Scan className="w-10 h-10 text-[#bef264]/50" />
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[#0070F3]/5 border border-[#0070F3]/10 flex items-center justify-center ghost-breathe">
+                    <Scan className="w-10 h-10 text-[#0070F3]/50" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">No Scan Data</h3>
                   <p className="text-[#737373] mb-6">
@@ -593,13 +572,13 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold truncate">{discoveredProduct.title}</h3>
                           {discoveredProduct.price && (
-                            <p className="text-[#bef264] ghost-mono text-lg">${discoveredProduct.price}</p>
+                            <p className="text-[#0070F3] ghost-mono text-lg">${discoveredProduct.price}</p>
                           )}
                           <a 
                             href={discoveredProduct.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-[#737373] hover:text-[#bef264] flex items-center gap-1 mt-1"
+                            className="text-sm text-[#737373] hover:text-[#0070F3] flex items-center gap-1 mt-1"
                           >
                             View on store <ExternalLink className="w-3 h-3" />
                           </a>
@@ -620,10 +599,10 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                     </div>
                     
                     {/* HUD Overlay corners */}
-                    <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[#bef264]/50 rounded-tl-xl" />
-                    <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-[#bef264]/50 rounded-tr-xl" />
-                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-[#bef264]/50 rounded-bl-xl" />
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[#bef264]/50 rounded-br-xl" />
+                    <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[#0070F3]/50 rounded-tl-xl" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-[#0070F3]/50 rounded-tr-xl" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-[#0070F3]/50 rounded-bl-xl" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[#0070F3]/50 rounded-br-xl" />
                   </div>
                 )}
 
@@ -631,7 +610,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                 {currentResult && (
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-[#bef264]" />
+                      <Users className="w-4 h-4 text-[#0070F3]" />
                       Ghost Verdicts
                     </h3>
                     <div className="grid grid-cols-5 gap-2">
@@ -734,7 +713,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           {/* Prioritized Fixes */}
           <div className="flex-1 overflow-y-auto p-4">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Target className="w-4 h-4 text-[#bef264]" />
+              <Target className="w-4 h-4 text-[#0070F3]" />
               Recovery Queue
             </h3>
             
@@ -746,7 +725,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                     className="ghost-glass rounded-xl p-4 ghost-card-hover"
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="w-6 h-6 rounded-lg bg-[#bef264]/10 text-[#bef264] flex items-center justify-center text-xs font-bold">
+                      <span className="w-6 h-6 rounded-lg bg-[#0070F3]/10 text-[#0070F3] flex items-center justify-center text-xs font-bold">
                         {rec.priority}
                       </span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
@@ -812,24 +791,24 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
             {/* Fix Details */}
             <div className="ghost-glass rounded-lg p-4">
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <Target className="w-4 h-4 text-[#bef264]" />
+                <Target className="w-4 h-4 text-[#0070F3]" />
                 Implementation Steps
               </h4>
               <div className="space-y-2 font-mono text-sm">
                 <div className="flex items-start gap-2">
-                  <span className="text-[#bef264]">1.</span>
+                  <span className="text-[#0070F3]">1.</span>
                   <span>Navigate to your Shopify theme editor</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-[#bef264]">2.</span>
+                  <span className="text-[#0070F3]">2.</span>
                   <span>Locate the relevant Liquid template</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-[#bef264]">3.</span>
+                  <span className="text-[#0070F3]">3.</span>
                   <span>Apply the suggested changes</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="text-[#bef264]">4.</span>
+                  <span className="text-[#0070F3]">4.</span>
                   <span>Preview and publish changes</span>
                 </div>
               </div>
