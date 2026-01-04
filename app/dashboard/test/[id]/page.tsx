@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -43,6 +43,7 @@ import {
 import type { TestResult, Recommendation } from "@/lib/types"
 import { getTestResult } from "@/lib/client-storage"
 import { calculateRevenueLeak } from "@/lib/ghostEngine"
+import { formatCurrency } from "@/lib/utils/format"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -934,6 +935,11 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const recoveryPlanRef = useRef<HTMLDivElement | null>(null)
 
+  // Stable ref setter to prevent hydration issues
+  const setSectionRef = useCallback((sectionId: string) => (el: HTMLDivElement | null) => {
+    sectionRefs.current[sectionId] = el
+  }, [])
+
   useEffect(() => {
     async function loadTest() {
       try {
@@ -1040,11 +1046,16 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
     )
   }
 
-  // Calculate revenue leak
-  const revenueLeak = calculateRevenueLeak(test, {
+  // Calculate revenue leak with NaN fallbacks
+  const rawRevenueLeak = calculateRevenueLeak(test, {
     averageOrderValue: 85,
     monthlySessions: 50000,
   })
+  const revenueLeak = {
+    monthly: rawRevenueLeak?.monthly || 0,
+    weekly: rawRevenueLeak?.weekly || 0,
+    daily: rawRevenueLeak?.daily || 0,
+  }
 
   // Get all friction threats (critical + high + medium, sorted by severity then impact)
   const allThreats = [
@@ -1316,9 +1327,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 1: Revenue Leak Hero */}
         <section
           id="overview"
-          ref={(el: HTMLDivElement | null) => {
-            sectionRefs.current.overview = el
-          }}
+          ref={setSectionRef("overview")}
           data-section-id="overview"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("overview") ? "visible" : ""} ${isHighlighted ? "animate-highlight-flash" : ""}`}
         >
@@ -1442,9 +1451,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 2: Active Friction Threats */}
         <section
           id="threats"
-          ref={(el: HTMLDivElement | null) => {
-            sectionRefs.current.threats = el
-          }}
+          ref={setSectionRef("threats")}
           data-section-id="threats"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("threats") ? "visible" : ""}`}
         >
@@ -1507,7 +1514,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         <section
           id="recovery"
           ref={(el: HTMLDivElement | null) => {
-            sectionRefs.current.recovery = el
+            setSectionRef("recovery")(el)
             recoveryPlanRef.current = el
           }}
           data-section-id="recovery"
@@ -1629,9 +1636,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 5: Live Buyer Simulation */}
         <section
           id="ghosts"
-          ref={(el: HTMLDivElement | null) => {
-            sectionRefs.current.ghosts = el
-          }}
+          ref={setSectionRef("ghosts")}
           data-section-id="ghosts"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("ghosts") ? "visible" : ""}`}
         >
@@ -1710,9 +1715,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 6: Supporting Analytics */}
         <section
           id="analytics"
-          ref={(el: HTMLDivElement | null) => {
-            sectionRefs.current.analytics = el
-          }}
+          ref={setSectionRef("analytics")}
           data-section-id="analytics"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("analytics") ? "visible" : ""}`}
         >
