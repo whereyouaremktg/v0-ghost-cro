@@ -61,15 +61,15 @@ const sections = [
 ]
 
 function getScoreColor(score: number) {
-  if (score < 50) return "text-orange-600"
-  if (score < 70) return "text-amber-600"
-  return "text-lime-600"
+  if (score < 50) return "text-red-600"
+  if (score < 70) return "text-gray-600"
+  return "text-blue-600"
 }
 
 function getSeverityColor(severity: "critical" | "high" | "medium") {
-  if (severity === "critical") return "text-orange-600 border-orange-200 bg-orange-50"
-  if (severity === "high") return "text-amber-600 border-amber-200 bg-amber-50"
-  return "text-gray-600 border-gray-200 bg-gray-50"
+  if (severity === "critical") return "text-red-600 border-red-200 bg-red-50"
+  if (severity === "high") return "text-gray-600 border-gray-300 bg-gray-50"
+  return "text-gray-500 border-gray-200 bg-gray-50"
 }
 
 function getSeverityLabel(severity: "critical" | "high" | "medium") {
@@ -157,7 +157,7 @@ function AnimatedCounter({ value, duration = 2000 }: { value: number; duration?:
 /**
  * Simple sparkline component (line chart)
  */
-function Sparkline({ data, width = 60, height = 20, color = "lime" }: { data: number[]; width?: number; height?: number; color?: string }) {
+function Sparkline({ data, width = 60, height = 20, color = "blue" }: { data: number[]; width?: number; height?: number; color?: string }) {
   if (data.length < 2) return null
 
   const max = Math.max(...data)
@@ -170,7 +170,7 @@ function Sparkline({ data, width = 60, height = 20, color = "lime" }: { data: nu
     return `${x},${y}`
   }).join(" ")
 
-  const colorClass = color === "lime" ? "stroke-lime-500" : color === "orange" ? "stroke-orange-500" : "stroke-gray-400"
+  const colorClass = color === "blue" ? "stroke-blue-500" : color === "red" ? "stroke-red-500" : "stroke-gray-400"
 
   return (
     <svg width={width} height={height} className="overflow-visible">
@@ -189,9 +189,9 @@ function Sparkline({ data, width = 60, height = 20, color = "lime" }: { data: nu
 /**
  * Mini funnel bar component
  */
-function MiniFunnelBar({ value, max, label, color = "lime" }: { value: number; max: number; label: string; color?: string }) {
+function MiniFunnelBar({ value, max, label, color = "blue" }: { value: number; max: number; label: string; color?: string }) {
   const percentage = Math.min((value / max) * 100, 100)
-  const colorClass = color === "lime" ? "bg-lime-500" : color === "orange" ? "bg-orange-500" : "bg-gray-400"
+  const colorClass = color === "blue" ? "bg-blue-500" : color === "red" ? "bg-red-500" : "bg-gray-400"
 
   return (
     <div className="space-y-1">
@@ -216,7 +216,7 @@ function ImpactBar({ severity, maxImpact = 100 }: { severity: "critical" | "high
   const impactMap = { critical: 100, high: 65, medium: 35 }
   const percentage = impactMap[severity]
   const colorClass =
-    severity === "critical" ? "bg-orange-500" : severity === "high" ? "bg-amber-500" : "bg-gray-400"
+    severity === "critical" ? "bg-red-500" : severity === "high" ? "bg-gray-500" : "bg-gray-400"
 
   return (
     <div className="mt-2">
@@ -443,10 +443,10 @@ function AutomationStep({
   const StepIcon = step.icon
   const typeColors = {
     view: "bg-blue-50 text-blue-600 border-blue-200",
-    edit: "bg-amber-50 text-amber-600 border-amber-200",
-    add: "bg-lime-50 text-lime-600 border-lime-200",
-    test: "bg-purple-50 text-purple-600 border-purple-200",
-    publish: "bg-green-50 text-green-600 border-green-200",
+    edit: "bg-gray-50 text-gray-600 border-gray-200",
+    add: "bg-blue-50 text-blue-600 border-blue-200",
+    test: "bg-gray-50 text-gray-600 border-gray-200",
+    publish: "bg-blue-50 text-blue-600 border-blue-200",
   }
 
   return (
@@ -528,13 +528,13 @@ function FixImplementationModal({
           {/* Why This Matters */}
           <div>
             <h3 className="text-sm font-semibold font-heading mb-3 flex items-center gap-2 text-gray-900">
-              <Info className="h-4 w-4 text-lime-600" strokeWidth={2.5} />
+              <Info className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
               Why this fix matters
             </h3>
             <ul className="space-y-2">
               {details.whyMatters.map((point, index) => (
                 <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                  <div className="w-1.5 h-1.5 rounded-full bg-lime-500 mt-2 flex-shrink-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -545,7 +545,7 @@ function FixImplementationModal({
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold font-heading flex items-center gap-2 text-gray-900">
-                <Target className="h-4 w-4 text-lime-600" strokeWidth={2.5} />
+                <Target className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
                 Automation Runbook
               </h3>
               <button
@@ -586,7 +586,7 @@ function FixImplementationModal({
               })}
             </div>
             {copiedIndex !== null && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-lime-600 animate-fade-in">
+              <div className="mt-3 flex items-center gap-2 text-xs text-blue-600 animate-fade-in">
                 <CheckCircle className="h-3.5 w-3.5" strokeWidth={2} />
                 Step {copiedIndex + 1} copied to clipboard
           </div>
@@ -596,7 +596,7 @@ function FixImplementationModal({
           {/* What to Measure */}
           <div>
             <h3 className="text-sm font-semibold font-heading mb-3 flex items-center gap-2 text-gray-900">
-              <TrendingUp className="h-4 w-4 text-lime-600" strokeWidth={2.5} />
+              <TrendingUp className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
               What to measure
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -613,7 +613,7 @@ function FixImplementationModal({
 
           {/* Time Estimate */}
           <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-100 rounded-xl">
-            <Clock className="h-5 w-5 text-lime-600" strokeWidth={2.5} />
+            <Clock className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
             <div>
               <div className="text-xs font-medium text-gray-500 mb-0.5">Estimated time</div>
               <div className="text-sm font-semibold font-heading text-gray-900">{details.timeEstimate}</div>
@@ -623,10 +623,10 @@ function FixImplementationModal({
               <span
                 className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border ${
                   confidence === "High"
-                    ? "bg-lime-50 text-lime-600 border-lime-200"
+                    ? "bg-blue-50 text-blue-600 border-blue-200"
                     : confidence === "Medium"
-                      ? "bg-amber-50 text-amber-600 border-amber-200"
-                      : "bg-orange-50 text-orange-600 border-orange-200"
+                      ? "bg-gray-50 text-gray-600 border-gray-200"
+                      : "bg-gray-100 text-gray-500 border-gray-300"
                 }`}
               >
                 {confidence}
@@ -657,10 +657,10 @@ function ThreatCard({
   const ThreatIcon = getThreatIcon(issue)
 
   return (
-    <div className="group bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift">
+    <div className="group bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-lime-50 border border-lime-200 flex items-center justify-center text-sm font-heading font-bold text-lime-600">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-sm font-heading font-bold text-blue-600">
             {index + 1}
           </div>
           <div className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg">
@@ -673,7 +673,7 @@ function ThreatCard({
         {estimatedImpact > 0 && (
           <div className="text-right">
             <div className="text-[10px] text-gray-500 mb-0.5">Est. Impact</div>
-            <div className="text-base font-heading font-bold text-orange-600">
+            <div className="text-base font-heading font-bold text-red-600">
               ${estimatedImpact.toLocaleString()}
               <span className="text-xs font-normal text-gray-500">/mo</span>
             </div>
@@ -694,7 +694,7 @@ function ThreatCard({
           variant="ghost"
           size="sm"
           onClick={onViewFix}
-          className="text-xs h-7 text-lime-600 hover:text-lime-700 hover:bg-lime-50 rounded-xl button-glow"
+          className="text-xs h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl button-glow"
         >
           View Fix
           <ArrowRight className="h-3 w-3 ml-1" strokeWidth={2.5} />
@@ -788,15 +788,16 @@ function PersonaCard({
   return (
     <button
       onClick={handleClick}
-      className={`w-full text-left bg-white border rounded-[16px] p-4 transition-all duration-300 relative ${
+      className={`w-full text-left bg-white border rounded-[16px] p-4 transition-all duration-300 relative backdrop-blur-xl ${
         isSelected
-          ? "border-lime-300 bg-lime-50 shadow-md"
+          ? "border-blue-300 bg-blue-50 shadow-md"
           : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
       }`}
+      style={{background: isSelected ? "rgba(239, 246, 255, 0.8)" : "rgba(255, 255, 255, 0.95)"}}
     >
       {/* Pulse ring effect on selection */}
       {isPulsing && (
-        <div className="absolute inset-0 rounded-[16px] border-2 border-lime-400 animate-pulse-ring pointer-events-none" />
+        <div className="absolute inset-0 rounded-[16px] border-2 border-blue-400 animate-pulse-ring pointer-events-none" />
       )}
       
       <div className="flex items-start justify-between mb-3">
@@ -817,8 +818,8 @@ function PersonaCard({
         <span
           className={`px-2 py-0.5 rounded-lg text-[10px] font-medium ml-2 flex-shrink-0 border animate-pulse-soft ${
             isAbandoned
-              ? "bg-orange-50 text-orange-600 border-orange-200"
-              : "bg-lime-50 text-lime-600 border-lime-200"
+              ? "bg-red-50 text-red-600 border-red-200"
+              : "bg-blue-50 text-blue-600 border-blue-200"
           }`}
         >
           {isAbandoned ? "Would Abandon" : "Would Buy"}
@@ -857,7 +858,7 @@ function GhostTranscriptPanel({
   const bullets = generateBulletSummary(persona.reasoning)
 
   return (
-    <div className="bg-white border border-gray-200 rounded-[16px] p-6 h-full flex flex-col animate-slide-in-right">
+    <div className="bg-white border border-gray-200 rounded-[16px] p-6 h-full flex flex-col animate-slide-in-right backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
       <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -882,8 +883,8 @@ function GhostTranscriptPanel({
               <span
           className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border ${
             persona.verdict === "abandon"
-              ? "bg-orange-50 text-orange-600 border-orange-200"
-              : "bg-lime-50 text-lime-600 border-lime-200"
+              ? "bg-red-50 text-red-600 border-red-200"
+              : "bg-blue-50 text-blue-600 border-blue-200"
           }`}
         >
           {persona.verdict === "abandon" ? "Would Abandon" : "Would Buy"}
@@ -909,7 +910,7 @@ function GhostTranscriptPanel({
         <ul className="space-y-2">
           {bullets.map((bullet, index) => (
             <li key={index} className="flex items-start gap-2 text-xs text-gray-700">
-              <div className="w-1.5 h-1.5 rounded-full bg-lime-500 mt-1.5 flex-shrink-0" />
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
               <span>{bullet}</span>
             </li>
           ))}
@@ -1267,7 +1268,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 onClick={() => scrollToSection(section.id)}
                 className={`px-4 py-2 text-xs font-medium rounded-xl whitespace-nowrap transition-all duration-300 ${
                   activeSection === section.id
-                    ? "bg-lime-50 text-lime-600 border border-lime-200 shadow-sm"
+                    ? "bg-blue-50 text-blue-600 border border-blue-200 shadow-sm"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
@@ -1315,17 +1316,17 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 1: Revenue Leak Hero */}
         <section
           id="overview"
-          ref={(el) => {
-            sectionRefs.current.overview = el as HTMLDivElement | null
+          ref={(el: HTMLDivElement | null) => {
+            sectionRefs.current.overview = el
           }}
           data-section-id="overview"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("overview") ? "visible" : ""} ${isHighlighted ? "animate-highlight-flash" : ""}`}
         >
           {/* Ghost Summary Executive Brief */}
-          <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-8 mb-10">
+          <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-8 mb-10 backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
             <div className="flex items-start gap-4 mb-6">
-              <div className="p-3 bg-lime-50 border border-lime-200 rounded-xl flex-shrink-0">
-                <Target className="h-5 w-5 text-lime-600" strokeWidth={2.5} />
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex-shrink-0">
+                <Target className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
       </div>
               <div className="flex-1">
                 <h2 className="text-xl font-semibold font-heading mb-1 text-gray-900">Ghost Summary</h2>
@@ -1337,8 +1338,8 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 const BriefIcon = getBriefIcon(point)
                 return (
                   <li key={index} className="flex items-start gap-3 text-sm leading-relaxed">
-                    <div className="p-1 bg-lime-50 border border-lime-200 rounded-lg mt-0.5 flex-shrink-0">
-                      <BriefIcon className="h-4 w-4 text-lime-600" strokeWidth={2} />
+                    <div className="p-1 bg-blue-50 border border-blue-200 rounded-lg mt-0.5 flex-shrink-0">
+                      <BriefIcon className="h-4 w-4 text-blue-600" strokeWidth={2} />
                   </div>
                     <span className="text-gray-900">{point}</span>
                   </li>
@@ -1347,10 +1348,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             </ul>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-50 via-orange-50/50 to-amber-50 border border-orange-200 rounded-[16px] shadow-sm p-10 mb-10">
+          <div className="bg-gradient-to-br from-red-50 via-red-50/50 to-gray-50 border border-red-200 rounded-[16px] shadow-sm p-10 mb-10 backdrop-blur-xl" style={{background: "linear-gradient(to bottom right, rgba(254, 242, 242, 0.9), rgba(249, 250, 251, 0.9))"}}>
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-orange-100 border border-orange-200 rounded-xl">
-                <TrendingDown className="h-6 w-6 text-orange-600" strokeWidth={2.5} />
+              <div className="p-3 bg-red-100 border border-red-200 rounded-xl">
+                <TrendingDown className="h-6 w-6 text-red-600" strokeWidth={2.5} />
             </div>
               <div>
                 <h2 className="text-2xl font-semibold font-heading mb-1 text-gray-900">Estimated Revenue Leak</h2>
@@ -1358,41 +1359,41 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white border border-gray-200 rounded-[16px] p-8 shadow-sm card-hover-lift">
+              <div className="bg-white border border-gray-200 rounded-[16px] p-8 shadow-sm card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-gray-400" strokeWidth={2} />
                     <div className="text-xs font-medium tracking-wide text-gray-500">Monthly Leak</div>
               </div>
-                  <Sparkline data={[revenueLeak.monthly * 0.8, revenueLeak.monthly * 0.9, revenueLeak.monthly * 0.85, revenueLeak.monthly]} color="orange" />
+                  <Sparkline data={[revenueLeak.monthly * 0.8, revenueLeak.monthly * 0.9, revenueLeak.monthly * 0.85, revenueLeak.monthly]} color="red" />
             </div>
-                <div className="text-5xl font-heading font-bold text-orange-600 leading-none mb-2">
+                <div className="text-5xl font-heading font-bold text-red-600 leading-none mb-2">
                   $<AnimatedCounter value={revenueLeak.monthly} />
           </div>
                 <div className="text-xs text-gray-500">per month</div>
         </div>
-              <div className="bg-white border border-gray-200 rounded-[16px] p-8 shadow-sm card-hover-lift">
+              <div className="bg-white border border-gray-200 rounded-[16px] p-8 shadow-sm card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-gray-400" strokeWidth={2} />
                     <div className="text-xs font-medium tracking-wide text-gray-500">Weekly Leak</div>
                   </div>
-                  <Sparkline data={[revenueLeak.weekly * 0.8, revenueLeak.weekly * 0.9, revenueLeak.weekly * 0.85, revenueLeak.weekly]} color="orange" />
+                  <Sparkline data={[revenueLeak.weekly * 0.8, revenueLeak.weekly * 0.9, revenueLeak.weekly * 0.85, revenueLeak.weekly]} color="red" />
                 </div>
-                <div className="text-4xl font-heading font-bold text-orange-600 leading-none mb-2">
+                <div className="text-4xl font-heading font-bold text-red-600 leading-none mb-2">
                   $<AnimatedCounter value={revenueLeak.weekly} />
             </div>
                 <div className="text-xs text-gray-500">per week</div>
               </div>
-              <div className="bg-white border border-gray-200 rounded-[16px] p-8 shadow-sm card-hover-lift">
+              <div className="bg-white border border-gray-200 rounded-[16px] p-8 shadow-sm card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-gray-400" strokeWidth={2} />
                     <div className="text-xs font-medium tracking-wide text-gray-500">Daily Leak</div>
                   </div>
-                  <Sparkline data={[revenueLeak.daily * 0.8, revenueLeak.daily * 0.9, revenueLeak.daily * 0.85, revenueLeak.daily]} color="orange" />
+                  <Sparkline data={[revenueLeak.daily * 0.8, revenueLeak.daily * 0.9, revenueLeak.daily * 0.85, revenueLeak.daily]} color="red" />
                 </div>
-                <div className="text-4xl font-heading font-bold text-orange-600 leading-none mb-2">
+                <div className="text-4xl font-heading font-bold text-red-600 leading-none mb-2">
                   $<AnimatedCounter value={revenueLeak.daily} />
             </div>
                 <div className="text-xs text-gray-500">per day</div>
@@ -1410,29 +1411,29 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
               </div>
                 {test.previousScore && (
                   <div className="mt-2">
-                    <Sparkline data={[test.previousScore, test.previousScore + (test.score - test.previousScore) * 0.3, test.previousScore + (test.score - test.previousScore) * 0.7, test.score]} color={test.score >= test.previousScore ? "lime" : "orange"} />
+                    <Sparkline data={[test.previousScore, test.previousScore + (test.score - test.previousScore) * 0.3, test.previousScore + (test.score - test.previousScore) * 0.7, test.score]} color={test.score >= test.previousScore ? "blue" : "red"} />
             </div>
           )}
               </div>
               <div className="text-sm text-gray-500">/100</div>
               {test.change && (
-                <div className={`text-sm font-medium mt-4 ${test.change >= 0 ? "text-lime-600" : "text-orange-600"}`}>
+                <div className={`text-sm font-medium mt-4 ${test.change >= 0 ? "text-blue-600" : "text-red-600"}`}>
                   {test.change >= 0 ? "+" : ""}{test.change} vs previous
             </div>
           )}
             </div>
             <div className="lg:col-span-3 grid grid-cols-3 gap-6">
-              <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift">
+              <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
                 <div className="text-xs font-medium tracking-wide text-gray-500 mb-2">Would Purchase</div>
-                <div className="text-3xl font-heading font-bold text-lime-600">{purchaseRate}%</div>
+                <div className="text-3xl font-heading font-bold text-blue-600">{purchaseRate}%</div>
               </div>
-              <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift">
+              <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
                 <div className="text-xs font-medium tracking-wide text-gray-500 mb-2">Purchased</div>
-                <div className="text-3xl font-heading font-bold text-lime-600">{purchaseCount}</div>
+                <div className="text-3xl font-heading font-bold text-blue-600">{purchaseCount}</div>
             </div>
-              <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift">
+              <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-6 card-hover-lift backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
                 <div className="text-xs font-medium tracking-wide text-gray-500 mb-2">Abandoned</div>
-                <div className="text-3xl font-heading font-bold text-orange-600">{abandonCount}</div>
+                <div className="text-3xl font-heading font-bold text-red-600">{abandonCount}</div>
               </div>
             </div>
           </div>
@@ -1441,16 +1442,16 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 2: Active Friction Threats */}
         <section
           id="threats"
-          ref={(el) => {
-            sectionRefs.current.threats = el as HTMLDivElement | null
+          ref={(el: HTMLDivElement | null) => {
+            sectionRefs.current.threats = el
           }}
           data-section-id="threats"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("threats") ? "visible" : ""}`}
         >
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-lime-50 border border-lime-200 rounded-xl">
-                <AlertTriangle className="h-5 w-5 text-lime-600" strokeWidth={2.5} />
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <AlertTriangle className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
               </div>
             <div>
                 <h2 className="text-2xl font-semibold font-heading mb-1 text-gray-900">Active Friction Threats</h2>
@@ -1505,23 +1506,23 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 4: Recovery Plan Table */}
         <section
           id="recovery"
-          ref={(el) => {
-            sectionRefs.current.recovery = el as HTMLDivElement | null
-            recoveryPlanRef.current = el as HTMLDivElement | null
+          ref={(el: HTMLDivElement | null) => {
+            sectionRefs.current.recovery = el
+            recoveryPlanRef.current = el
           }}
           data-section-id="recovery"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("recovery") ? "visible" : ""}`}
         >
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-lime-50 border border-lime-200 rounded-xl">
-              <Target className="h-5 w-5 text-lime-600" strokeWidth={2.5} />
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <Target className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
             </div>
           <div>
               <h2 className="text-2xl font-semibold font-heading mb-1 text-gray-900">Recovery Plan</h2>
               <p className="text-sm text-gray-600">Prioritized fixes with estimated recovery</p>
             </div>
           </div>
-          <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -1544,7 +1545,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                       >
                         <td className="p-5">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-xl bg-lime-50 border border-lime-200 flex items-center justify-center text-sm font-heading font-bold text-lime-600">
+                            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-sm font-heading font-bold text-blue-600">
                               {rec.priority}
         </div>
                             <div className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg">
@@ -1558,11 +1559,11 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         </td>
                       <td className="p-5">
                         {rec.recovery > 0 ? (
-                          <div className="text-base font-heading font-bold text-lime-600">
+                          <div className="text-base font-heading font-bold text-blue-600">
                             $<AnimatedCounter value={rec.recovery} />/mo
                           </div>
                         ) : rec.impactPercent ? (
-                          <div className="text-base font-heading font-bold text-lime-600">
+                          <div className="text-base font-heading font-bold text-blue-600">
                             +{rec.impactPercent}%
                           </div>
                         ) : (
@@ -1573,10 +1574,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         <span
                           className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border ${
                             rec.effort === "low"
-                              ? "bg-lime-50 text-lime-600 border-lime-200"
+                              ? "bg-blue-50 text-blue-600 border-blue-200"
                               : rec.effort === "medium"
-                                ? "bg-amber-50 text-amber-600 border-amber-200"
-                                : "bg-orange-50 text-orange-600 border-orange-200"
+                                ? "bg-gray-50 text-gray-600 border-gray-200"
+                                : "bg-gray-100 text-gray-500 border-gray-300"
                           }`}
                         >
                           {rec.effort.charAt(0).toUpperCase() + rec.effort.slice(1)}
@@ -1586,10 +1587,10 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                         <span
                           className={`px-2.5 py-1 rounded-lg text-[10px] font-medium border ${
                             rec.confidence === "High"
-                              ? "bg-lime-50 text-lime-600 border-lime-200"
+                              ? "bg-blue-50 text-blue-600 border-blue-200"
                               : rec.confidence === "Medium"
-                                ? "bg-amber-50 text-amber-600 border-amber-200"
-                                : "bg-orange-50 text-orange-600 border-orange-200"
+                                ? "bg-gray-50 text-gray-600 border-gray-200"
+                                : "bg-gray-100 text-gray-500 border-gray-300"
                           }`}
                         >
                           {rec.confidence}
@@ -1600,7 +1601,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                           variant="ghost"
                           size="sm"
                           onClick={() => handleOpenFixModal(rec)}
-                          className="text-xs h-7 text-lime-600 hover:text-lime-700 hover:bg-lime-50 rounded-xl"
+                          className="text-xs h-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl"
                         >
                           How to implement
                           <ArrowRight className="h-3 w-3 ml-1" strokeWidth={2.5} />
@@ -1628,15 +1629,15 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 5: Live Buyer Simulation */}
         <section
           id="ghosts"
-          ref={(el) => {
-            sectionRefs.current.ghosts = el as HTMLDivElement | null
+          ref={(el: HTMLDivElement | null) => {
+            sectionRefs.current.ghosts = el
           }}
           data-section-id="ghosts"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("ghosts") ? "visible" : ""}`}
         >
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-lime-50 border border-lime-200 rounded-xl">
-              <Users className="h-5 w-5 text-lime-600" strokeWidth={2.5} />
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <Users className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
         </div>
             <div className="flex-1">
               <h2 className="text-2xl font-semibold font-heading mb-1 text-gray-900">Live Buyer Simulation</h2>
@@ -1709,15 +1710,15 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
         {/* SECTION 6: Supporting Analytics */}
         <section
           id="analytics"
-          ref={(el) => {
-            sectionRefs.current.analytics = el as HTMLDivElement | null
+          ref={(el: HTMLDivElement | null) => {
+            sectionRefs.current.analytics = el
           }}
           data-section-id="analytics"
           className={`mb-20 scroll-mt-24 section-scroll-in ${visibleSections.has("analytics") ? "visible" : ""}`}
         >
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-lime-50 border border-lime-200 rounded-xl">
-              <BarChart3 className="h-5 w-5 text-lime-600" strokeWidth={2.5} />
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <BarChart3 className="h-5 w-5 text-blue-600" strokeWidth={2.5} />
         </div>
         <div>
               <h2 className="text-2xl font-semibold font-heading mb-1 text-gray-900">Analytics</h2>
@@ -1726,14 +1727,14 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Funnel Chart */}
-            <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-8">
+            <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-8 backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
               <h3 className="text-xs font-medium tracking-wide text-gray-500 mb-6 font-heading">Conversion Funnel</h3>
               {/* Mini funnel bars */}
               <div className="space-y-3 mb-6">
-                <MiniFunnelBar value={test.funnelData.landed} max={test.funnelData.landed} label="Landed" color="lime" />
-                <MiniFunnelBar value={test.funnelData.cart} max={test.funnelData.landed} label="Cart" color="lime" />
-                <MiniFunnelBar value={test.funnelData.checkout} max={test.funnelData.landed} label="Checkout" color="lime" />
-                <MiniFunnelBar value={test.funnelData.purchased} max={test.funnelData.landed} label="Purchased" color="lime" />
+                <MiniFunnelBar value={test.funnelData.landed} max={test.funnelData.landed} label="Landed" color="blue" />
+                <MiniFunnelBar value={test.funnelData.cart} max={test.funnelData.landed} label="Cart" color="blue" />
+                <MiniFunnelBar value={test.funnelData.checkout} max={test.funnelData.landed} label="Checkout" color="blue" />
+                <MiniFunnelBar value={test.funnelData.purchased} max={test.funnelData.landed} label="Purchased" color="blue" />
               </div>
               {/* Vertical bars */}
               <div className="flex items-end justify-between gap-3 h-48">
@@ -1744,13 +1745,13 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                   return (
                     <div key={stage} className="flex-1 flex flex-col items-center group">
                       <div className="w-full relative" style={{ height: `${height}%` }}>
-                        <div className="absolute inset-0 bg-gradient-to-t from-lime-300 to-lime-100 border border-lime-200 rounded-t-[16px] transition-all duration-300 group-hover:from-lime-400 group-hover:to-lime-200" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-blue-300 to-blue-100 border border-blue-200 rounded-t-[16px] transition-all duration-300 group-hover:from-blue-400 group-hover:to-blue-200" />
                       </div>
                       <div className="mt-4 text-center">
                         <div className="font-heading font-bold text-base mb-1 text-gray-900">{count}</div>
                         <div className="text-xs uppercase tracking-wide text-gray-500">{stage}</div>
                         {index > 0 && dropoff > 0 && (
-                          <div className="text-xs text-orange-600 font-medium mt-1.5">-{dropoff}%</div>
+                          <div className="text-xs text-red-600 font-medium mt-1.5">-{dropoff}%</div>
                         )}
                       </div>
                     </div>
@@ -1760,28 +1761,28 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
           </div>
 
             {/* Score Trend & Stats */}
-            <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-8">
+            <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm p-8 backdrop-blur-xl" style={{background: "rgba(255, 255, 255, 0.95)"}}>
               <h3 className="text-xs font-medium tracking-wide text-gray-500 mb-6 font-heading">Performance Metrics</h3>
               <div className="space-y-4">
                 <div className="p-5 bg-gray-50 border border-gray-100 rounded-xl">
                   <div className="text-xs font-medium text-gray-500 mb-2">Conversion Rate</div>
-                  <div className="text-4xl font-heading font-bold text-lime-600">{purchaseRate}%</div>
+                  <div className="text-4xl font-heading font-bold text-blue-600">{purchaseRate}%</div>
             </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-5 bg-gray-50 border border-gray-100 rounded-xl">
                     <div className="text-xs font-medium text-gray-500 mb-2">Would Purchase</div>
-                    <div className="text-2xl font-heading font-bold text-lime-600">{purchaseCount}</div>
+                    <div className="text-2xl font-heading font-bold text-blue-600">{purchaseCount}</div>
                   </div>
                   <div className="p-5 bg-gray-50 border border-gray-100 rounded-xl">
                     <div className="text-xs font-medium text-gray-500 mb-2">Would Abandon</div>
-                    <div className="text-2xl font-heading font-bold text-orange-600">{abandonCount}</div>
+                    <div className="text-2xl font-heading font-bold text-red-600">{abandonCount}</div>
                   </div>
                 </div>
                 {test.previousScore && (
                   <div className="p-5 bg-gray-50 border border-gray-100 rounded-xl">
                     <div className="text-xs font-medium text-gray-500 mb-2">Score Change</div>
                     <div
-                      className={`text-2xl font-heading font-bold ${test.change && test.change >= 0 ? "text-lime-600" : "text-orange-600"}`}
+                      className={`text-2xl font-heading font-bold ${test.change && test.change >= 0 ? "text-blue-600" : "text-red-600"}`}
                     >
                       {test.change && test.change >= 0 ? "+" : ""}{test.change || 0} points
           </div>

@@ -18,25 +18,88 @@ import {
 } from "@/lib/analytics/ga4-client"
 
 /**
+ * Raw analysis data structure from Claude's JSON response
+ */
+interface RawAnalysisData {
+  score: number
+  personaResults: Array<{
+    name: string
+    demographics: string
+    verdict: "purchase" | "abandon"
+    reasoning: string
+    abandonPoint: string | null
+  }>
+  frictionPoints: {
+    critical: Array<{ title: string; location: string; impact: string; affected: string; fix: string }>
+    high: Array<{ title: string; location: string; impact: string; affected: string; fix: string }>
+    medium: Array<{ title: string; location: string; impact: string; affected: string; fix: string }>
+    working: string[]
+  }
+  recommendations: Array<{
+    priority: number
+    title: string
+    impact: string
+    effort: "low" | "medium" | "high"
+    description: string
+  }>
+  funnelData: {
+    landed: number
+    cart: number
+    checkout: number
+    purchased: number
+  }
+}
+
+/**
  * Extract JSON from Claude's response
  * Handles cases where JSON is wrapped in markdown code blocks or has extra text
+ * Improved to handle truncated/malformed JSON responses
  */
 function extractJSON(text: string): string {
+  if (!text || typeof text !== 'string') {
+    throw new Error('Invalid input: text must be a non-empty string')
+  }
+  
   // Remove markdown code blocks
   let cleaned = text.trim()
   
-  // Remove ```json and ``` markers
+  // Remove ```json and ``` markers (handles multiple cases)
   cleaned = cleaned.replace(/^```json\s*/i, "")
   cleaned = cleaned.replace(/^```\s*/i, "")
   cleaned = cleaned.replace(/\s*```$/i, "")
+  cleaned = cleaned.replace(/\s*```\s*/g, "") // Remove any remaining ```
   
   // Try to find JSON object boundaries
+  // Use a more careful approach to find balanced braces
+  let braceCount = 0
+  let startIndex = -1
+  let endIndex = -1
+  
+  for (let i = 0; i < cleaned.length; i++) {
+    if (cleaned[i] === '{') {
+      if (startIndex === -1) startIndex = i
+      braceCount++
+    } else if (cleaned[i] === '}') {
+      braceCount--
+      if (braceCount === 0 && startIndex !== -1) {
+        endIndex = i
+        break
+      }
+    }
+  }
+  
+  // If we found balanced braces, extract that section
+  if (startIndex !== -1 && endIndex !== -1) {
+    return cleaned.substring(startIndex, endIndex + 1)
+  }
+  
+  // Fallback: try regex match (might not be balanced)
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
   if (jsonMatch) {
     return jsonMatch[0]
   }
   
-  // If no match, return cleaned text (will fail gracefully in JSON.parse)
+  // Last resort: return cleaned text
   return cleaned
 }
 
@@ -328,7 +391,7 @@ export async function POST(request: Request) {
     // First, get the detailed structured analysis
     const storeAnalysisMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      max_tokens: 8192, // Increased to handle longer JSON responses
       messages: [
         {
           role: "user",
@@ -343,19 +406,30 @@ export async function POST(request: Request) {
     let storeAnalysis: StoreAnalysis
     try {
       const jsonText = extractJSON(storeAnalysisText)
+      
+      // Validate JSON structure before parsing
+      if (!jsonText.trim().startsWith('{')) {
+        throw new Error('Extracted text does not start with JSON object')
+      }
+      
       storeAnalysis = JSON.parse(jsonText)
       console.log('✓ Store Analysis parsed successfully')
       console.log('  - Issues found:', storeAnalysis.overallIssues?.length || 0)
     } catch (parseError) {
       console.error("Failed to parse store analysis response:")
-      console.error("Raw response:", storeAnalysisText.substring(0, 500))
+      console.error("Response length:", storeAnalysisText.length)
+      console.error("Response preview (first 1000 chars):", storeAnalysisText.substring(0, 1000))
+      console.error("Response preview (last 500 chars):", storeAnalysisText.substring(Math.max(0, storeAnalysisText.length - 500)))
       console.error("Parse error:", parseError)
-      // Return a more helpful error
+      console.error("Parse error details:", parseError instanceof Error ? parseError.message : String(parseError))
+      
+      // Return a more helpful error with retry suggestion
       return NextResponse.json(
         {
           error: "Failed to parse AI analysis response",
           details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
-          hint: "The AI response may not be in valid JSON format. Please try again.",
+          hint: "The AI response may contain malformed JSON. This can happen with very long responses or special characters. Please try again with a different URL or contact support if the issue persists.",
+          responseLength: storeAnalysisText.length,
         },
         { status: 500 }
       )
@@ -477,7 +551,7 @@ IMPORTANT:
     // Get persona-based analysis
     const personaMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      max_tokens: 8192, // Increased to handle longer JSON responses
       messages: [
         {
           role: "user",
@@ -490,10 +564,10 @@ IMPORTANT:
     const responseText = personaMessage.content[0].type === "text" ? personaMessage.content[0].text : ""
 
     // Parse the JSON response
-    let analysisData
+    let analysisData: RawAnalysisData
     try {
       const jsonText = extractJSON(responseText)
-      analysisData = JSON.parse(jsonText)
+      analysisData = JSON.parse(jsonText) as RawAnalysisData
       console.log('✓ Persona Analysis parsed successfully')
       console.log('  - Score:', analysisData.score)
       console.log('  - Persona results:', analysisData.personaResults?.length || 0)
@@ -523,22 +597,22 @@ IMPORTANT:
 
     // Add IDs to friction points and persona results
     const frictionPoints = {
-      critical: analysisData.frictionPoints.critical.map((fp: any, i: number) => ({
+      critical: analysisData.frictionPoints.critical.map((fp, i) => ({
         id: `critical_${i}`,
         ...fp,
       })),
-      high: analysisData.frictionPoints.high.map((fp: any, i: number) => ({
+      high: analysisData.frictionPoints.high.map((fp, i) => ({
         id: `high_${i}`,
         ...fp,
       })),
-      medium: analysisData.frictionPoints.medium.map((fp: any, i: number) => ({
+      medium: analysisData.frictionPoints.medium.map((fp, i) => ({
         id: `medium_${i}`,
         ...fp,
       })),
       working: analysisData.frictionPoints.working,
     }
 
-    const personaResults = analysisData.personaResults.map((pr: any, i: number) => ({
+    const personaResults = analysisData.personaResults.map((pr, i) => ({
       id: `persona_${i}`,
       ...pr,
     }))
@@ -704,7 +778,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.`
 
     const validationMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      max_tokens: 8192, // Increased to handle longer JSON responses
       messages: [
         {
           role: "user",

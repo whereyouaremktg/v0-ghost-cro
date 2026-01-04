@@ -8,56 +8,56 @@
    ============================================ */
 
 :root {
-  /* Base Colors - Neobrutalist Palette */
-  --background: #FFFEF5;
+  /* Base Colors - Ghost OS Light Mode */
+  --background: #FFFFFF;
   --foreground: #0A0A0A;
-  --card: #FFFEF5;
+  --card: #FFFFFF;
   --card-foreground: #0A0A0A;
-  --popover: #FFFEF5;
+  --popover: #FFFFFF;
   --popover-foreground: #0A0A0A;
-  
-  /* Primary Accent - Electric Lime */
-  --primary: #BFFF00;
-  --primary-foreground: #0A0A0A;
-  
-  /* Secondary - Bold Black */
-  --secondary: #0A0A0A;
-  --secondary-foreground: #FFFEF5;
-  
+
+  /* Primary Accent - Electric Blue */
+  --primary: #0070F3;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary - Subtle Gray */
+  --secondary: #F5F5F7;
+  --secondary-foreground: #0A0A0A;
+
   /* Muted */
-  --muted: #F5F5F0;
-  --muted-foreground: #6B7280;
-  
+  --muted: #F5F5F7;
+  --muted-foreground: #71717a;
+
   /* Accent */
-  --accent: #BFFF00;
-  --accent-foreground: #0A0A0A;
-  
+  --accent: #0070F3;
+  --accent-foreground: #FFFFFF;
+
   /* Semantic Colors */
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
   --success: #10B981;
   --warning: #F59E0B;
-  --info: #3B82F6;
+  --info: #0070F3;
 
   /* Premium Dashboard Colors */
   --leak: #F43F5E;
   --leak-light: #FFF1F2;
   --win: #10B981;
   --win-light: #ECFDF5;
-  --opportunity: #BFFF00;
-  --opportunity-light: #F7FEE7;
-  
-  /* Borders & Dividers - THICK for brutalist */
-  --border: #0A0A0A;
-  --input: #0A0A0A;
-  --ring: #BFFF00;
+  --opportunity: #0070F3;
+  --opportunity-light: #EFF6FF;
+
+  /* Borders & Dividers - Glassmorphism */
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.08);
+  --ring: #0070F3;
   
   /* Charts */
-  --chart-1: #BFFF00;
+  --chart-1: #0070F3;
   --chart-2: #10B981;
   --chart-3: #EF4444;
   --chart-4: #F59E0B;
-  --chart-5: #3B82F6;
+  --chart-5: #3291ff;
   
   /* Radius - ZERO for brutalist (or minimal) */
   --radius: 0rem;
@@ -91,43 +91,43 @@
 }
 
 .dark {
-  /* Dark mode support */
-  --background: #0A0A0A;
-  --foreground: #FAFAFA;
-  --card: #111111;
-  --card-foreground: #FAFAFA;
-  --popover: #111111;
-  --popover-foreground: #FAFAFA;
-  --primary: #BFFF00;
-  --primary-foreground: #0A0A0A;
+  /* Dark mode support - Obsidian Theme */
+  --background: #020202;
+  --foreground: #e5e5e5;
+  --card: #0a0a0a;
+  --card-foreground: #e5e5e5;
+  --popover: #0a0a0a;
+  --popover-foreground: #e5e5e5;
+  --primary: #0070F3;
+  --primary-foreground: #FFFFFF;
   --secondary: #1A1A1A;
-  --secondary-foreground: #FAFAFA;
+  --secondary-foreground: #e5e5e5;
   --muted: #1A1A1A;
-  --muted-foreground: #9CA3AF;
-  --accent: #BFFF00;
-  --accent-foreground: #0A0A0A;
+  --muted-foreground: #a1a1aa;
+  --accent: #0070F3;
+  --accent-foreground: #FFFFFF;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #2A2A2A;
-  --input: #2A2A2A;
-  --ring: #BFFF00;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #0070F3;
 
   /* Premium Dashboard Colors - Dark Mode */
-  --leak: #FB7185;           /* Lighter rose for dark mode */
-  --leak-light: #1A0A0D;     /* Dark rose background */
-  --win: #34D399;            /* Lighter emerald for dark mode */
-  --win-light: #0A1F17;      /* Dark emerald background */
-  --opportunity: #BFFF00;    /* Lime stays bright */
-  --opportunity-light: #1A1F0A; /* Dark lime background */
+  --leak: #FB7185;
+  --leak-light: #1A0A0D;
+  --win: #34D399;
+  --win-light: #0A1F17;
+  --opportunity: #0070F3;
+  --opportunity-light: rgba(0, 112, 243, 0.1);
 
-  --sidebar: #111111;
-  --sidebar-foreground: #FAFAFA;
-  --sidebar-primary: #BFFF00;
-  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #e5e5e5;
+  --sidebar-primary: #0070F3;
+  --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: #2A2A2A;
-  --sidebar-ring: #BFFF00;
+  --sidebar-accent-foreground: #e5e5e5;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #0070F3;
 }
 
 /* ============================================

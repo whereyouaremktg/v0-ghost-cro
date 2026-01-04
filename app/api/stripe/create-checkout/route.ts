@@ -8,9 +8,7 @@ function getStripe() {
   if (!key) {
     throw new Error("STRIPE_SECRET_KEY is not configured")
   }
-  return new Stripe(key, {
-    apiVersion: "2025-12-15.clover",
-  })
+  return new Stripe(key)
 }
 
 const PRICE_TO_PLAN: Record<string, { plan: string; tests: number }> = {

@@ -462,9 +462,9 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           </div>
           
           {/* Log Entries */}
-          <div 
+          <div
             ref={logContainerRef}
-            className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs"
+            className="flex-1 overflow-y-auto p-3 space-y-2 font-mono text-xs backdrop-blur-xl"
           >
             {ghostLogs.length === 0 ? (
               <div className="text-center text-[#525252] py-8">
