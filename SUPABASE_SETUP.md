@@ -26,14 +26,19 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 ## 📊 Database Migration
 
-Run this SQL in your Supabase SQL Editor to create the `stores` table:
+**IMPORTANT:** Run the complete database setup script in your Supabase SQL Editor:
 
-**File:** `scripts/004_create_stores_table.sql`
+**File:** `scripts/000_full_database_setup.sql`
 
-This creates:
-- `stores` table with OAuth tokens
-- RLS policies (users can only access their own stores)
-- Indexes for performance
+This creates all required tables in the correct order:
+- `profiles` table (extends auth.users)
+- `subscriptions` table (with Shopify billing columns)
+- `tests` table (checkout analyses)
+- `stores` table (Shopify OAuth tokens)
+- All RLS policies and indexes
+- Auto-create profile trigger
+
+**Note:** If you get an error about `profiles` not existing, run `000_full_database_setup.sql` instead of the individual migration scripts.
 
 ## 🔐 Security Notes
 

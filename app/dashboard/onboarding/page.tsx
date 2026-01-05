@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Toggle } from "@/components/ui/toggle"
+import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 
 export default function OnboardingPage() {
@@ -15,6 +16,8 @@ export default function OnboardingPage() {
   const [revenueGoal, setRevenueGoal] = useState("")
   const [slackAlerts, setSlackAlerts] = useState(false)
   const [techEmail, setTechEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     // Check if Shopify connection exists
@@ -31,18 +34,77 @@ export default function OnboardingPage() {
     }
   }, [])
 
-  const handleLaunch = () => {
-    // Store configuration
-    const config = {
-      revenueGoal,
-      slackAlerts,
-      techEmail,
-      completedAt: new Date().toISOString(),
+  const handleLaunch = async () => {
+    setIsSaving(true)
+    const supabase = createClient()
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.error("User not authenticated")
+        setIsSaving(false)
+        return
+      }
+
+      // Update profile with CRM data
+      const updates: {
+        technical_contact_email?: string
+        monthly_revenue_goal?: number
+        phone?: string
+      } = {}
+
+      if (techEmail) {
+        updates.technical_contact_email = techEmail
+      }
+      if (revenueGoal) {
+        // Remove commas and parse
+        const goal = parseFloat(revenueGoal.replace(/,/g, ''))
+        if (!isNaN(goal)) {
+          updates.monthly_revenue_goal = goal
+        }
+      }
+      if (phone) {
+        updates.phone = phone
+      }
+
+      // Save to Supabase
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+
+      if (updateError) {
+        console.error("Failed to update profile:", updateError)
+      } else {
+        // Trigger CRM sync
+        try {
+          await fetch('/api/crm/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id }),
+          })
+        } catch (crmError) {
+          console.error("CRM sync failed (non-critical):", crmError)
+        }
+      }
+
+      // Store configuration locally as backup
+      const config = {
+        revenueGoal,
+        slackAlerts,
+        techEmail,
+        phone,
+        completedAt: new Date().toISOString(),
+      }
+      localStorage.setItem("ghost_onboarding_config", JSON.stringify(config))
+      
+      // Redirect to Mission Control
+      window.location.href = "/dashboard"
+    } catch (error) {
+      console.error("Failed to save onboarding data:", error)
+      setIsSaving(false)
     }
-    localStorage.setItem("ghost_onboarding_config", JSON.stringify(config))
-    
-    // Redirect to Mission Control
-    window.location.href = "/dashboard"
   }
 
   return (
@@ -114,7 +176,6 @@ export default function OnboardingPage() {
                   </p>
                 </div>
                 <Toggle
-                  id="slack-alerts"
                   checked={slackAlerts}
                   onCheckedChange={setSlackAlerts}
                 />
@@ -135,6 +196,22 @@ export default function OnboardingPage() {
                   For technical notifications and system updates
                 </p>
               </div>
+
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium text-zinc-900 mb-2 block">
+                  Phone Number <span className="text-zinc-400 font-normal">(Optional)</span>
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                />
+                <p className="text-xs text-zinc-500 mt-1">
+                  For account verification and important updates
+                </p>
+              </div>
             </div>
           )}
 
@@ -142,11 +219,12 @@ export default function OnboardingPage() {
           <div className="mt-8 pt-6 border-t border-zinc-200">
             <Button
               onClick={handleLaunch}
+              disabled={isSaving}
               className="w-full bg-[#0070F3] hover:bg-[#0060d0] text-white font-medium gap-2"
               size="lg"
             >
-              Launch Mission Control
-              <ArrowRight className="h-4 w-4" />
+              {isSaving ? "Saving..." : "Launch Mission Control"}
+              {!isSaving && <ArrowRight className="h-4 w-4" />}
             </Button>
           </div>
         </div>

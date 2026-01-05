@@ -96,6 +96,17 @@ export async function GET(request: Request) {
         console.error("Failed to save store to database:", dbError)
         // Fall back to localStorage for now, but log the error
         // In production, you'd want to handle this more gracefully
+      } else {
+        // Trigger CRM sync after successful store connection
+        try {
+          await fetch(`${process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'}/api/crm/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id }),
+          })
+        } catch (crmError) {
+          console.error("CRM sync failed (non-critical):", crmError)
+        }
       }
     } catch (error) {
       console.error("Database error:", error)
