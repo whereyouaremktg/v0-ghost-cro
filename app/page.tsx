@@ -6,7 +6,6 @@ import { motion } from "framer-motion"
 import {
   ArrowRight,
   Check,
-  Ghost,
   Activity,
   TrendingUp,
   Users,
@@ -14,10 +13,10 @@ import {
   Target,
   Play,
   ExternalLink,
-  ShieldAlert,
   Clock,
-  BarChart3
+  AlertTriangle
 } from "lucide-react"
+import { GhostLogo } from "@/components/ui/ghost-logo"
 
 // --- CONSTANTS ---
 
@@ -138,10 +137,8 @@ export default function Home() {
       {/* --- HEADER --- */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.08] bg-[#020202]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:bg-white/10 transition-colors">
-              <Ghost className="w-5 h-5 text-[#0070F3]" />
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <GhostLogo size={28} className="group-hover:scale-110 transition-transform" />
             <span className="text-lg font-bold tracking-tight">
               Ghost<span className="text-[#0070F3]">CRO</span>
             </span>
@@ -180,40 +177,48 @@ export default function Home() {
               animate={mounted ? "animate" : "initial"}
               variants={staggerContainer}
             >
-              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/[0.05] border border-white/[0.08] rounded-full text-sm">
+              <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#0070F3]/10 border border-[#0070F3]/20 rounded-full text-sm">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0070F3] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0070F3]"></span>
                 </span>
-                <span className="text-zinc-300 font-medium">Optimizing $42M+ in monthly revenue</span>
+                <span className="text-zinc-300 font-medium">Early Access — Free during beta</span>
               </motion.div>
 
               <motion.h1
                 variants={fadeInUp}
                 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]"
               >
-                Automated
+                Your checkout is
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0070F3] to-[#00C2FF]">
-                  Conversion Rate Optimization
+                <span className="relative inline-block">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f87171] to-[#ef4444]">
+                    losing $12K/month
+                  </span>
+                  <motion.span
+                    className="absolute inset-0 blur-2xl bg-red-500/20"
+                    animate={{ opacity: [0.3, 0.5, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
                 </span>
               </motion.h1>
 
               <motion.p
                 variants={fadeInUp}
-                className="text-lg text-zinc-400 max-w-xl leading-relaxed"
+                className="text-xl text-zinc-300 max-w-xl leading-relaxed"
               >
-                Stop guessing what to fix. Ghost uses AI personas to stress-test your Shopify store, identify revenue leaks, and deploy high-impact fixes automatically.
+                Ghost finds the leaks. AI personas stress-test your Shopify store,
+                identify exactly where revenue is bleeding, and deploy fixes automatically.
               </motion.p>
 
               <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Link href="/signup" className="w-full sm:w-auto">
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(0,112,243,0.4)" }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto px-8 py-4 bg-[#0070F3] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                    className="w-full sm:w-auto px-8 py-4 bg-[#0070F3] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_30px_rgba(0,112,243,0.3)]"
                   >
-                    Optimize My Store
+                    Find My Revenue Leaks
                     <ArrowRight className="w-4 h-4" />
                   </motion.button>
                 </Link>
@@ -350,6 +355,101 @@ export default function Home() {
           </div>
         </div>
 
+        {/* --- EARLY ACCESS --- */}
+        <section className="py-12 px-6 border-b border-white/[0.05]">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {["bg-blue-500", "bg-purple-500", "bg-pink-500", "bg-orange-500"].map((bg, i) => (
+                    <div key={i} className={`w-8 h-8 rounded-full ${bg} border-2 border-[#020202] flex items-center justify-center text-xs font-bold`}>
+                      {["S", "M", "K", "J"][i]}
+                    </div>
+                  ))}
+                </div>
+                <span className="text-sm text-zinc-400">
+                  <span className="text-white font-medium">47 merchants</span> on the waitlist
+                </span>
+              </div>
+              <div className="h-8 w-px bg-white/10 hidden md:block" />
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-zinc-400">Built by Shopify founders</span>
+              </div>
+              <div className="h-8 w-px bg-white/10 hidden md:block" />
+              <div className="text-sm text-zinc-400">
+                <span className="text-[#0070F3] font-medium">Free</span> during beta
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- PROBLEM SECTION --- */}
+        <section className="py-24 px-6 bg-[#050505]">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+                Your analytics show traffic.
+                <br />
+                <span className="text-[#0070F3]">Ghost shows the truth.</span>
+              </h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                40% of your traffic isn't human. Your real conversion rate is hidden under noise.
+                Ghost filters the bots and shows exactly where money walks out the door.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                {
+                  value: "70%",
+                  label: "Cart Abandonment",
+                  detail: "Industry average—you're probably barely beating it",
+                  color: "text-white"
+                },
+                {
+                  value: "$18K",
+                  label: "Avg Monthly Leak",
+                  detail: "What Ghost users discover in their first scan",
+                  color: "text-[#f87171]"
+                },
+                {
+                  value: "48hrs",
+                  label: "Time to ROI",
+                  detail: "Most merchants recover their first month's cost",
+                  color: "text-[#10b981]"
+                },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  className="bg-[#0A0A0A] rounded-2xl p-8 border border-white/[0.05] hover:border-[#0070F3]/30 transition-all group"
+                >
+                  <div className={`text-5xl font-mono font-bold mb-2 ${stat.color}`}>
+                    {stat.value}
+                  </div>
+                  <div className="text-lg font-medium mb-2 text-white">{stat.label}</div>
+                  <div className="text-sm text-zinc-500">{stat.detail}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 p-6 bg-gradient-to-r from-red-500/10 to-transparent border border-red-500/20 rounded-2xl">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">The Silent Killer</h3>
+                  <p className="text-zinc-400">
+                    Every day you wait, you lose ~$400 in preventable checkout abandonment.
+                    Ghost identifies the top 3 revenue leaks in under 5 minutes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* --- HOW IT WORKS --- */}
         <section id="how-it-works" className="py-24 px-6 border-b border-white/[0.05]">
           <div className="max-w-7xl mx-auto">
@@ -362,16 +462,20 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { step: "01", title: "Connect", desc: "One-click Shopify OAuth. Secure, read-only access. Setup takes 30 seconds.", icon: ExternalLink },
-                { step: "02", title: "Simulate", desc: "Ghost deploys 5 AI personas to browse, cart, and attempt checkout on your site.", icon: Ghost },
-                { step: "03", title: "Optimize", desc: "Get prioritized fixes. Deploy Liquid code updates instantly to lift conversion.", icon: Zap },
+                { step: "01", title: "Connect", desc: "One-click Shopify OAuth. Secure, read-only access. Setup takes 30 seconds.", icon: ExternalLink, isGhost: false },
+                { step: "02", title: "Simulate", desc: "Ghost deploys 5 AI personas to browse, cart, and attempt checkout on your site.", icon: null, isGhost: true },
+                { step: "03", title: "Optimize", desc: "Get prioritized fixes. Deploy Liquid code updates instantly to lift conversion.", icon: Zap, isGhost: false },
               ].map((item, i) => (
                 <div key={i} className="group relative bg-[#0A0A0A] p-8 rounded-2xl border border-white/5 hover:border-[#0070F3]/30 transition-all">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
                     <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-[#0070F3] to-transparent">{item.step}</span>
                   </div>
                   <div className="w-12 h-12 bg-[#0070F3]/10 rounded-xl flex items-center justify-center text-[#0070F3] mb-6 group-hover:scale-110 transition-transform">
-                    <item.icon className="w-6 h-6" />
+                    {item.isGhost ? (
+                      <GhostLogo size={24} />
+                    ) : (
+                      item.icon && <item.icon className="w-6 h-6" />
+                    )}
                   </div>
                   <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
                   <p className="text-zinc-400 leading-relaxed">{item.desc}</p>
@@ -455,15 +559,23 @@ export default function Home() {
 
           <div className="relative max-w-3xl mx-auto text-center">
             <h2 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">
-              Ready to grow revenue?
+              Your checkout is leaking
+              <br />
+              <span className="text-[#0070F3]">right now.</span>
             </h2>
             <p className="text-xl text-zinc-400 mb-10">
-              Ghost is optimizing 150+ stores. The setup takes 30 seconds.
+              Join 47 merchants already on the waitlist. Setup takes 30 seconds.
+              <br />
+              <span className="text-emerald-400 font-medium">Free during beta.</span>
             </p>
             <Link href="/signup">
-              <button className="px-10 py-5 bg-white text-black font-bold rounded-xl text-lg hover:bg-zinc-200 transition-colors shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-                Start My Free Scan
-              </button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-10 py-5 bg-white text-black font-bold rounded-xl text-lg hover:bg-zinc-200 transition-colors shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+              >
+                Find My Revenue Leaks
+              </motion.button>
             </Link>
           </div>
         </section>
@@ -473,8 +585,8 @@ export default function Home() {
       {/* --- FOOTER --- */}
       <footer className="border-t border-white/[0.05] bg-[#020202] py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Ghost className="w-5 h-5 text-[#0070F3]" />
+          <div className="flex items-center gap-2.5">
+            <GhostLogo size={24} />
             <span className="font-bold">GhostCRO</span>
           </div>
           <div className="flex gap-8 text-sm text-zinc-500">
