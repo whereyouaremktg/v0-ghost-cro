@@ -1,13 +1,56 @@
-"use client"
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
+import { SettingsContent } from "@/components/dashboard/settings/settings-content"
 
-import { useState } from "react"
-import { SettingsShell } from "@/components/dashboard/settings/settings-shell"
-import { IntegrationsTab } from "@/components/dashboard/settings/integrations-tab"
-import { NotificationsTab } from "@/components/dashboard/settings/notifications-tab"
-import { BillingTab } from "@/components/dashboard/settings/billing-tab"
+export default async function SettingsPage() {
+  const supabase = await createClient()
 
-export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("integrations")
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    redirect("/login")
+  }
+
+  // 1. Fetch Integrations Status
+  const { data: store } = await supabase
+    .from("stores")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .single()
+
+  // Note: GA4 connections table doesn't exist yet, so we'll make this optional
+  // For now, we'll just check if it exists and handle gracefully
+  let ga4 = null
+  try {
+    const { data } = await supabase
+      .from("ga4_connections")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .single()
+    ga4 = data
+  } catch {
+    // Table doesn't exist yet - that's okay
+    ga4 = null
+  }
+
+  // 2. Fetch Subscription Status
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user.id)
+    .single()
+
+  const connections = {
+    shopify: !!store,
+    shopifyShop: store?.shop || null,
+    ga4: !!ga4,
+    ga4Property: ga4?.property_id || null,
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -18,23 +61,7 @@ export default function SettingsPage() {
 
       {/* Settings Container */}
       <div className="rounded-xl border border-zinc-200 bg-white shadow-sm min-h-[600px] flex overflow-hidden">
-        {/* Sidebar Navigation */}
-        <div className="w-64 border-r border-zinc-200 bg-zinc-50/50 p-4">
-          <SettingsShell activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 p-8">
-          {activeTab === "general" && (
-            <div className="text-zinc-500">General Settings (Profile)</div>
-          )}
-          {activeTab === "integrations" && <IntegrationsTab />}
-          {activeTab === "notifications" && <NotificationsTab />}
-          {activeTab === "billing" && <BillingTab />}
-          {activeTab === "team" && (
-            <div className="text-zinc-500">Team Settings (Coming Soon)</div>
-          )}
-        </div>
+        <SettingsContent connections={connections} subscription={subscription} />
       </div>
     </div>
   )

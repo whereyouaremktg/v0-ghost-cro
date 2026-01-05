@@ -114,10 +114,26 @@ export async function POST(request: NextRequest) {
       }
 
       case "app/uninstalled": {
-        // App was uninstalled - cancel subscription
+        // App was uninstalled - cancel subscription and deactivate store
         console.log(`App uninstalled from ${shop}`)
 
-        const { error } = await supabaseAdmin
+        // Deactivate store connection
+        const { error: storeError } = await supabaseAdmin
+          .from("stores")
+          .update({
+            is_active: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("shop", shop)
+
+        if (storeError) {
+          console.error("Error deactivating store on uninstall:", storeError)
+        } else {
+          console.log(`Deactivated store connection for shop ${shop}`)
+        }
+
+        // Cancel subscription
+        const { error: subError } = await supabaseAdmin
           .from("subscriptions")
           .update({
             status: "canceled",
@@ -128,8 +144,8 @@ export async function POST(request: NextRequest) {
           })
           .eq("shopify_shop", shop)
 
-        if (error) {
-          console.error("Error canceling subscription on uninstall:", error)
+        if (subError) {
+          console.error("Error canceling subscription on uninstall:", subError)
         } else {
           console.log(`Canceled subscription for shop ${shop}`)
         }

@@ -1,14 +1,13 @@
 "use client"
 
-import { ExternalLink } from "lucide-react"
+import { CreditCard, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
-export function BillingTab() {
-  const invoices = [
-    { date: "2024-01-15", amount: "$199.00", pdf: "#" },
-    { date: "2023-12-15", amount: "$199.00", pdf: "#" },
-    { date: "2023-11-15", amount: "$199.00", pdf: "#" },
-  ]
+export function BillingTab({ subscription }: { subscription: any }) {
+  const router = useRouter()
+  const plan = subscription?.plan || "free"
+  const isPro = plan === "enterprise" || plan === "pro"
 
   return (
     <div className="space-y-6">
@@ -17,80 +16,80 @@ export function BillingTab() {
         <p className="text-sm text-zinc-500">Manage your subscription and payment methods</p>
       </div>
 
-      {/* Plan Card */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* Current Plan Card */}
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-900 mb-1">Ghost Enterprise</h3>
-            <p className="text-2xl font-light font-mono text-zinc-900">$199/mo</p>
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Current Plan</div>
+            <div className="text-2xl font-bold text-zinc-900 capitalize">{plan} Plan</div>
           </div>
-          <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-semibold rounded-full border border-emerald-200">
-            Active
-          </span>
+          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <CreditCard className="h-5 w-5" />
+          </div>
         </div>
+        
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="font-medium text-zinc-700">Monthly Analysis Usage</span>
+              <span className="text-zinc-500">{subscription?.tests_used || 0} / {subscription?.tests_limit || 1}</span>
+            </div>
+            <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-600 rounded-full transition-all duration-500" 
+                style={{ width: `${Math.min(((subscription?.tests_used || 0) / (subscription?.tests_limit || 1)) * 100, 100)}%` }} 
+              />
+            </div>
+          </div>
 
-        {/* Usage Bar */}
-        <div className="mt-4 pt-4 border-t border-zinc-100">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-zinc-600">Simulations Run</span>
-            <span className="text-xs font-mono text-zinc-900">14,020 / 50,000</span>
-          </div>
-          <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-600 rounded-full transition-all"
-              style={{ width: `${(14020 / 50000) * 100}%` }}
-            />
-          </div>
+          {!isPro && (
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-4">
+              <div className="flex-1">
+                <h4 className="font-semibold text-blue-900 text-sm">Upgrade to Enterprise</h4>
+                <p className="text-xs text-blue-700 mt-1">
+                  Unlock unlimited simulations, competitor analysis, and priority support.
+                </p>
+              </div>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/pricing')}>
+                Upgrade
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Payment Method */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
-        <h3 className="text-sm font-semibold text-zinc-900 mb-4">Payment Method</h3>
-        <div className="flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-zinc-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center">
-              <span className="text-white text-xs font-bold">VISA</span>
+      {isPro && (
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
+          <h3 className="text-sm font-semibold text-zinc-900 mb-4">Payment Method</h3>
+          <div className="flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-zinc-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center">
+                <span className="text-white text-xs font-bold">VISA</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-zinc-900">Visa ending in 4242</p>
+                <p className="text-xs text-zinc-500">Expires 12/25</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-zinc-900">Visa ending in 4242</p>
-              <p className="text-xs text-zinc-500">Expires 12/25</p>
-            </div>
+            <Button variant="outline" size="sm">
+              Update
+            </Button>
           </div>
-          <Button variant="outline" size="sm">
-            Update
-          </Button>
         </div>
-      </div>
+      )}
 
       {/* Invoice History */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
-        <h3 className="text-sm font-semibold text-zinc-900 mb-4">Invoice History</h3>
-        <div className="space-y-2">
-          {invoices.map((invoice, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-3 rounded-lg border border-zinc-100 hover:bg-zinc-50 transition-colors"
-            >
-              <div>
-                <p className="text-sm font-medium text-zinc-900">
-                  {new Date(invoice.date).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </p>
-                <p className="text-xs text-zinc-500">{invoice.amount}</p>
-              </div>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ExternalLink className="h-3 w-3" />
-                PDF
-              </Button>
+      {isPro && (
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
+          <h3 className="text-sm font-semibold text-zinc-900 mb-4">Invoice History</h3>
+          <div className="space-y-2">
+            <div className="text-sm text-zinc-500 text-center py-4">
+              No invoices yet
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
-

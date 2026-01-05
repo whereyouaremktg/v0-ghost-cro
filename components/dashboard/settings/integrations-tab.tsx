@@ -1,9 +1,30 @@
 "use client"
 
-import { Store, BarChart3, MessageSquare, Zap } from "lucide-react"
+import { Store, BarChart3, MessageSquare, Zap, ExternalLink, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
-export function IntegrationsTab() {
+interface IntegrationsTabProps {
+  connections: {
+    shopify: boolean
+    shopifyShop: string | null
+    ga4: boolean
+    ga4Property: string | null
+  }
+}
+
+export function IntegrationsTab({ connections }: IntegrationsTabProps) {
+  const router = useRouter()
+
+  const handleConnectShopify = () => {
+    // Prompt for shop domain
+    const shop = prompt("Enter your Shopify store domain (e.g., yourstore.myshopify.com):")
+    if (!shop) return
+    
+    // Redirect to OAuth initiation API route
+    router.push(`/api/auth/shopify/initiate?shop=${encodeURIComponent(shop)}`)
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -13,45 +34,69 @@ export function IntegrationsTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {/* Shopify */}
-        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <Store className="h-5 w-5 text-green-600" />
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Store className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900">Shopify</h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    {connections.shopify ? connections.shopifyShop : "Not connected"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-zinc-900">Shopify</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">store.myshopify.com</p>
-              </div>
+              {connections.shopify && (
+                <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase rounded-full border border-emerald-200 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Active
+                </span>
+              )}
             </div>
-            <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase rounded-full border border-emerald-200">
-              Active
-            </span>
           </div>
-          <Button variant="outline" size="sm" className="w-full">
-            Manage
-          </Button>
+          
+          {connections.shopify ? (
+            <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => window.open(`https://${connections.shopifyShop}/admin`, '_blank')}>
+              Manage Store <ExternalLink className="h-3 w-3" />
+            </Button>
+          ) : (
+            <Button variant="default" size="sm" className="w-full bg-green-600 hover:bg-green-700" onClick={handleConnectShopify}>
+              Connect Store
+            </Button>
+          )}
         </div>
 
         {/* Google Analytics 4 */}
-        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900">Google Analytics 4</h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    {connections.ga4 ? `Property: ${connections.ga4Property}` : "Not connected"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-zinc-900">Google Analytics 4</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Property ID: 928...</p>
-              </div>
+              {connections.ga4 && (
+                <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase rounded-full border border-emerald-200 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Active
+                </span>
+              )}
             </div>
-            <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase rounded-full border border-emerald-200">
-              Active
-            </span>
           </div>
-          <Button variant="outline" size="sm" className="w-full">
-            Re-sync
-          </Button>
+
+          {connections.ga4 ? (
+            <Button variant="outline" size="sm" className="w-full">Re-sync Data</Button>
+          ) : (
+            <Button variant="outline" size="sm" className="w-full" onClick={() => router.push('/api/auth/google-analytics')}>
+              Connect GA4
+            </Button>
+          )}
         </div>
 
         {/* Slack */}
@@ -94,4 +139,3 @@ export function IntegrationsTab() {
     </div>
   )
 }
-
