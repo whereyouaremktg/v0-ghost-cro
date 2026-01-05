@@ -620,39 +620,45 @@ IMPORTANT:
     const mapAffectedPersonas = (affected: string): string[] => {
       const normalized = normalizePersonaName(affected)
       const matchedPersonas: string[] = []
-      
-      // Try exact match first
+      const affectedLower = affected.toLowerCase()
+
+      // 1. Check for "All" or "Everyone"
+      if (affectedLower.includes("all") || affectedLower.includes("everyone") || affectedLower.includes("every user")) {
+        return analysisData.personaResults.map((_, i) => `persona_${i}`)
+      }
+
+      // 2. Try exact match first (Name)
       if (personaMap.has(normalized)) {
         matchedPersonas.push(personaMap.get(normalized)!)
       }
-      
-      // Try substring matching
-      personaMap.forEach((personaId, key) => {
-        if (normalized.includes(key) || key.includes(normalized)) {
-          if (!matchedPersonas.includes(personaId)) {
-            matchedPersonas.push(personaId)
-          }
+
+      // 3. Keyword matching across Name AND Demographics
+      const affectedKeywords = affectedLower.split(/[\s,]+/).filter(k => k.length > 3)
+
+      analysisData.personaResults.forEach((pr, i) => {
+        const personaId = `persona_${i}`
+        if (matchedPersonas.includes(personaId)) return
+
+        const nameLower = pr.name.toLowerCase()
+        const demographicsLower = pr.demographics.toLowerCase() // e.g., "age 34, $65k, mobile"
+
+        // Check each keyword against Name AND Demographics
+        const hasMatch = affectedKeywords.some(keyword => {
+          // Direct match in name
+          if (nameLower.includes(keyword)) return true
+
+          // Match attributes (mobile, desktop, income terms)
+          if (demographicsLower.includes(keyword)) return true
+
+          return false
+        })
+
+        if (hasMatch) {
+          matchedPersonas.push(personaId)
         }
       })
-      
-      // If no match found, try keyword matching
-      if (matchedPersonas.length === 0) {
-        const affectedLower = affected.toLowerCase()
-        analysisData.personaResults.forEach((pr, i) => {
-          const personaNameLower = pr.name.toLowerCase()
-          // Check if any keyword from affected matches persona name
-          const affectedKeywords = affectedLower.split(/[\s,]+/)
-          affectedKeywords.forEach(keyword => {
-            if (keyword.length > 3 && personaNameLower.includes(keyword)) {
-              if (!matchedPersonas.includes(`persona_${i}`)) {
-                matchedPersonas.push(`persona_${i}`)
-              }
-            }
-          })
-        })
-      }
-      
-      return matchedPersonas.length > 0 ? matchedPersonas : []
+
+      return matchedPersonas
     }
 
     // Add IDs to friction points and map affected personas
