@@ -30,9 +30,57 @@ interface RawAnalysisData {
     abandonPoint: string | null
   }>
   frictionPoints: {
-    critical: Array<{ title: string; location: string; impact: string; affected: string; fix: string }>
-    high: Array<{ title: string; location: string; impact: string; affected: string; fix: string }>
-    medium: Array<{ title: string; location: string; impact: string; affected: string; fix: string }>
+    critical: Array<{
+      title: string
+      location: string
+      impact: string
+      affected: string
+      fix: string
+      codeFix?: {
+        type: "liquid" | "css" | "html" | "javascript"
+        targetFile: string
+        targetLocation: string
+        reasoningTrace: string
+        originalCode: string
+        optimizedCode: string
+        effort: "low" | "medium" | "high"
+        requiresThemeAccess: boolean
+      }
+    }>
+    high: Array<{
+      title: string
+      location: string
+      impact: string
+      affected: string
+      fix: string
+      codeFix?: {
+        type: "liquid" | "css" | "html" | "javascript"
+        targetFile: string
+        targetLocation: string
+        reasoningTrace: string
+        originalCode: string
+        optimizedCode: string
+        effort: "low" | "medium" | "high"
+        requiresThemeAccess: boolean
+      }
+    }>
+    medium: Array<{
+      title: string
+      location: string
+      impact: string
+      affected: string
+      fix: string
+      codeFix?: {
+        type: "liquid" | "css" | "html" | "javascript"
+        targetFile: string
+        targetLocation: string
+        reasoningTrace: string
+        originalCode: string
+        optimizedCode: string
+        effort: "low" | "medium" | "high"
+        requiresThemeAccess: boolean
+      }
+    }>
     working: string[]
   }
   recommendations: Array<{
@@ -41,6 +89,16 @@ interface RawAnalysisData {
     impact: string
     effort: "low" | "medium" | "high"
     description: string
+    codeFix?: {
+      type: "liquid" | "css" | "html" | "javascript"
+      targetFile: string
+      targetLocation: string
+      reasoningTrace: string
+      originalCode: string
+      optimizedCode: string
+      effort: "low" | "medium" | "high"
+      requiresThemeAccess: boolean
+    }
   }>
   funnelData: {
     landed: number
@@ -487,13 +545,13 @@ For each persona, determine:
 
 Then, provide a comprehensive analysis including:
 - Overall score (0-100) based on Shopify cart-to-checkout best practices
-- Critical friction points (high impact issues causing abandonment) - use the issues from the structured analysis
+- Critical friction points (high impact issues causing abandonment)
 - High priority issues (significant but not critical)
 - Medium priority issues (minor improvements)
 - Things working well (positive elements)
 - Prioritized fix recommendations with estimated conversion impact
 
-IMPORTANT: Base your analysis on the STRUCTURED ANALYSIS provided above. Reference specific issues found in the storeAnalysis.overallIssues array.
+IMPORTANT: Base your analysis on the STRUCTURED ANALYSIS provided above. You MUST transfer the specific 'codeFix' objects from the structured analysis into your response where relevant.
 
 Return your analysis as a JSON object with this EXACT structure:
 {
@@ -514,11 +572,21 @@ Return your analysis as a JSON object with this EXACT structure:
         "location": "<where in checkout>",
         "impact": "<% abandonment or impact metric>",
         "affected": "<which shopper types>",
-        "fix": "<specific actionable fix>"
+        "fix": "<specific actionable fix>",
+        "codeFix": {
+          "type": "<liquid|css|html|javascript>",
+          "targetFile": "<file path>",
+          "targetLocation": "<location description>",
+          "reasoningTrace": "<why this fix works>",
+          "originalCode": "<original code>",
+          "optimizedCode": "<new code code>",
+          "effort": "<low|medium|high>",
+          "requiresThemeAccess": <boolean>
+        }
       }
     ],
-    "high": [...same structure...],
-    "medium": [...same structure...],
+    "high": [...same structure as critical...],
+    "medium": [...same structure as critical...],
     "working": ["<positive element 1>", "<positive element 2>", ...]
   },
   "recommendations": [
@@ -527,7 +595,17 @@ Return your analysis as a JSON object with this EXACT structure:
       "title": "<fix title>",
       "impact": "<conversion improvement estimate>",
       "effort": "<low, medium, or high>",
-      "description": "<detailed implementation guidance>"
+      "description": "<detailed implementation guidance>",
+      "codeFix": {
+        "type": "<liquid|css|html|javascript>",
+        "targetFile": "<file path>",
+        "targetLocation": "<location description>",
+        "reasoningTrace": "<why this fix works>",
+        "originalCode": "<original code>",
+        "optimizedCode": "<new code code>",
+        "effort": "<low|medium|high>",
+        "requiresThemeAccess": <boolean>
+      }
     }
   ],
   "funnelData": {
@@ -539,14 +617,11 @@ Return your analysis as a JSON object with this EXACT structure:
 }
 
 IMPORTANT:
-- **CRITICAL: Return ONLY valid JSON, no markdown formatting, no code blocks, no explanations, no text before or after the JSON**
+- **CRITICAL: Return ONLY valid JSON, no markdown formatting, no code blocks**
 - The response must start with { and end with }
-- Do not wrap the JSON in \`\`\`json\`\`\` code blocks
-- Be specific and actionable in your feedback
-- Base the score on real conversion optimization principles
-- Persona reasoning should sound authentic and human
-- Prioritize fixes by impact vs effort
-- Reference the structured analysis issues when identifying friction points`
+- Transfer the "codeFix" objects from the input analysis to the output
+- If a recommendation matches an issue in the structured analysis, include the 'codeFix'
+`
 
     // Get persona-based analysis
     const personaMessage = await anthropic.messages.create({
