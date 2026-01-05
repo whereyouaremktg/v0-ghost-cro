@@ -8,20 +8,20 @@ export default function MissionControlPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Top Section: Revenue Hero and Pipeline Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Hero takes up 1 column */}
-        <div className="h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Revenue Hero takes up 4 columns (1/3) */}
+        <div className="lg:col-span-4 h-full">
           <RevenueHero />
         </div>
 
-        {/* Pipeline Status takes up 2 columns */}
-        <div className="lg:col-span-2 h-full">
+        {/* Pipeline Status takes up 8 columns (2/3) */}
+        <div className="lg:col-span-8 h-full">
           <PipelineStatus />
         </div>
       </div>
 
       {/* Bottom Section: Live Feed */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden min-h-[400px]">
+      <div className="min-h-[400px]">
         <ShopperFeed />
       </div>
     </div>

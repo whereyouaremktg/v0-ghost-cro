@@ -52,6 +52,14 @@ const mockEvents: ShopperEvent[] = [
     potentialLoss: "$0.00",
     status: "PASSIVE",
   },
+  {
+    id: "6",
+    time: "14:27:22",
+    device: "Desktop Firefox",
+    eventStream: "Cart Abandon (Shipping)",
+    potentialLoss: "$156.75",
+    status: "ANALYZING",
+  },
 ]
 
 export function ShopperFeed() {
@@ -68,33 +76,56 @@ export function ShopperFeed() {
     return () => clearInterval(interval)
   }, [])
 
+  // Helper to highlight key words in event stream
+  const formatEventStream = (text: string) => {
+    if (text.includes("Cart Abandon")) {
+      const parts = text.split("Cart Abandon")
+      return (
+        <>
+          <span className="font-semibold text-zinc-900">Cart Abandon</span>
+          {parts[1]}
+        </>
+      )
+    }
+    if (text.includes("Checkout Error")) {
+      const parts = text.split("Checkout Error")
+      return (
+        <>
+          <span className="font-semibold text-zinc-900">Checkout Error</span>
+          {parts[1]}
+        </>
+      )
+    }
+    return <span className="text-zinc-400">{text}</span>
+  }
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-200 bg-zinc-50">
-        <div className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500">
-          SHOPPER FEED
+      <div className="p-4 border-b border-zinc-200 bg-zinc-50/50">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+          LIVE SIMULATION LOG
         </div>
       </div>
 
       {/* Table */}
       <div className="flex-1 overflow-auto">
         <table className="w-full">
-          <thead className="bg-zinc-50 border-b border-zinc-200 sticky top-0">
+          <thead className="bg-zinc-50/50 border-b border-zinc-200 sticky top-0">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
                 TIME
               </th>
-              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
                 DEVICE
               </th>
-              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
                 EVENT STREAM
               </th>
-              <th className="px-6 py-3 text-right text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-6 py-3 text-right text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
                 POTENTIAL LOSS
               </th>
-              <th className="px-6 py-3 text-center text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-6 py-3 text-center text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
                 STATUS
               </th>
             </tr>
@@ -103,9 +134,7 @@ export function ShopperFeed() {
             {events.map((event, index) => (
               <tr
                 key={event.id}
-                className={`hover:bg-zinc-50 transition-colors ${
-                  index === 0 ? "animate-fade-in" : ""
-                }`}
+                className={`hover:bg-zinc-50 transition-colors animate-fade-in`}
               >
                 <td className="px-6 py-3 text-xs font-mono text-zinc-900">
                   {event.time}
@@ -114,23 +143,17 @@ export function ShopperFeed() {
                   {event.device}
                 </td>
                 <td className="px-6 py-3 text-xs">
-                  {event.eventStream.includes("Smooth") ? (
-                    <span className="text-zinc-400">{event.eventStream}</span>
-                  ) : (
-                    <span className="font-semibold text-zinc-900">
-                      {event.eventStream}
-                    </span>
-                  )}
+                  {formatEventStream(event.eventStream)}
                 </td>
                 <td className="px-6 py-3 text-xs font-mono text-zinc-900 text-right">
                   {event.potentialLoss}
                 </td>
                 <td className="px-6 py-3 text-center">
                   <span
-                    className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                    className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border ${
                       event.status === "ANALYZING"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-zinc-100 text-zinc-600"
+                        ? "bg-red-50 text-red-600 border-red-100"
+                        : "bg-zinc-50 text-zinc-500 border-zinc-100"
                     }`}
                   >
                     {event.status}
@@ -144,4 +167,3 @@ export function ShopperFeed() {
     </div>
   )
 }
-
