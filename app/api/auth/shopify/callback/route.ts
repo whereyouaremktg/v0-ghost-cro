@@ -89,11 +89,11 @@ export async function GET(request: Request) {
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ghost-lime: #84cc16;
-      --ghost-lime-glow: rgba(132, 204, 22, 0.4);
+      --ghost-blue: #0070F3;
+      --ghost-blue-glow: rgba(0, 112, 243, 0.4);
       --ghost-dark: #0a0a0a;
       --ghost-card: #111111;
-      --ghost-border: rgba(132, 204, 22, 0.15);
+      --ghost-border: rgba(0, 112, 243, 0.15);
       --ghost-text: #e5e5e5;
       --ghost-muted: #737373;
     }
@@ -120,8 +120,8 @@ export async function GET(request: Request) {
       position: fixed;
       inset: 0;
       background-image: 
-        linear-gradient(rgba(132, 204, 22, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(132, 204, 22, 0.03) 1px, transparent 1px);
+        linear-gradient(rgba(0, 112, 243, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 112, 243, 0.03) 1px, transparent 1px);
       background-size: 50px 50px;
       animation: grid-pulse 4s ease-in-out infinite;
     }
@@ -143,7 +143,7 @@ export async function GET(request: Request) {
       position: absolute;
       width: 4px;
       height: 4px;
-      background: var(--ghost-lime);
+      background: var(--ghost-blue);
       border-radius: 50%;
       opacity: 0;
       animation: float-up 8s ease-in-out infinite;
@@ -196,7 +196,7 @@ export async function GET(request: Request) {
       inset: -3px;
       border-radius: 50%;
       border: 3px solid transparent;
-      border-top-color: var(--ghost-lime);
+      border-top-color: var(--ghost-blue);
       animation: spin 1.5s linear infinite;
     }
     
@@ -210,8 +210,8 @@ export async function GET(request: Request) {
     }
     
     @keyframes breathe {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--ghost-lime-glow); }
-      50% { transform: scale(1.05); box-shadow: 0 0 30px 10px var(--ghost-lime-glow); }
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 var(--ghost-blue-glow); }
+      50% { transform: scale(1.05); box-shadow: 0 0 30px 10px var(--ghost-blue-glow); }
     }
     
     @keyframes spin {
@@ -228,7 +228,7 @@ export async function GET(request: Request) {
     }
     
     .store-name {
-      color: var(--ghost-lime);
+      color: var(--ghost-blue);
     }
     
     .subtitle {
@@ -290,7 +290,7 @@ export async function GET(request: Request) {
     }
     
     .log-prefix {
-      color: var(--ghost-lime);
+      color: var(--ghost-blue);
       flex-shrink: 0;
     }
     
@@ -299,14 +299,14 @@ export async function GET(request: Request) {
     }
     
     .log-text.success {
-      color: var(--ghost-lime);
+      color: var(--ghost-blue);
     }
     
     .cursor {
       display: inline-block;
       width: 8px;
       height: 14px;
-      background: var(--ghost-lime);
+      background: var(--ghost-blue);
       margin-left: 4px;
       animation: blink 1s step-end infinite;
     }
@@ -337,7 +337,7 @@ export async function GET(request: Request) {
     }
     
     .progress-percent {
-      color: var(--ghost-lime);
+      color: var(--ghost-blue);
       font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -351,11 +351,11 @@ export async function GET(request: Request) {
     
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--ghost-lime), #a3e635);
+      background: linear-gradient(90deg, var(--ghost-blue), #3291ff);
       border-radius: 3px;
       width: 0%;
       animation: progress-load 2.5s ease-out forwards;
-      box-shadow: 0 0 20px var(--ghost-lime-glow);
+      box-shadow: 0 0 20px var(--ghost-blue-glow);
     }
     
     @keyframes progress-load {

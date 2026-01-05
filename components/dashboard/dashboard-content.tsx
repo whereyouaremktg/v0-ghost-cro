@@ -12,6 +12,7 @@ import { AIInsightPanel } from "@/components/dashboard/ai-insight-panel"
 import { CircularScore } from "@/components/dashboard/circular-score"
 import { ConnectShopifyGate } from "@/components/dashboard/connect-shopify-gate"
 import { calculateRevenueLeak, calculatePercentileBenchmark, getPercentileLabel } from "@/lib/ghostEngine"
+import { formatCurrency } from "@/lib/utils/format"
 import type { TestResult } from "@/lib/types"
 
 interface DashboardContentProps {
@@ -207,21 +208,21 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
               <div className="bg-background/40 backdrop-blur-sm border-0 rounded-xl p-8 shadow-sm">
                 <p className="metric-label">Daily Leak</p>
                 <p className="metric-primary text-leak mt-2">
-                  {hasScore && revenueLeak.daily > 0 ? `$${revenueLeak.daily.toLocaleString()}` : "—"}
+                  {hasScore && revenueLeak.daily > 0 ? formatCurrency(revenueLeak.daily) : "—"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">per day</p>
               </div>
               <div className="bg-background/40 backdrop-blur-sm border-0 rounded-xl p-8 shadow-sm">
                 <p className="metric-label">Weekly Leak</p>
                 <p className="metric-primary text-leak mt-2">
-                  {hasScore && revenueLeak.weekly > 0 ? `$${revenueLeak.weekly.toLocaleString()}` : "—"}
+                  {hasScore && revenueLeak.weekly > 0 ? formatCurrency(revenueLeak.weekly) : "—"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">per week</p>
               </div>
               <div className="bg-background/40 backdrop-blur-sm border-0 rounded-xl p-8 shadow-sm">
                 <p className="metric-label">Monthly Leak</p>
                 <p className="metric-primary text-leak mt-2">
-                  {hasScore && revenueLeak.monthly > 0 ? `$${revenueLeak.monthly.toLocaleString()}` : "—"}
+                  {hasScore && revenueLeak.monthly > 0 ? formatCurrency(revenueLeak.monthly) : "—"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">per month</p>
               </div>

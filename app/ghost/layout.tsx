@@ -27,8 +27,8 @@ export default async function GhostLayout({
       <div className="fixed inset-0 ghost-grid opacity-5 pointer-events-none" />
       
       {/* Ambient Glow - Very subtle for depth without distraction */}
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-[#bef264]/2 rounded-full blur-[128px] pointer-events-none" />
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-[#bef264]/2 rounded-full blur-[128px] pointer-events-none" />
+      <div className="fixed top-0 left-1/4 w-96 h-96 bg-[#0070F3]/2 rounded-full blur-[128px] pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-[#0070F3]/2 rounded-full blur-[128px] pointer-events-none" />
       
       {/* Main Content */}
       <main className="relative z-10 min-h-screen">
