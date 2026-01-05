@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Globe, Bot, Box, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -53,13 +54,15 @@ export function PipelineStatus() {
 
         {/* Action Area */}
         <div className="flex flex-col items-end gap-2 ml-8">
-          <Button
-            variant="outline"
-            className="gap-2 border-zinc-200 hover:bg-zinc-50"
-          >
-            Review Pending Fix
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <Link href="/dashboard/sandbox">
+            <Button
+              variant="outline"
+              className="gap-2 border-zinc-200 hover:bg-zinc-50"
+            >
+              Review Pending Fix
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
           <span className="text-xs text-zinc-500 font-mono">
             Patch #294 ready in Sandbox.
           </span>
