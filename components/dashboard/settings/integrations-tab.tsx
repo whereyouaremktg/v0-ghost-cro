@@ -17,12 +17,8 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
   const router = useRouter()
 
   const handleConnectShopify = () => {
-    // Prompt for shop domain
-    const shop = prompt("Enter your Shopify store domain (e.g., yourstore.myshopify.com):")
-    if (!shop) return
-    
-    // Redirect to OAuth initiation API route
-    router.push(`/api/auth/shopify/initiate?shop=${encodeURIComponent(shop)}`)
+    // Redirect to the manual entry page or trigger auth flow directly
+    router.push("/dashboard/test-shopify")
   }
 
   return (
@@ -33,12 +29,12 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        {/* Shopify */}
-        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6 flex flex-col justify-between">
+        {/* Shopify Card */}
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6 flex flex-col justify-between transition-all hover:border-zinc-300">
           <div>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
+                <div className="p-2 bg-green-50 rounded-lg border border-green-100">
                   <Store className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
@@ -61,24 +57,24 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
               Manage Store <ExternalLink className="h-3 w-3" />
             </Button>
           ) : (
-            <Button variant="default" size="sm" className="w-full bg-green-600 hover:bg-green-700" onClick={handleConnectShopify}>
+            <Button variant="default" size="sm" className="w-full bg-[#008060] hover:bg-[#006e52] text-white" onClick={handleConnectShopify}>
               Connect Store
             </Button>
           )}
         </div>
 
-        {/* Google Analytics 4 */}
-        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6 flex flex-col justify-between">
+        {/* GA4 Card */}
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6 flex flex-col justify-between transition-all hover:border-zinc-300">
           <div>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-orange-50 rounded-lg border border-orange-100">
+                  <BarChart3 className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-zinc-900">Google Analytics 4</h3>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    {connections.ga4 ? `Property: ${connections.ga4Property}` : "Not connected"}
+                    {connections.ga4 ? `Property Connected` : "Not connected"}
                   </p>
                 </div>
               </div>

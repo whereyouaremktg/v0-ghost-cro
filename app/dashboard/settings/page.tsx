@@ -15,28 +15,21 @@ export default async function SettingsPage() {
   }
 
   // 1. Fetch Integrations Status
+  // We use .maybeSingle() because the user might not have connected anything yet
   const { data: store } = await supabase
     .from("stores")
     .select("*")
     .eq("user_id", user.id)
     .eq("is_active", true)
-    .single()
+    .maybeSingle()
 
-  // Note: GA4 connections table doesn't exist yet, so we'll make this optional
-  // For now, we'll just check if it exists and handle gracefully
-  let ga4 = null
-  try {
-    const { data } = await supabase
-      .from("ga4_connections")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .single()
-    ga4 = data
-  } catch {
-    // Table doesn't exist yet - that's okay
-    ga4 = null
-  }
+  // Check for GA4 connection (assuming table name from your migrations)
+  const { data: ga4 } = await supabase
+    .from("ga4_connections")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .maybeSingle()
 
   // 2. Fetch Subscription Status
   const { data: subscription } = await supabase

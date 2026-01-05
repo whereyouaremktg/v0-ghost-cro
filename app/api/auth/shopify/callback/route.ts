@@ -108,8 +108,7 @@ export async function GET(request: Request) {
           console.error("CRM sync failed (non-critical):", crmError)
         }
 
-        // 5. Register "App Uninstalled" Webhook
-        // This ensures we know when to deactivate the store in our DB
+        // --- NEW: Register App Uninstalled Webhook ---
         const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'
         try {
           const webhookResponse = await fetch(`https://${shop}/admin/api/2023-10/webhooks.json`, {
@@ -121,22 +120,22 @@ export async function GET(request: Request) {
             body: JSON.stringify({
               webhook: {
                 topic: "app/uninstalled",
-                address: `${nextAuthUrl}/api/shopify/webhooks`, // Your general webhook handler
+                address: `${nextAuthUrl}/api/shopify/webhooks`, // Maps to your general webhook handler
                 format: "json",
               },
             }),
           })
           
           if (!webhookResponse.ok) {
-            const errorText = await webhookResponse.text()
-            console.error("Failed to register webhook", errorText)
+            const error = await webhookResponse.text()
+            console.warn("Failed to register app/uninstalled webhook:", error)
           } else {
             console.log("Successfully registered app/uninstalled webhook")
           }
         } catch (webhookError) {
-          console.error("Webhook registration failed", webhookError)
-          // Non-critical - continue with OAuth flow
+          console.error("Webhook registration network error:", webhookError)
         }
+        // ---------------------------------------------
       }
     } catch (error) {
       console.error("Database error:", error)
