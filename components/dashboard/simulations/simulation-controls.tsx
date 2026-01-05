@@ -56,23 +56,22 @@ export function SimulationControls() {
               onCheckedChange={setMirrorGA4}
             />
             <Label htmlFor="mirror-ga4" className="text-xs font-medium text-zinc-700 cursor-pointer">
-              Mirror GA4 Traffic
+              Real-user distribution
             </Label>
           </div>
         </div>
 
         {/* Middle: Stats */}
         <div className="lg:px-6 lg:border-x border-zinc-200">
-          <div className="rounded-lg bg-zinc-50 p-4 border border-zinc-100">
-            <div className="text-xs font-medium text-zinc-900 mb-1">Capacity</div>
-            <div className="text-sm font-mono text-zinc-600">85% Available</div>
+          <div className="text-xs text-zinc-500">
+            Capacity: 85% Available
           </div>
         </div>
 
         {/* Right: Actions */}
         <div className="flex flex-col gap-3 w-full lg:w-auto">
           <Button
-            className="bg-[#0070F3] hover:bg-[#0060d0] text-white font-medium gap-2"
+            className="bg-[#0070F3] hover:bg-[#0060d0] text-white font-medium gap-2 h-10 px-6"
           >
             <Play className="h-4 w-4" />
             Start Simulation
@@ -89,4 +88,3 @@ export function SimulationControls() {
     </div>
   )
 }
-
