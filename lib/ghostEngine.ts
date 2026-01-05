@@ -98,10 +98,47 @@ export function calculateGhostHealthScore(testResult: TestResult | null): number
 }
 
 /**
+ * Industry adjustment multipliers
+ * Different industries have different conversion rate expectations
+ */
+const INDUSTRY_ADJUSTMENTS: Record<string, number> = {
+  fashion: 1.0,        // Baseline
+  electronics: 0.9,   // Lower conversion expectations
+  beauty: 1.1,         // Higher conversion expectations
+  home: 0.95,
+  food: 1.05,
+  jewelry: 0.85,       // Lower conversion (high consideration)
+  sports: 1.0,
+  books: 1.15,         // Higher conversion (low friction)
+  default: 1.0,        // Default/Retail baseline
+}
+
+/**
+ * Normalize category name for lookup
+ */
+function normalizeCategory(category: string | null | undefined): string {
+  if (!category) return 'default'
+  return category.toLowerCase().trim()
+}
+
+/**
  * Calculate percentile benchmark based on score
  * Returns the percentile (0-100) that this score represents
+ * @param score - The checkout health score (0-100)
+ * @param category - Optional industry category for adjustment (e.g., "Fashion", "Electronics")
  */
-export function calculatePercentileBenchmark(score: number): number {
+export function calculatePercentileBenchmark(score: number, category?: string | null): number {
+  // Apply industry adjustment
+  const normalizedCategory = normalizeCategory(category)
+  const adjustment = INDUSTRY_ADJUSTMENTS[normalizedCategory] || INDUSTRY_ADJUSTMENTS.default
+  
+  // Adjust score based on industry (e.g., Electronics scores are adjusted down)
+  // A score of 50 in Fashion might be 40th percentile, but in Electronics it might be 60th percentile
+  const adjustedScore = score * adjustment
+  
+  // Clamp adjusted score to valid range
+  const clampedScore = Math.max(0, Math.min(100, adjustedScore))
+  
   // Industry benchmark distribution:
   // 0-50: Bottom 20%
   // 51-60: 20th-40th percentile
@@ -110,31 +147,46 @@ export function calculatePercentileBenchmark(score: number): number {
   // 81-90: 80th-95th percentile
   // 91-100: Top 5%
 
-  if (score <= 50) {
-    return Math.round(20 * (score / 50))
-  } else if (score <= 60) {
-    return Math.round(20 + 20 * ((score - 50) / 10))
-  } else if (score <= 70) {
-    return Math.round(40 + 20 * ((score - 60) / 10))
-  } else if (score <= 80) {
-    return Math.round(60 + 20 * ((score - 70) / 10))
-  } else if (score <= 90) {
-    return Math.round(80 + 15 * ((score - 80) / 10))
+  if (clampedScore <= 50) {
+    return Math.round(20 * (clampedScore / 50))
+  } else if (clampedScore <= 60) {
+    return Math.round(20 + 20 * ((clampedScore - 50) / 10))
+  } else if (clampedScore <= 70) {
+    return Math.round(40 + 20 * ((clampedScore - 60) / 10))
+  } else if (clampedScore <= 80) {
+    return Math.round(60 + 20 * ((clampedScore - 70) / 10))
+  } else if (clampedScore <= 90) {
+    return Math.round(80 + 15 * ((clampedScore - 80) / 10))
   } else {
-    return Math.round(95 + 5 * ((score - 90) / 10))
+    return Math.round(95 + 5 * ((clampedScore - 90) / 10))
   }
 }
 
 /**
  * Get percentile label for display
+ * @param percentile - The percentile (0-100)
+ * @param category - Optional industry category for context
  */
-export function getPercentileLabel(percentile: number): string {
-  if (percentile >= 95) return "Top 5%"
-  if (percentile >= 90) return "Top 10%"
-  if (percentile >= 80) return "Top 20%"
-  if (percentile >= 60) return "Top 40%"
-  if (percentile >= 40) return "Top 60%"
-  if (percentile >= 20) return "Top 80%"
-  return "Bottom 20%"
+export function getPercentileLabel(percentile: number, category?: string | null): string {
+  const normalizedCategory = normalizeCategory(category)
+  const categoryLabel = normalizedCategory !== 'default' 
+    ? normalizedCategory.charAt(0).toUpperCase() + normalizedCategory.slice(1)
+    : null
+  
+  let label: string
+  if (percentile >= 95) label = "Top 5%"
+  else if (percentile >= 90) label = "Top 10%"
+  else if (percentile >= 80) label = "Top 20%"
+  else if (percentile >= 60) label = "Top 40%"
+  else if (percentile >= 40) label = "Top 60%"
+  else if (percentile >= 20) label = "Top 80%"
+  else label = "Bottom 20%"
+  
+  // Add category context if available
+  if (categoryLabel) {
+    return `${label} of ${categoryLabel} Stores`
+  }
+  
+  return label
 }
 

@@ -595,19 +595,82 @@ IMPORTANT:
     // Generate unique ID for this test
     const testId = `test_${Date.now()}_${Math.random().toString(36).substring(7)}`
 
-    // Add IDs to friction points and persona results
+    // Normalize persona names for matching
+    const normalizePersonaName = (name: string): string => {
+      return name.toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .replace(/\s+/g, '')
+    }
+
+    // Create persona mapping: normalized name -> persona ID
+    const personaMap = new Map<string, string>()
+    analysisData.personaResults.forEach((pr, i) => {
+      const normalized = normalizePersonaName(pr.name)
+      personaMap.set(normalized, `persona_${i}`)
+      // Also add variations (e.g., "budget" -> persona ID)
+      const keywords = pr.name.toLowerCase().split(/[\s-]+/)
+      keywords.forEach(keyword => {
+        if (keyword.length > 3) { // Only meaningful keywords
+          personaMap.set(keyword, `persona_${i}`)
+        }
+      })
+    })
+
+    // Map affected personas in friction points
+    const mapAffectedPersonas = (affected: string): string[] => {
+      const normalized = normalizePersonaName(affected)
+      const matchedPersonas: string[] = []
+      
+      // Try exact match first
+      if (personaMap.has(normalized)) {
+        matchedPersonas.push(personaMap.get(normalized)!)
+      }
+      
+      // Try substring matching
+      personaMap.forEach((personaId, key) => {
+        if (normalized.includes(key) || key.includes(normalized)) {
+          if (!matchedPersonas.includes(personaId)) {
+            matchedPersonas.push(personaId)
+          }
+        }
+      })
+      
+      // If no match found, try keyword matching
+      if (matchedPersonas.length === 0) {
+        const affectedLower = affected.toLowerCase()
+        analysisData.personaResults.forEach((pr, i) => {
+          const personaNameLower = pr.name.toLowerCase()
+          // Check if any keyword from affected matches persona name
+          const affectedKeywords = affectedLower.split(/[\s,]+/)
+          affectedKeywords.forEach(keyword => {
+            if (keyword.length > 3 && personaNameLower.includes(keyword)) {
+              if (!matchedPersonas.includes(`persona_${i}`)) {
+                matchedPersonas.push(`persona_${i}`)
+              }
+            }
+          })
+        })
+      }
+      
+      return matchedPersonas.length > 0 ? matchedPersonas : []
+    }
+
+    // Add IDs to friction points and map affected personas
     const frictionPoints = {
       critical: analysisData.frictionPoints.critical.map((fp, i) => ({
         id: `critical_${i}`,
         ...fp,
+        affectedPersonas: mapAffectedPersonas(fp.affected),
       })),
       high: analysisData.frictionPoints.high.map((fp, i) => ({
         id: `high_${i}`,
         ...fp,
+        affectedPersonas: mapAffectedPersonas(fp.affected),
       })),
       medium: analysisData.frictionPoints.medium.map((fp, i) => ({
         id: `medium_${i}`,
         ...fp,
+        affectedPersonas: mapAffectedPersonas(fp.affected),
       })),
       working: analysisData.frictionPoints.working,
     }

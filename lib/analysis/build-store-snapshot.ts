@@ -5,6 +5,7 @@
 import type { TestResult } from "@/lib/types"
 import { getCategoryBenchmarks } from "@/lib/data/benchmarks"
 import { calculateRevenueOpportunity } from "@/lib/calculations/revenue-opportunity"
+import { getStoreBenchmarks } from "@/lib/analysis/benchmarking"
 
 export interface StoreSnapshotData {
   storeUrl: string
@@ -43,18 +44,35 @@ interface ShopifyMetrics {
 
 /**
  * Build store snapshot from test result and Shopify metrics
+ * Now uses real Store Leads benchmark data
  */
-export function buildStoreSnapshot(
+export async function buildStoreSnapshot(
   test: TestResult,
   shopifyMetrics: ShopifyMetrics | null,
   storeUrl?: string,
   storeName?: string
-): StoreSnapshotData {
-  // Get metrics from Shopify or use defaults from test
-  const monthlyVisitors = shopifyMetrics?.metrics?.totalSessions || test.funnelData.landed * 30 || 50000
+): Promise<StoreSnapshotData> {
+  // Extract domain from storeUrl
+  const domain = storeUrl || test.storeUrl || ""
+  
+  // Fetch real benchmark data from Store Leads API (with DB caching)
+  const benchmarkData = await getStoreBenchmarks(domain)
+
+  // Get metrics from Shopify, Store Leads, or use defaults from test
+  const monthlyVisitors = 
+    shopifyMetrics?.metrics?.totalSessions || 
+    benchmarkData.monthlyTraffic || 
+    test.funnelData.landed * 30 || 
+    50000
+  
   const monthlyOrders = shopifyMetrics?.metrics?.totalOrders || Math.round(monthlyVisitors * 0.025) || 1250
   const aov = shopifyMetrics?.metrics?.averageOrderValue || 85
-  const monthlyRevenue = shopifyMetrics?.metrics?.totalRevenue || monthlyOrders * aov
+  
+  // Use Store Leads revenue estimate if available, otherwise calculate from orders
+  const monthlyRevenue = 
+    shopifyMetrics?.metrics?.totalRevenue || 
+    benchmarkData.monthlyRevenue || 
+    monthlyOrders * aov
 
   // Calculate conversion rate
   const conversionRate = monthlyVisitors > 0 ? monthlyOrders / monthlyVisitors : 0.025
@@ -68,8 +86,8 @@ export function buildStoreSnapshot(
     purchased: Math.round(test.funnelData.purchased * funnelMultiplier),
   }
 
-  // Get benchmarks (default to 'default' category if no industry data)
-  const benchmarks = getCategoryBenchmarks(null)
+  // Get benchmarks (use industry from Store Leads if available)
+  const benchmarks = getCategoryBenchmarks(benchmarkData.industry || null)
 
   // Calculate opportunity using existing utility
   const categoryBenchmarkCR = benchmarks.avgConversionRate

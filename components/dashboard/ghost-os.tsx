@@ -30,6 +30,7 @@ import { calculateRevenueOpportunity, formatOpportunityRange } from "@/lib/calcu
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils/format"
 import type { TestResult } from "@/lib/types"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
+import { MerchantSummary } from "@/components/dashboard/merchant-summary"
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { CodeDiffViewer } from "@/components/dashboard/sandbox/code-diff-viewer"
 
 // ============================================
 // TYPES
@@ -140,6 +142,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
   const [viewMode, setViewMode] = useState<'scanner' | 'dashboard'>(
     latestTestResult ? 'dashboard' : 'scanner'
   )
+  const [displayMode, setDisplayMode] = useState<'merchant' | 'agency'>('merchant')
   
   // Refs
   const logContainerRef = useRef<HTMLDivElement>(null)
@@ -393,13 +396,166 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
 
   // Render DashboardContent when not running and in dashboard mode
   if (!isRunning && viewMode === 'dashboard') {
+    // Show Merchant Summary by default, or DashboardContent for agency view
+    if (displayMode === 'merchant' && currentResult) {
+      return (
+        <div className="h-screen flex flex-col overflow-hidden">
+          {/* Top Bar with Toggle */}
+          <header className="flex-shrink-0 h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Ghost className="w-6 h-6 text-[#0070F3]" />
+                <span className="font-semibold tracking-tight">Ghost CRO</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setDisplayMode('merchant')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  displayMode === 'merchant'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                }`}
+              >
+                Merchant View
+              </button>
+              <button
+                onClick={() => setDisplayMode('agency')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  displayMode === 'agency'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                }`}
+              >
+                Agency View
+              </button>
+            </div>
+          </header>
+          <div className="flex-1 overflow-y-auto">
+            <MerchantSummary 
+              result={currentResult} 
+              onViewFix={(fix) => {
+                setSelectedFix(fix)
+                setShowFixModal(true)
+              }}
+            />
+          </div>
+          {/* Fix Modal */}
+          <Dialog open={showFixModal} onOpenChange={setShowFixModal}>
+            <DialogContent className="bg-white border-zinc-200 max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-xl">{selectedFix?.title}</DialogTitle>
+                <DialogDescription className="text-zinc-600">
+                  {selectedFix?.description}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="mt-4 space-y-4">
+                {/* Code Fix Viewer - Show if codeFix exists */}
+                {selectedFix?.codeFix ? (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-[#0070F3]" />
+                      Code Fix
+                    </h4>
+                    <CodeDiffViewer
+                      originalCode={selectedFix.codeFix.originalCode}
+                      optimizedCode={selectedFix.codeFix.optimizedCode}
+                      targetFile={selectedFix.codeFix.targetFile}
+                      language={selectedFix.codeFix.type}
+                    />
+                  </div>
+                ) : (
+                  /* Fallback: Implementation Steps */
+                  <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-[#0070F3]" />
+                      Implementation Steps
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="text-[#0070F3] font-medium">1.</span>
+                        <span>Navigate to your Shopify theme editor</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-[#0070F3] font-medium">2.</span>
+                        <span>Locate the relevant Liquid template</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-[#0070F3] font-medium">3.</span>
+                        <span>Apply the suggested changes</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-[#0070F3] font-medium">4.</span>
+                        <span>Preview and publish changes</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Impact Estimate */}
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#4ade80]" />
+                    Expected Impact
+                  </h4>
+                  <p className="text-sm text-zinc-700">{selectedFix?.impact || "Improved conversion rate"}</p>
+                </div>
+
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => setShowFixModal(false)}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Mark as Applied
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )
+    }
+    
     return (
-      <DashboardContent
-        user={user}
-        stats={stats}
-        tests={tests}
-        latestTestResult={currentResult || latestTestResult}
-      />
+      <div className="h-screen flex flex-col overflow-hidden">
+        {/* Top Bar with Toggle */}
+        <header className="flex-shrink-0 h-14 border-b border-zinc-200 bg-white flex items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Ghost className="w-6 h-6 text-[#0070F3]" />
+              <span className="font-semibold tracking-tight">Ghost CRO</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDisplayMode('merchant')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                displayMode === 'merchant'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+              }`}
+            >
+              Merchant View
+            </button>
+            <button
+              onClick={() => setDisplayMode('agency')}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                displayMode === 'agency'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+              }`}
+            >
+              Agency View
+            </button>
+          </div>
+        </header>
+        <DashboardContent
+          user={user}
+          stats={stats}
+          tests={tests}
+          latestTestResult={currentResult || latestTestResult}
+        />
+      </div>
     )
   }
 
@@ -815,57 +971,73 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
 
       {/* Fix Modal */}
       <Dialog open={showFixModal} onOpenChange={setShowFixModal}>
-        <DialogContent className="bg-[#0d1117] border-white/10 max-w-2xl">
+        <DialogContent className="bg-white border-zinc-200 max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">{selectedFix?.title}</DialogTitle>
-            <DialogDescription className="text-[#737373]">
+            <DialogDescription className="text-zinc-600">
               {selectedFix?.description}
             </DialogDescription>
           </DialogHeader>
           
           <div className="mt-4 space-y-4">
-            {/* Fix Details */}
-            <div className="ghost-glass rounded-lg p-4">
-              <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <Target className="w-4 h-4 text-[#0070F3]" />
-                Implementation Steps
-              </h4>
-              <div className="space-y-2 font-mono text-sm">
-                <div className="flex items-start gap-2">
-                  <span className="text-[#0070F3]">1.</span>
-                  <span>Navigate to your Shopify theme editor</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#0070F3]">2.</span>
-                  <span>Locate the relevant Liquid template</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#0070F3]">3.</span>
-                  <span>Apply the suggested changes</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-[#0070F3]">4.</span>
-                  <span>Preview and publish changes</span>
+            {/* Code Fix Viewer - Show if codeFix exists */}
+            {selectedFix?.codeFix ? (
+              <div>
+                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-[#0070F3]" />
+                  Code Fix
+                </h4>
+                <CodeDiffViewer
+                  originalCode={selectedFix.codeFix.originalCode}
+                  optimizedCode={selectedFix.codeFix.optimizedCode}
+                  targetFile={selectedFix.codeFix.targetFile}
+                  language={selectedFix.codeFix.type}
+                />
+              </div>
+            ) : (
+              /* Fallback: Implementation Steps */
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-[#0070F3]" />
+                  Implementation Steps
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#0070F3] font-medium">1.</span>
+                    <span>Navigate to your Shopify theme editor</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#0070F3] font-medium">2.</span>
+                    <span>Locate the relevant Liquid template</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#0070F3] font-medium">3.</span>
+                    <span>Apply the suggested changes</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#0070F3] font-medium">4.</span>
+                    <span>Preview and publish changes</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Impact Estimate */}
-            <div className="ghost-glass rounded-lg p-4">
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-[#4ade80]" />
                 Expected Impact
               </h4>
-              <p className="text-sm text-[#737373]">{selectedFix?.impact || "Improved conversion rate"}</p>
+              <p className="text-sm text-zinc-700">{selectedFix?.impact || "Improved conversion rate"}</p>
             </div>
 
-            <button
-              className="ghost-fix-btn w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2"
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               onClick={() => setShowFixModal(false)}
             >
-              <CheckCircle className="w-5 h-5" />
+              <CheckCircle className="w-4 h-4 mr-2" />
               Mark as Applied
-            </button>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
