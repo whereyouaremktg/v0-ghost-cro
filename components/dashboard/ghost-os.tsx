@@ -39,6 +39,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { CodeDiffViewer } from "@/components/dashboard/sandbox/code-diff-viewer"
+import { Button } from "@/components/ui/button"
 
 // ============================================
 // TYPES

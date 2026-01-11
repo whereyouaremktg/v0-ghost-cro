@@ -106,7 +106,7 @@ const PLANS = [
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
 }
 
 const staggerContainer = {
@@ -115,7 +115,7 @@ const staggerContainer = {
 
 const scaleIn = {
   initial: { opacity: 0, scale: 0.95 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" as const } }
 }
 
 export default function Home() {
