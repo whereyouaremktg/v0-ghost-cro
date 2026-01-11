@@ -5,6 +5,7 @@ import {
   fetchShippingZones,
   analyzeShippingShock,
   fetchAnalytics,
+  type AbandonedCheckout,
 } from "@/lib/shopify/client"
 
 export async function POST(request: NextRequest) {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
     // Fetch abandoned checkouts for the last 30 days
-    let abandonedCheckouts = []
+    let abandonedCheckouts: AbandonedCheckout[] = []
     let abandonedCheckoutStats = null
     
     try {

@@ -9,7 +9,7 @@ export default function LiveLabPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Live Lab</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-white">Live Lab</h1>
       </div>
 
       {/* Top Row: Vitals */}
