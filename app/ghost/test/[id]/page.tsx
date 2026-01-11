@@ -41,7 +41,7 @@ import type { TestResult, Recommendation, CodeFix, DeploymentResult } from "@/li
 import { getTestResult, getAllTestResults } from "@/lib/client-storage"
 import { calculateRevenueOpportunity, formatOpportunityRange } from "@/lib/calculations/revenue-opportunity"
 import { calculateThreatImpact, formatRecoveryRange, getConfidenceBadge, getEstimatedCRLift } from "@/lib/calculations/threat-impact"
-import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils/format"
+import { formatCurrency, formatNumber, formatPercent, formatDate, formatDateOnly } from "@/lib/utils/format"
 import {
   Dialog,
   DialogContent,
@@ -132,12 +132,30 @@ const staggerContainer = {
 // ============================================
 
 function extractKeywords(text: string): string[] {
-  return text.toLowerCase()
+  const lowerText = text.toLowerCase()
+  
+  // Extract single words
+  const words = lowerText
     .split(/[\s\-_,.:;!?()]+/)
     .filter(word => {
       if (ECOMMERCE_KEYWORDS.has(word)) return true
       return word.length > 2 && !STOP_WORDS.has(word)
     })
+  
+  // Extract 2-word phrases (bigrams) for better matching
+  const wordsArray = lowerText.split(/[\s\-_,.:;!?()]+/).filter(w => w.length > 1)
+  const bigrams: string[] = []
+  for (let i = 0; i < wordsArray.length - 1; i++) {
+    const bigram = `${wordsArray[i]} ${wordsArray[i + 1]}`
+    // Only include bigrams if both words are meaningful
+    if (wordsArray[i].length > 2 && wordsArray[i + 1].length > 2 && 
+        !STOP_WORDS.has(wordsArray[i]) && !STOP_WORDS.has(wordsArray[i + 1])) {
+      bigrams.push(bigram)
+    }
+  }
+  
+  // Combine words and bigrams, remove duplicates
+  return [...new Set([...words, ...bigrams])]
 }
 
 function getThreatIcon(title: string, location: string) {
@@ -1275,7 +1293,20 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
       const reasoning = (p.reasoning || '').toLowerCase()
       const abandonPoint = (p.abandonPoint || '').toLowerCase()
       const combinedText = `${reasoning} ${abandonPoint}`
-      return allKeywords.some(keyword => combinedText.includes(keyword))
+      
+      // More flexible matching: check if any keyword appears in the text
+      // Prioritize longer keywords (bigrams) first for better accuracy
+      const sortedKeywords = [...allKeywords].sort((a, b) => b.length - a.length)
+      
+      return sortedKeywords.some(keyword => {
+        // For multi-word keywords, check exact phrase match
+        if (keyword.includes(' ')) {
+          return combinedText.includes(keyword)
+        }
+        // For single words, check word boundary to avoid partial matches
+        const wordRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+        return wordRegex.test(combinedText)
+      })
     }).length
     
     const attributionRate = test.personaResults.length > 0 
@@ -1476,7 +1507,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
                 </div>
               </div>
               <div className="text-xs text-zinc-600">
-                {new Date(test.date).toLocaleString()}
+                {formatDate(test.date)}
               </div>
             </div>
           </div>
@@ -1797,7 +1828,7 @@ export default function TestResultPage({ params }: { params: Promise<{ id: strin
             <div className="grid grid-cols-2 gap-2 text-center">
               <div className="bg-[#0a0a0a]/80 rounded-lg p-2">
                 <div className="text-[10px] text-zinc-600">Scan Time</div>
-                <div className="text-sm font-mono">{new Date(test.date).toLocaleDateString()}</div>
+                <div className="text-sm font-mono">{formatDateOnly(test.date)}</div>
               </div>
               <div className="bg-[#0a0a0a]/80 rounded-lg p-2">
                 <div className="text-[10px] text-zinc-600">Persona Mix</div>

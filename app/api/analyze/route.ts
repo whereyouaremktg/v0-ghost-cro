@@ -88,6 +88,7 @@ interface RawAnalysisData {
     title: string
     impact: string
     effort: "low" | "medium" | "high"
+    timeEstimate?: string
     description: string
     codeFix?: {
       type: "liquid" | "css" | "html" | "javascript"
@@ -595,6 +596,7 @@ Return your analysis as a JSON object with this EXACT structure:
       "title": "<fix title>",
       "impact": "<conversion improvement estimate>",
       "effort": "<low, medium, or high>",
+      "timeEstimate": "<estimated time like '5-10 min', '15-30 min', or '1-2 hours'>",
       "description": "<detailed implementation guidance>",
       "codeFix": {
         "type": "<liquid|css|html|javascript>",

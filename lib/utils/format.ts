@@ -32,6 +32,12 @@ export function formatNumber(num: number | null | undefined): string {
 export function formatRelativeTime(date: Date | string): string {
   const now = new Date()
   const targetDate = typeof date === "string" ? new Date(date) : date
+  
+  // Validate date
+  if (isNaN(targetDate.getTime())) {
+    return "Invalid date"
+  }
+  
   const diffMs = now.getTime() - targetDate.getTime()
   const diffMins = Math.floor(diffMs / 60000)
 
@@ -49,6 +55,50 @@ export function formatRelativeTime(date: Date | string): string {
 
   const diffMonths = Math.floor(diffDays / 30)
   return `${diffMonths} month${diffMonths > 1 ? "s" : ""} ago`
+}
+
+/**
+ * Format a date as a localized string
+ * Safe wrapper around toLocaleString() that handles invalid dates
+ */
+export function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return "Invalid date"
+  
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  
+  // Validate date
+  if (isNaN(dateObj.getTime())) {
+    return "Invalid date"
+  }
+  
+  return dateObj.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+/**
+ * Format a date as a localized date string (without time)
+ * Safe wrapper around toLocaleDateString() that handles invalid dates
+ */
+export function formatDateOnly(date: Date | string | null | undefined): string {
+  if (!date) return "Invalid date"
+  
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  
+  // Validate date
+  if (isNaN(dateObj.getTime())) {
+    return "Invalid date"
+  }
+  
+  return dateObj.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }
 
 

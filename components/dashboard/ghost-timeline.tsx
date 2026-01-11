@@ -15,7 +15,9 @@ import {
   ArrowRight,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import { calculateRevenueLeak } from "@/lib/ghostEngine"
+import { calculateRevenueOpportunity } from "@/lib/calculations/revenue-opportunity"
+import { getCategoryBenchmarks } from "@/lib/data/benchmarks"
+import { formatCurrency, formatNumber, formatRelativeTime } from "@/lib/utils/format"
 import type { TestResult } from "@/lib/types"
 
 interface TimelineEvent {
@@ -55,61 +57,94 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
       const testDate = new Date(test.created_at)
       const testResult = test.results as TestResult | null
 
+      // Safe score accessor: test.results?.score ?? test.overall_score ?? 0
+      const score = testResult?.score ?? test.overall_score ?? 0
+
       // Add scan event
       if (test.status === "completed" && testResult) {
         const previousTest = sortedTests[index + 1]
         const previousResult = previousTest?.results as TestResult | null
-        const scoreChange = previousTest
-          ? (test.overall_score || 0) - (previousTest.overall_score || 0)
-          : 0
+        const previousScore = previousResult?.score ?? previousTest?.overall_score ?? 0
+        const scoreChange = previousTest ? score - previousScore : 0
 
-        const revenueLeak = calculateRevenueLeak(testResult, {
-          averageOrderValue: shopifyMetrics?.metrics?.averageOrderValue,
-          monthlySessions: shopifyMetrics?.metrics?.totalSessions,
-          monthlyRevenue: shopifyMetrics?.metrics?.totalRevenue,
+        // Get metrics for revenue calculation
+        const monthlyVisitors = shopifyMetrics?.metrics?.totalSessions || 50000
+        const aov = shopifyMetrics?.metrics?.averageOrderValue || 85
+        const monthlyRevenue = shopifyMetrics?.metrics?.totalRevenue || monthlyVisitors * 0.025 * aov
+        
+        // Calculate current conversion rate from test results
+        const purchaseCount = testResult.personaResults?.filter((p: any) => p.verdict === "purchase").length || 0
+        const totalPersonas = testResult.personaResults?.length || 5
+        const simulatedConversionRate = purchaseCount / totalPersonas
+        // Scale down simulated CR to realistic levels (simulation is 5 personas, real CR is typically 1-3%)
+        const currentConversionRate = simulatedConversionRate * 0.1
+
+        // Get category benchmark
+        const category = shopifyMetrics?.category || null
+        const benchmarks = getCategoryBenchmarks(category)
+        const categoryBenchmarkCR = benchmarks.avgConversionRate
+
+        // Calculate revenue opportunity using source of truth
+        const revenueOpportunity = calculateRevenueOpportunity({
+          monthlyVisitors,
+          currentConversionRate,
+          aov,
+          categoryBenchmarkCR,
         })
 
-        const previousLeak = previousResult
-          ? calculateRevenueLeak(previousResult, {
-              averageOrderValue: shopifyMetrics?.metrics?.averageOrderValue,
-              monthlySessions: shopifyMetrics?.metrics?.totalSessions,
-              monthlyRevenue: shopifyMetrics?.metrics?.totalRevenue,
-            })
-          : null
+        // Use monthlyOpportunity.max as the "Revenue Leak" value
+        const revenueLeak = revenueOpportunity.monthlyOpportunity.max
+
+        // Calculate previous leak if available
+        let previousLeak: number | null = null
+        if (previousResult) {
+          const prevPurchaseCount = previousResult.personaResults?.filter((p: any) => p.verdict === "purchase").length || 0
+          const prevTotalPersonas = previousResult.personaResults?.length || 5
+          const prevSimulatedCR = prevPurchaseCount / prevTotalPersonas
+          const prevCurrentCR = prevSimulatedCR * 0.1
+
+          const prevRevenueOpportunity = calculateRevenueOpportunity({
+            monthlyVisitors,
+            currentConversionRate: prevCurrentCR,
+            aov,
+            categoryBenchmarkCR,
+          })
+          previousLeak = prevRevenueOpportunity.monthlyOpportunity.max
+        }
 
         timelineEvents.push({
           id: `scan-${test.id}`,
           type: "scan",
           timestamp: testDate,
           title: "Store Scan Completed",
-          description: `Ghost analyzed your store and found ${testResult.frictionPoints.critical.length + testResult.frictionPoints.high.length + testResult.frictionPoints.medium.length} friction points`,
+          description: `Ghost analyzed your store and found ${(testResult.frictionPoints?.critical?.length || 0) + (testResult.frictionPoints?.high?.length || 0) + (testResult.frictionPoints?.medium?.length || 0)} friction points`,
           icon: Scan,
           color: "text-blue-600",
           bgColor: "bg-blue-50",
           borderColor: "border-blue-200",
           testId: test.id,
-          score: test.overall_score || 0,
+          score,
           scoreChange,
-          revenueLeak: revenueLeak.monthly,
-          previousLeak: previousLeak?.monthly || null,
+          revenueLeak,
+          previousLeak,
         })
 
         // Add leak change event if significant change
-        if (previousLeak && Math.abs(revenueLeak.monthly - previousLeak.monthly) > 100) {
-          const leakChange = revenueLeak.monthly - previousLeak.monthly
+        if (previousLeak !== null && Math.abs(revenueLeak - previousLeak) > 100) {
+          const leakChange = revenueLeak - previousLeak
           timelineEvents.push({
             id: `leak-${test.id}`,
             type: "leak_change",
             timestamp: new Date(testDate.getTime() + 1000), // Slightly after scan
             title: leakChange < 0 ? "Revenue Leak Improved" : "Revenue Leak Increased",
-            description: `Monthly leak ${leakChange < 0 ? "decreased" : "increased"} by $${Math.abs(leakChange).toLocaleString()}`,
+            description: `Monthly leak ${leakChange < 0 ? "decreased" : "increased"} by ${formatCurrency(Math.abs(leakChange))}`,
             icon: leakChange < 0 ? TrendingUp : TrendingDown,
             color: leakChange < 0 ? "text-blue-600" : "text-orange-600",
             bgColor: leakChange < 0 ? "bg-blue-50" : "bg-orange-50",
             borderColor: leakChange < 0 ? "border-blue-200" : "border-orange-200",
             testId: test.id,
-            revenueLeak: revenueLeak.monthly,
-            previousLeak: previousLeak.monthly,
+            revenueLeak,
+            previousLeak,
           })
         }
 
@@ -126,7 +161,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
             bgColor: "bg-orange-50",
             borderColor: "border-orange-200",
             testId: test.id,
-            score: test.overall_score || 0,
+            score,
             scoreChange,
           })
         }
@@ -169,28 +204,6 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
     // Sort all events by timestamp (newest first)
     return timelineEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
   }, [tests, shopifyMetrics])
-
-  const formatTime = (date: Date) => {
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor(diff / (1000 * 60))
-
-    if (days > 7) {
-      return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    }
-    if (days > 0) {
-      return `${days} day${days > 1 ? "s" : ""} ago`
-    }
-    if (hours > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ago`
-    }
-    if (minutes > 0) {
-      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
-    }
-    return "Just now"
-  }
 
   const handleEventClick = (event: TimelineEvent) => {
     if (event.testId) {
@@ -275,13 +288,13 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
                   <div className="flex items-center gap-4 mt-3">
                     <div className="flex items-center gap-1.5 text-xs text-gray-500">
                       <Clock className="h-3.5 w-3.5" strokeWidth={2} />
-                      {formatTime(event.timestamp)}
+                      {formatRelativeTime(event.timestamp)}
                     </div>
 
                     {event.score !== undefined && (
                       <div className="flex items-center gap-1.5 text-xs">
                         <span className="text-gray-500">Score:</span>
-                        <span className="font-semibold text-gray-900">{event.score}</span>
+                        <span className="font-semibold text-gray-900">{formatNumber(event.score)}</span>
                         {event.scoreChange !== undefined && event.scoreChange !== 0 && (
                           <span
                             className={`font-medium ${
@@ -289,7 +302,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
                             }`}
                           >
                             {event.scoreChange > 0 ? "+" : ""}
-                            {event.scoreChange}
+                            {formatNumber(event.scoreChange)}
                           </span>
                         )}
                       </div>
@@ -300,7 +313,7 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
                         <DollarSign className="h-3.5 w-3.5 text-gray-400" strokeWidth={2} />
                         <span className="text-gray-500">Leak:</span>
                         <span className="font-semibold text-orange-600">
-                          ${event.revenueLeak.toLocaleString()}/mo
+                          {formatCurrency(event.revenueLeak)}/mo
                         </span>
                       </div>
                     )}
@@ -314,4 +327,3 @@ export function GhostTimeline({ tests, shopifyMetrics }: GhostTimelineProps) {
     </div>
   )
 }
-

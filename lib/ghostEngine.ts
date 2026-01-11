@@ -10,6 +10,9 @@ function extractImpactPercentage(impact: string): number {
 
 /**
  * Calculate revenue leak based on friction severity and metrics
+ * 
+ * @deprecated This function is deprecated. Use `calculateRevenueOpportunity` from `@/lib/calculations/revenue-opportunity` instead.
+ * The new function provides a more accurate calculation based on conversion rate benchmarks.
  */
 export interface RevenueLeakResult {
   daily: number
@@ -17,6 +20,9 @@ export interface RevenueLeakResult {
   monthly: number
 }
 
+/**
+ * @deprecated Use `calculateRevenueOpportunity` from `@/lib/calculations/revenue-opportunity` instead.
+ */
 export function calculateRevenueLeak(
   testResult: TestResult | null,
   metrics?: {

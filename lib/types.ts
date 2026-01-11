@@ -52,6 +52,8 @@ export interface Recommendation {
   title: string
   impact: string
   effort: "low" | "medium" | "high"
+  /** Estimated time to implement (e.g., "5-10 min", "15-30 min", "1-2 hours") */
+  timeEstimate?: string
   description: string
   /** AI-generated production-ready code fix */
   codeFix?: CodeFix

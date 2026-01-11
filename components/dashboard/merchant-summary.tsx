@@ -41,10 +41,11 @@ export function MerchantSummary({ result, onViewFix }: MerchantSummaryProps) {
 
   // Helper for industry benchmarking
   const getIndustryBenchmark = (score: number) => {
-    if (score > 80) return "Top 10% of Fashion Stores"
-    if (score > 60) return "Top 25% of Fashion Stores"
-    if (score > 40) return "Average for Fashion Stores"
-    return "Bottom 20% of Fashion Stores"
+    if (score >= 80) return "Top 10%"
+    if (score >= 60) return "Top 25%"
+    if (score >= 40) return "Average"
+    if (score >= 20) return "Bottom 25%"
+    return "Bottom 10%"
   }
 
   return (
@@ -68,10 +69,7 @@ export function MerchantSummary({ result, onViewFix }: MerchantSummaryProps) {
               <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-2">
                 <span className="text-white">You're leaving </span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400 font-variant-numeric tabular-nums">
-                  {formatOpportunityRange(
-                    revenueOpportunity.monthlyOpportunity.min,
-                    revenueOpportunity.monthlyOpportunity.max
-                  )}
+                  {formatCurrency(revenueOpportunity.monthlyOpportunity.max)}
                 </span>
                 <span className="text-white"> on the table.</span>
               </h1>
@@ -120,7 +118,7 @@ export function MerchantSummary({ result, onViewFix }: MerchantSummaryProps) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-400">Benchmarking</span>
-                    <span className="text-white font-medium">{getIndustryBenchmark(result.score)}</span>
+                    <span className="text-white font-medium">{getIndustryBenchmark(result.score)} of Shopify stores</span>
                   </div>
                   <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
                     <motion.div
@@ -189,7 +187,7 @@ export function MerchantSummary({ result, onViewFix }: MerchantSummaryProps) {
                   <div className="flex items-center gap-6 flex-shrink-0 mt-4 md:mt-0 justify-between md:justify-end w-full md:w-auto">
                     <div className="flex items-center gap-2 text-xs text-zinc-500 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
                       <Clock className="w-3.5 h-3.5" />
-                      {fix.effort === 'low' ? '5-15 min' : fix.effort === 'medium' ? '30-60 min' : '2+ hours'}
+                      {fix.timeEstimate || (fix.effort === 'low' ? '5-15 min' : fix.effort === 'medium' ? '30-60 min' : '2+ hours')}
                     </div>
 
                     <Button
