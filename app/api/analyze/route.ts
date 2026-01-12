@@ -6,6 +6,7 @@ import type { StoreAnalysis } from "@/lib/analysis/schema"
 import { buildStoreAnalysisPrompt } from "@/lib/analysis/prompts/store-analysis"
 import { scrapeSandboxTheme, compareSandboxToOriginal } from "@/lib/shopify/sandbox-scraper"
 import { createClient } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@/lib/supabase/admin"
 import { 
   hasGA4Connection, 
   getSelectedPropertyId, 
@@ -358,24 +359,101 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 })
     }
 
-    // Validation Mode: Compare sandbox against original test
+    // Get authenticated user
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Validation Mode: Compare sandbox against original test (still synchronous for now)
     if (validationMode && sandboxPreviewUrl) {
       return await handleValidationMode(url, sandboxPreviewUrl, originalTestId, personaMix)
     }
+
+    // Create analysis job in database
+    const { data: job, error: jobError } = await supabaseAdmin
+      .from("tests")
+      .insert({
+        user_id: user.id,
+        store_url: url,
+        status: "pending",
+        results: null,
+      })
+      .select()
+      .single()
+
+    if (jobError || !job) {
+      console.error("Failed to create analysis job:", jobError)
+      return NextResponse.json(
+        { error: "Failed to create analysis job" },
+        { status: 500 }
+      )
+    }
+
+    const jobId = job.id
+
+    // Update job status to running
+    await supabaseAdmin
+      .from("tests")
+      .update({ status: "running" })
+      .eq("id", jobId)
+
+    // Process analysis asynchronously (don't await - let it run in background)
+    processAnalysisJob(jobId, url, personaMix, user.id).catch((error) => {
+      console.error(`Analysis job ${jobId} failed:`, error)
+      // Update job status to failed
+      supabaseAdmin
+        .from("tests")
+        .update({
+          status: "failed",
+          results: { error: error instanceof Error ? error.message : "Unknown error" },
+        })
+        .eq("id", jobId)
+        .catch((updateError) => {
+          console.error("Failed to update job status to failed:", updateError)
+        })
+    })
+
+    // Return job ID immediately
+    return NextResponse.json({
+      jobId,
+      status: "pending",
+      message: "Analysis job created. Poll /api/analyze/[id]/status for results.",
+    })
+  } catch (error) {
+    console.error("Analysis error:", error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to create analysis job" },
+      { status: 500 },
+    )
+  }
+}
+
+/**
+ * Process analysis job asynchronously
+ * This function runs the full analysis and updates the job status/results in the database
+ */
+async function processAnalysisJob(
+  jobId: string,
+  url: string,
+  personaMix: string,
+  userId: string
+): Promise<void> {
+
+  try {
+    console.log(`[Job ${jobId}] Starting analysis for ${url}`)
 
     // Validate Anthropic API key before proceeding
     let anthropic
     try {
       anthropic = getAnthropicClient()
     } catch (error) {
-      console.error("Anthropic API key error:", error)
-      return NextResponse.json(
-        {
-          error: "Anthropic API key is not configured",
-          message: error instanceof Error ? error.message : "Please add ANTHROPIC_API_KEY to your .env.local file",
-        },
-        { status: 500 }
-      )
+      throw new Error(`Anthropic API key is not configured: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 
     // Try to fetch GA4 demographics and generate personas from real data
@@ -384,20 +462,15 @@ export async function POST(request: Request) {
     let usingGA4Personas = false
 
     try {
-      // Get authenticated user to check for GA4 connection
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        const hasConnection = await hasGA4Connection(user.id)
+      const hasConnection = await hasGA4Connection(userId)
+      
+      if (hasConnection) {
+        const propertyId = await getSelectedPropertyId(userId)
         
-        if (hasConnection) {
-          const propertyId = await getSelectedPropertyId(user.id)
-          
-          if (propertyId) {
-            try {
-              // Create GA4 client with OAuth
-              const analyticsClient = await createGA4ClientWithOAuth(user.id)
+        if (propertyId) {
+          try {
+            // Create GA4 client with OAuth
+            const analyticsClient = await createGA4ClientWithOAuth(userId)
               
               // Fetch demographics for last 30 days
               const endDate = new Date()
@@ -444,8 +517,11 @@ export async function POST(request: Request) {
     // Scrape the URL to get real data
     const scrapedData = await scrapeURL(url)
 
-    // Build the structured store analysis prompt
-    const storeAnalysisPrompt = buildStoreAnalysisPrompt(url, scrapedData)
+    // Determine category from URL or use default (could be enhanced with AI classification)
+    const category = "apparel" // TODO: Auto-detect category from store content
+
+    // Build the structured store analysis prompt with category benchmark
+    const storeAnalysisPrompt = buildStoreAnalysisPrompt(url, scrapedData, category)
 
     // First, get the detailed structured analysis
     const storeAnalysisMessage = await anthropic.messages.create({
@@ -482,16 +558,7 @@ export async function POST(request: Request) {
       console.error("Parse error:", parseError)
       console.error("Parse error details:", parseError instanceof Error ? parseError.message : String(parseError))
       
-      // Return a more helpful error with retry suggestion
-      return NextResponse.json(
-        {
-          error: "Failed to parse AI analysis response",
-          details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
-          hint: "The AI response may contain malformed JSON. This can happen with very long responses or special characters. Please try again with a different URL or contact support if the issue persists.",
-          responseLength: storeAnalysisText.length,
-        },
-        { status: 500 }
-      )
+      throw new Error(`Failed to parse store analysis response: ${parseError instanceof Error ? parseError.message : "Unknown parsing error"}`)
     }
 
     // Now get the persona-based analysis and friction points
@@ -655,22 +722,11 @@ IMPORTANT:
       console.error("Failed to parse Claude persona analysis response:")
       console.error("Raw response:", responseText.substring(0, 500))
       console.error("Parse error:", parseError)
-      // Return a more helpful error
-      return NextResponse.json(
-        {
-          error: "Failed to parse AI analysis response",
-          details: parseError instanceof Error ? parseError.message : "Unknown parsing error",
-          hint: "The AI response may not be in valid JSON format. Please try again.",
-        },
-        { status: 500 }
-      )
+      throw new Error(`Failed to parse persona analysis response: ${parseError instanceof Error ? parseError.message : "Unknown parsing error"}`)
     }
 
-    // Merge the structured analysis into the result
-    // The storeAnalysis is already available from the first API call
-
-    // Generate unique ID for this test
-    const testId = `test_${Date.now()}_${Math.random().toString(36).substring(7)}`
+    // Use jobId as testId
+    const testId = jobId
 
     // Normalize persona names for matching
     const normalizePersonaName = (name: string): string => {
@@ -784,20 +840,37 @@ IMPORTANT:
       storeAnalysis: storeAnalysis,
     }
 
-    console.log('=== ANALYSIS COMPLETE ===')
-    console.log('Result ID:', testId)
-    console.log('Total threats:', issuesFound)
-    console.log('Personas:', personaResults.length)
+    console.log(`[Job ${jobId}] Analysis complete`)
+    console.log('  - Total threats:', issuesFound)
+    console.log('  - Personas:', personaResults.length)
     console.log('  - Would purchase:', personaResults.filter((p: PersonaResult) => p.verdict === 'purchase').length)
     console.log('  - Would abandon:', personaResults.filter((p: PersonaResult) => p.verdict === 'abandon').length)
-    console.log('Funnel data:', {
-      landed: analysisData.funnelData.landed,
-      cart: analysisData.funnelData.cart,
-      checkout: analysisData.funnelData.checkout,
-      purchased: analysisData.funnelData.purchased
-    })
 
-    return NextResponse.json({ result })
+    // Update job with results
+    const { error: updateError } = await supabaseAdmin
+      .from("tests")
+      .update({
+        status: "completed",
+        overall_score: analysisData.score,
+        friction_score: issuesFound,
+        trust_score: 0, // TODO: Calculate from analysis
+        clarity_score: 0, // TODO: Calculate from analysis
+        mobile_score: 0, // TODO: Calculate from analysis
+        results: result,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", jobId)
+
+    if (updateError) {
+      throw new Error(`Failed to save results: ${updateError.message}`)
+    }
+
+    console.log(`[Job ${jobId}] Results saved successfully`)
+  } catch (error) {
+    console.error(`[Job ${jobId}] Analysis failed:`, error)
+    throw error // Re-throw to be caught by caller
+  }
+}
   } catch (error) {
     console.error("Analysis error:", error)
     return NextResponse.json(

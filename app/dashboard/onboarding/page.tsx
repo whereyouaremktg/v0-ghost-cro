@@ -20,18 +20,42 @@ export default function OnboardingPage() {
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    // Check if Shopify connection exists
-    try {
-      const connectionData = localStorage.getItem("ghost_shopify_connection")
-      if (connectionData) {
-        const data = JSON.parse(connectionData)
-        setStoreUrl(data.shop || "")
-        setShopifyConnected(true)
-        setStep(2) // Move to configuration step
+    // Fetch Shopify connection from Supabase (server-side only)
+    const fetchShopifyConnection = async () => {
+      try {
+        const supabase = createClient()
+        
+        // Get current user
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+          console.error("User not authenticated")
+          return
+        }
+
+        // Fetch store connection from Supabase
+        const { data: store, error: storeError } = await supabase
+          .from('stores')
+          .select('shop')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .maybeSingle()
+
+        if (storeError) {
+          console.error("Failed to fetch store connection:", storeError)
+          return
+        }
+
+        if (store) {
+          setStoreUrl(store.shop || "")
+          setShopifyConnected(true)
+          setStep(2) // Move to configuration step
+        }
+      } catch (error) {
+        console.error("Failed to load connection data:", error)
       }
-    } catch (error) {
-      console.error("Failed to load connection data:", error)
     }
+
+    fetchShopifyConnection()
   }, [])
 
   const handleLaunch = async () => {

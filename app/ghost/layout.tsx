@@ -7,18 +7,26 @@ export default async function GhostLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
   // In development with DEMO_MODE, allow access without auth
   const demoMode = process.env.DEMO_MODE === "true"
   
-  if (!demoMode && (error || !user)) {
-    redirect("/login")
+  // Skip auth check in demo mode
+  if (!demoMode) {
+    try {
+      const supabase = await createClient()
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+      
+      if (error || !user) {
+        redirect("/login")
+      }
+    } catch (error) {
+      // If Supabase isn't configured, redirect to login unless in demo mode
+      console.warn("Supabase client creation failed:", error)
+      redirect("/login")
+    }
   }
 
   return (

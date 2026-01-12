@@ -4,18 +4,12 @@ import { GhostOS } from "@/components/dashboard/ghost-os"
 import type { TestResult } from "@/lib/types"
 
 export default async function GhostPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
   // Optional demo mode (OFF by default). Enable only when explicitly set.
   // This prevents accidentally shipping dummy data paths.
   const demoMode = process.env.DEMO_MODE === "true"
 
-  if (demoMode && (error || !user)) {
+  // In demo mode, skip Supabase auth check
+  if (demoMode) {
     return (
       <GhostOS
         user={{
@@ -36,6 +30,20 @@ export default async function GhostPage() {
       />
     )
   }
+
+  // Non-demo mode: require authentication
+  let supabase
+  try {
+    supabase = await createClient()
+  } catch (error) {
+    console.error("Failed to create Supabase client:", error)
+    redirect("/login")
+  }
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error || !user) {
     // In non-demo mode, always require auth (even in development)

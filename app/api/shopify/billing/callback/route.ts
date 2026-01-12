@@ -70,6 +70,8 @@ export async function GET(request: Request) {
       .update({
         shopify_charge_id: chargeId,
         shopify_shop: shop,
+        shopify_plan: planConfig.name, // 'Free', 'Growth', 'Scale'
+        shopify_capped_amount: planConfig.price, // Monthly capped amount in USD
         plan: plan,
         status: "active",
         tests_limit: planConfig.testsLimit,

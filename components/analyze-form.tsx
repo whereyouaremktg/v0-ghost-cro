@@ -30,10 +30,11 @@ export function AnalyzeForm() {
     }
 
     setIsLoading(true)
-    console.log("Redirecting to checkout for:", url)
+    console.log("Analyzing store:", url)
 
+    // TODO: Implement actual analysis API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
-    alert("In production, this redirects to Stripe checkout")
+    alert("Analysis feature coming soon")
     setIsLoading(false)
   }
 

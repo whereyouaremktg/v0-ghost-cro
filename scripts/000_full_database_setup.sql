@@ -22,20 +22,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
-  plan TEXT NOT NULL DEFAULT 'free',
-  status TEXT NOT NULL DEFAULT 'active',
+  plan TEXT NOT NULL DEFAULT 'free', -- 'free', 'growth', 'scale'
+  status TEXT NOT NULL DEFAULT 'active', -- 'active', 'canceled', 'past_due'
   tests_limit INTEGER NOT NULL DEFAULT 0,
   tests_used INTEGER NOT NULL DEFAULT 0,
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
   -- Shopify billing columns
-  shopify_charge_id TEXT,
-  shopify_shop TEXT,
-  trial_ends_at TIMESTAMPTZ
+  shopify_plan TEXT, -- 'Free', 'Growth', 'Scale'
+  shopify_capped_amount NUMERIC, -- Monthly capped amount in USD
+  shopify_charge_id TEXT, -- Shopify app subscription ID (gid://shopify/AppSubscription/...)
+  shopify_shop TEXT, -- Shopify store domain (e.g., mystore.myshopify.com)
+  trial_ends_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Step 3: Create tests table (checkout analyses)
@@ -129,7 +129,6 @@ CREATE POLICY "stores_delete_own" ON public.stores
 
 -- Step 10: Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_customer ON public.subscriptions(stripe_customer_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_shopify_charge ON public.subscriptions(shopify_charge_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_shopify_shop ON public.subscriptions(shopify_shop);
 CREATE INDEX IF NOT EXISTS idx_tests_user_id ON public.tests(user_id);

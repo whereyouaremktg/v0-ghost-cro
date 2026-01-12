@@ -291,9 +291,48 @@ export function buildStoreAnalysisPrompt(
     reviews: { count: string; rating: string }
     paymentMethods: string[]
     cartInfo: string
-  }
+  },
+  category?: string
 ): string {
+  // Import category benchmark if category is provided
+  let categoryBenchmarkContext = ""
+  if (category) {
+    try {
+      const { getCategoryBenchmark } = require("@/lib/benchmarks/category-leaders")
+      const benchmark = getCategoryBenchmark(category)
+      if (benchmark) {
+        categoryBenchmarkContext = `
+
+## CATEGORY LEADER BENCHMARK (${benchmark.category}):
+
+Compare this store against top-performing ${benchmark.category} brands:
+
+**Gold Standard Metrics:**
+- Average Load Time: ${benchmark.avg_load_time}s
+- Product Images per PDP: ${benchmark.images_per_pdp} images
+- Sticky Add-to-Cart: ${benchmark.has_sticky_atc ? "Yes" : "No"}
+- Trust Badges: ${benchmark.trust_badges_count} badges
+- Express Checkout Options: ${benchmark.express_checkout_options} (Apple Pay, PayPal, etc.)
+- Guest Checkout: ${benchmark.has_guest_checkout ? "Available" : "Not available"}
+- Product Reviews: ${benchmark.has_reviews ? "Displayed" : "Not displayed"}
+- Free Shipping Threshold: ${benchmark.has_free_shipping_threshold ? `$${benchmark.avg_free_shipping_threshold}` : "Not offered"}
+
+**Gap Analysis Required:**
+For each metric where the store falls short of category leaders, identify:
+1. The gap (e.g., "Top ${benchmark.category} brands have ${benchmark.images_per_pdp} images; this store has ${scrapedData.images.length}")
+2. The impact on conversion (cite research)
+3. A specific recommendation to close the gap
+
+Include gap analysis in your overallIssues array with severity based on how far the store is from category leader standards.`
+      }
+    } catch (error) {
+      // Category benchmark not available, continue without it
+      console.warn("Category benchmark not available:", error)
+    }
+  }
+
   return `${STORE_ANALYSIS_PROMPT}
+${categoryBenchmarkContext}
 
 ## ACTUAL PAGE DATA SCRAPED:
 
@@ -310,6 +349,8 @@ URL: ${url}
 **Cart Information:** ${scrapedData.cartInfo}
 
 Use this REAL DATA from the actual page to inform your analysis. Don't guess - base your observations on what you actually see in the scraped data. If something isn't in the scraped data, note that it's not visible.
+
+${categoryBenchmarkContext ? "Compare the store's metrics against the Category Leader Benchmark above. Identify gaps and prioritize fixes that will bring the store closer to category leader standards." : ""}
 
 Now analyze the store and return the structured JSON analysis with production-ready code fixes for every issue.`
 }

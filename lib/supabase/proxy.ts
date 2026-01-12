@@ -6,6 +6,12 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  // Check for demo mode - allow /ghost routes without auth
+  const demoMode = process.env.DEMO_MODE === "true"
+  if (demoMode && request.nextUrl.pathname.startsWith("/ghost")) {
+    return supabaseResponse
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -16,6 +22,12 @@ export async function updateSession(request: NextRequest) {
       allEnvKeys: Object.keys(process.env).filter((k) => k.includes("SUPABASE")),
     })
     // Allow access in development when env vars aren't loaded yet
+    // But still protect /dashboard routes
+    if (request.nextUrl.pathname.startsWith("/dashboard")) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/login"
+      return NextResponse.redirect(url)
+    }
     return supabaseResponse
   }
 
