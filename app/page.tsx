@@ -21,15 +21,15 @@ import {
 
 // --- CONSTANTS ---
 
-const GHOST_FEED_MESSAGES = [
-  "👻 Ghost #1 analyzing Add to Cart latency...",
-  "📈 Benchmark: You are 14% below category average...",
-  "⚡ Simulating mobile checkout on iPhone 15...",
-  "🔍 Identifying friction at payment gateway...",
-  "🛡️ Bot traffic filtered (40% noise removed)...",
-  "✅ Verified Apple Pay availability...",
-  "📉 Cart abandonment detected at Shipping step...",
-  "🚀 Generated fix: Shipping Transparency Module...",
+const INTELLIGENCE_FEED_MESSAGES = [
+  "Heuristic Analysis: Add to Cart latency 2.3s (threshold: 1.5s)...",
+  "Benchmark: Conversion 14% below category average...",
+  "Session Simulation: Mobile viewport 390x844...",
+  "Friction Detected: Payment gateway not above fold...",
+  "Traffic Quality: Bot traffic filtered (40% noise removed)...",
+  "Technical Audit: Express checkout verified...",
+  "Behavior Event: Cart abandonment at Shipping step...",
+  "Fix Generated: Shipping Transparency Module (Priority 1)...",
 ]
 
 const FEATURES = [
@@ -42,8 +42,8 @@ const FEATURES = [
   },
   {
     icon: Users,
-    title: "Digital Twin Testing",
-    description: "5 AI personas (Budget Mom, Impulse Buyer, etc.) test your store like real humans to find friction points.",
+    title: "Persona Segment Testing",
+    description: "5 behavioral segments (Price Sensitive, High Intent, etc.) simulate real sessions to identify friction points.",
     benefit: "Uncovers UX blind spots",
     colSpan: "md:col-span-1",
   },
@@ -69,8 +69,8 @@ const PLANS = [
     price: "$149",
     description: "For stores doing <$50k/mo",
     features: [
-      "Weekly checkout simulation",
-      "Top 3 CRO recommendations",
+      "Weekly checkout audit",
+      "Top 3 prioritized fixes",
       "Basic implementation guides",
       "Email support",
     ],
@@ -82,7 +82,7 @@ const PLANS = [
     description: "For scaling brands ($50k - $500k)",
     features: [
       "Daily active monitoring",
-      "Unlimited synthetic testing",
+      "Unlimited segment testing",
       "One-click Liquid code fixes",
       "Priority CRO support",
       "Competitor benchmarking",
@@ -94,7 +94,7 @@ const PLANS = [
     description: "For high-volume merchants",
     features: [
       "Real-time session analysis",
-      "Custom persona definition",
+      "Custom segment definitions",
       "Dedicated success manager",
       "API access",
       "Custom integrations",
@@ -106,7 +106,7 @@ const PLANS = [
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 }
 
 const staggerContainer = {
@@ -115,7 +115,7 @@ const staggerContainer = {
 
 const scaleIn = {
   initial: { opacity: 0, scale: 0.95 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" as const } }
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }
 }
 
 export default function Home() {
@@ -203,7 +203,7 @@ export default function Home() {
                 variants={fadeInUp}
                 className="text-lg text-zinc-400 max-w-xl leading-relaxed"
               >
-                Stop guessing what to fix. Ghost uses AI personas to stress-test your Shopify store, identify revenue leaks, and deploy high-impact fixes automatically.
+                Stop guessing what to fix. Ghost uses behavioral segments to audit your Shopify store, identify revenue leaks, and deploy high-impact fixes automatically.
               </motion.p>
 
               <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -253,12 +253,12 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
                     <div>
-                      <h3 className="text-sm font-bold text-white">Live Analysis</h3>
-                      <p className="text-xs text-zinc-500">Optimizing checkout flow...</p>
+                      <h3 className="text-sm font-bold text-white">Live Audit</h3>
+                      <p className="text-xs text-zinc-500">Analyzing checkout friction...</p>
                     </div>
                   </div>
                   <div className="px-3 py-1 bg-[#0070F3]/10 text-[#0070F3] text-xs font-bold rounded-full border border-[#0070F3]/20">
-                    CRO ENGINE ACTIVE
+                    AUDIT ENGINE ACTIVE
                   </div>
                 </div>
 
@@ -316,32 +316,34 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Floating Element - Personas */}
+              {/* Floating Element - Active Segment */}
               <motion.div
                 className="absolute -right-6 top-20 bg-white/[0.05] backdrop-blur-xl p-4 rounded-xl border border-white/[0.08] shadow-xl max-w-[200px]"
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wider">Simulating User</div>
+                <div className="text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wider">Active Segment</div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center text-lg">👩‍👧</div>
+                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-400" />
+                  </div>
                   <div>
-                    <div className="text-sm font-bold text-white">Budget Mom</div>
-                    <div className="text-[10px] text-zinc-400">Mobile • $65k • Price Sensitive</div>
+                    <div className="text-sm font-bold text-white">Price Sensitive</div>
+                    <div className="text-[10px] text-zinc-400">Mobile • Budget Shopper</div>
                   </div>
                 </div>
                 <div className="mt-3 text-xs text-red-400 font-medium p-2 bg-red-500/10 rounded-lg">
-                  "I abandoned at cart because shipping was $12."
+                  Friction: Unexpected shipping cost at checkout
                 </div>
               </motion.div>
             </motion.div>
           </div>
         </section>
 
-        {/* --- MARQUEE --- */}
+        {/* --- INTELLIGENCE FEED MARQUEE --- */}
         <div className="border-y border-white/[0.08] bg-[#0a0a0a]/50 backdrop-blur-sm overflow-hidden py-3">
           <div className="flex animate-[marquee_40s_linear_infinite]">
-            {[...GHOST_FEED_MESSAGES, ...GHOST_FEED_MESSAGES].map((msg, i) => (
+            {[...INTELLIGENCE_FEED_MESSAGES, ...INTELLIGENCE_FEED_MESSAGES].map((msg, i) => (
               <div key={i} className="flex items-center gap-3 mx-8 whitespace-nowrap opacity-60 hover:opacity-100 transition-opacity">
                 <Activity className="w-4 h-4 text-[#0070F3]" />
                 <span className="text-sm font-mono text-zinc-400">{msg}</span>
@@ -354,17 +356,17 @@ export default function Home() {
         <section id="how-it-works" className="py-24 px-6 border-b border-white/[0.05]">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">The Intelligence Engine</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">The Audit Engine</h2>
               <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-                Ghost replaces guesswork with a 3-step automated optimization system.
+                Ghost replaces guesswork with a 3-step automated audit and optimization system.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 { step: "01", title: "Connect", desc: "One-click Shopify OAuth. Secure, read-only access. Setup takes 30 seconds.", icon: ExternalLink },
-                { step: "02", title: "Simulate", desc: "Ghost deploys 5 AI personas to browse, cart, and attempt checkout on your site.", icon: Ghost },
-                { step: "03", title: "Optimize", desc: "Get prioritized fixes. Deploy Liquid code updates instantly to lift conversion.", icon: Zap },
+                { step: "02", title: "Audit", desc: "Ghost deploys 5 persona segments to simulate sessions and identify friction points.", icon: Ghost },
+                { step: "03", title: "Optimize", desc: "Get prioritized fixes ranked by revenue impact. Deploy code updates instantly.", icon: Zap },
               ].map((item, i) => (
                 <div key={i} className="group relative bg-white/[0.03] backdrop-blur-xl p-8 rounded-2xl border border-white/[0.08] hover:border-[#0070F3]/30 transition-all">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
@@ -458,11 +460,11 @@ export default function Home() {
               Ready to grow revenue?
             </h2>
             <p className="text-xl text-zinc-400 mb-10">
-              Ghost is optimizing 150+ stores. The setup takes 30 seconds.
+              Ghost is auditing 150+ stores. The setup takes 30 seconds.
             </p>
             <Link href="/signup">
               <button className="px-10 py-5 bg-white text-black font-bold rounded-xl text-lg hover:bg-zinc-200 transition-colors shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-                Start My Free Scan
+                Start My Free Audit
               </button>
             </Link>
           </div>
