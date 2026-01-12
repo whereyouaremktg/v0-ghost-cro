@@ -19,6 +19,8 @@ interface RevenueHeroProps {
       totalSessions: number
     }
   } | null
+  optimizationLevel?: number
+  setOptimizationLevel?: (value: number) => void
   className?: string
 }
 
@@ -28,9 +30,13 @@ export function RevenueHero({
   optimizationOpportunity = 12,
   testResult,
   shopifyMetrics,
+  optimizationLevel: externalOptimizationLevel,
+  setOptimizationLevel: externalSetOptimizationLevel,
   className,
 }: RevenueHeroProps) {
-  const [optimizationLevel, setOptimizationLevel] = useState(0)
+  const [internalOptimizationLevel, setInternalOptimizationLevel] = useState(0)
+  const optimizationLevel = externalOptimizationLevel !== undefined ? externalOptimizationLevel : internalOptimizationLevel
+  const setOptimizationLevel = externalSetOptimizationLevel || setInternalOptimizationLevel
   const [displayedRevenue, setDisplayedRevenue] = useState(currentRevenue)
   const [isAnimating, setIsAnimating] = useState(false)
 
