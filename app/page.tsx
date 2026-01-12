@@ -132,7 +132,7 @@ export default function Home() {
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
         <div className="absolute top-[-20%] left-[-10%] w-[1000px] h-[1000px] bg-[#0070F3]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-[#BFFF00]/5 rounded-full blur-[120px]" />
       </div>
 
       {/* --- HEADER --- */}
@@ -170,7 +170,7 @@ export default function Home() {
       <main className="relative z-10">
 
         {/* --- HERO SECTION --- */}
-        <section className="relative pt-32 pb-20 md:pt-40 md:pb-32">
+        <section className="relative min-h-screen flex items-center pt-20 pb-20">
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
             {/* Left: Copy */}
@@ -211,7 +211,7 @@ export default function Home() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full sm:w-auto px-8 py-4 bg-[#0070F3] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                    className="w-full sm:w-auto px-8 py-4 bg-[#0070F3] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,112,243,0.4)] hover:shadow-[0_0_30px_rgba(0,112,243,0.6)]"
                   >
                     Optimize My Store
                     <ArrowRight className="w-4 h-4" />
@@ -244,12 +244,12 @@ export default function Home() {
               animate={mounted ? "animate" : "initial"}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#0070F3]/20 to-purple-500/20 rounded-[2rem] blur-[80px]" />
+              <div className="absolute inset-0 bg-[#0070F3]/15 rounded-[2rem] blur-[80px]" />
 
               {/* THE CARD */}
-              <div className="relative bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
+              <div className="relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden group">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/5 bg-[#0F0F0F]">
+                <div className="flex items-center justify-between p-6 border-b border-white/[0.05] bg-white/[0.02]">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
                     <div>
@@ -270,7 +270,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-sm text-zinc-400 font-medium uppercase tracking-wide">Revenue Opportunity</p>
-                      <h2 className="text-4xl font-bold text-white mt-1">$12,450<span className="text-zinc-600">/mo</span></h2>
+                      <h2 className="text-4xl font-bold text-white mt-1 font-mono tabular-nums">$12,450<span className="text-zinc-600">/mo</span></h2>
                       <p className="text-sm text-zinc-500 mt-2">
                         Ghost identified 3 high-impact fixes to lift conversion by ~12%.
                       </p>
@@ -300,7 +300,7 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="text-sm font-mono text-emerald-400 font-medium">+{fix.impact}</span>
+                          <span className="text-sm font-mono text-[#BFFF00] font-medium tabular-nums">+{fix.impact}</span>
                           <button className="px-3 py-1.5 bg-white text-black text-xs font-bold rounded-lg opacity-0 group-hover/item:opacity-100 transition-opacity">
                             Apply
                           </button>
@@ -318,7 +318,7 @@ export default function Home() {
 
               {/* Floating Element - Active Segment */}
               <motion.div
-                className="absolute -right-6 top-20 bg-[#111] p-4 rounded-xl border border-white/10 shadow-xl max-w-[220px]"
+                className="absolute -right-6 top-20 bg-white/[0.05] backdrop-blur-xl p-4 rounded-xl border border-white/[0.08] shadow-xl max-w-[200px]"
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -368,7 +368,7 @@ export default function Home() {
                 { step: "02", title: "Audit", desc: "Ghost deploys 5 persona segments to simulate sessions and identify friction points.", icon: Ghost },
                 { step: "03", title: "Optimize", desc: "Get prioritized fixes ranked by revenue impact. Deploy code updates instantly.", icon: Zap },
               ].map((item, i) => (
-                <div key={i} className="group relative bg-[#0A0A0A] p-8 rounded-2xl border border-white/5 hover:border-[#0070F3]/30 transition-all">
+                <div key={i} className="group relative bg-white/[0.03] backdrop-blur-xl p-8 rounded-2xl border border-white/[0.08] hover:border-[#0070F3]/30 transition-all">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
                     <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-[#0070F3] to-transparent">{item.step}</span>
                   </div>
@@ -384,7 +384,7 @@ export default function Home() {
         </section>
 
         {/* --- FEATURES GRID --- */}
-        <section id="features" className="py-24 px-6 bg-[#050505]">
+        <section id="features" className="py-32 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-16">
               <span className="text-[#0070F3] font-bold tracking-wider uppercase text-sm">Features</span>
@@ -393,11 +393,11 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {FEATURES.map((feature, i) => (
-                <div key={i} className={`${feature.colSpan} bg-[#0A0A0A] p-8 rounded-2xl border border-white/5 hover:border-[#0070F3]/30 transition-all group`}>
+                <div key={i} className={`${feature.colSpan} bg-white/[0.03] backdrop-blur-xl p-8 rounded-2xl border border-white/[0.08] hover:border-[#0070F3]/30 transition-all group`}>
                   <feature.icon className="w-8 h-8 text-[#0070F3] mb-6" />
                   <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                   <p className="text-zinc-400 mb-6 max-w-md">{feature.description}</p>
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 uppercase tracking-wide">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#BFFF00] uppercase tracking-wide">
                     <TrendingUp className="w-3 h-3" />
                     {feature.benefit}
                   </div>
@@ -417,7 +417,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {PLANS.map((plan, i) => (
-                <div key={i} className={`relative p-8 rounded-2xl border ${plan.popular ? 'bg-[#0070F3]/5 border-[#0070F3]/50' : 'bg-[#0A0A0A] border-white/10'}`}>
+                <div key={i} className={`relative p-8 rounded-2xl border backdrop-blur-xl ${plan.popular ? 'bg-[#0070F3]/[0.08] border-[#0070F3]/40' : 'bg-white/[0.03] border-white/[0.08]'}`}>
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#0070F3] text-white text-xs font-bold rounded-full">
                       BEST ROI
@@ -425,7 +425,7 @@ export default function Home() {
                   )}
                   <h3 className="text-lg font-bold text-white">{plan.name}</h3>
                   <div className="flex items-baseline gap-1 mt-2 mb-1">
-                    <span className="text-3xl font-bold text-white">{plan.price}</span>
+                    <span className="text-3xl font-bold text-white font-mono tabular-nums">{plan.price}</span>
                     <span className="text-zinc-500">/mo</span>
                   </div>
                   <p className="text-sm text-zinc-400 mb-6">{plan.description}</p>
@@ -479,7 +479,7 @@ export default function Home() {
             <Ghost className="w-5 h-5 text-[#0070F3]" />
             <span className="font-bold">GhostCRO</span>
           </div>
-          <div className="flex gap-8 text-sm text-zinc-500">
+          <div className="flex gap-8 text-sm text-zinc-400">
             <a href="#" className="hover:text-white transition-colors">Privacy</a>
             <a href="#" className="hover:text-white transition-colors">Terms</a>
             <a href="#" className="hover:text-white transition-colors">Twitter</a>

@@ -69,7 +69,6 @@ export function ShopperFeed() {
   // Simulate live data coming in
   useEffect(() => {
     const interval = setInterval(() => {
-      // Add a subtle animation trigger by updating state
       setNewRowKey((prev) => prev + 1)
     }, 5000)
 
@@ -82,8 +81,8 @@ export function ShopperFeed() {
       const parts = text.split("Cart Abandon")
       return (
         <>
-          <span className="font-semibold text-zinc-900">Cart Abandon</span>
-          {parts[1]}
+          <span className="font-semibold text-red-400">Cart Abandon</span>
+          <span className="text-zinc-400">{parts[1]}</span>
         </>
       )
     }
@@ -91,19 +90,19 @@ export function ShopperFeed() {
       const parts = text.split("Checkout Error")
       return (
         <>
-          <span className="font-semibold text-zinc-900">Checkout Error</span>
-          {parts[1]}
+          <span className="font-semibold text-red-400">Checkout Error</span>
+          <span className="text-zinc-400">{parts[1]}</span>
         </>
       )
     }
-    return <span className="text-zinc-400">{text}</span>
+    return <span className="text-zinc-500">{text}</span>
   }
 
   return (
-    <div className="flex flex-col h-full rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-zinc-200 bg-zinc-50/50">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+      <div className="p-4 border-b border-white/[0.08]">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
           LIVE SIMULATION LOG
         </div>
       </div>
@@ -111,49 +110,49 @@ export function ShopperFeed() {
       {/* Table */}
       <div className="flex-1 overflow-auto">
         <table className="w-full">
-          <thead className="bg-zinc-50/50 border-b border-zinc-200 sticky top-0">
+          <thead className="border-b border-white/[0.08] sticky top-0 bg-[#020202]/90 backdrop-blur-sm">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              <th className="px-4 py-3 text-left text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500">
                 TIME
               </th>
-              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              <th className="px-4 py-3 text-left text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500">
                 DEVICE
               </th>
-              <th className="px-6 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              <th className="px-4 py-3 text-left text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500">
                 EVENT STREAM
               </th>
-              <th className="px-6 py-3 text-right text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              <th className="px-4 py-3 text-right text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500">
                 POTENTIAL LOSS
               </th>
-              <th className="px-6 py-3 text-center text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              <th className="px-4 py-3 text-center text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500">
                 STATUS
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-white/[0.05]">
             {events.map((event, index) => (
               <tr
                 key={event.id}
-                className={`hover:bg-zinc-50 transition-colors animate-fade-in`}
+                className="hover:bg-white/[0.02] transition-colors"
               >
-                <td className="px-6 py-3 text-xs font-mono text-zinc-900">
+                <td className="px-4 py-3 text-xs font-mono text-zinc-400 tabular-nums">
                   {event.time}
                 </td>
-                <td className="px-6 py-3 text-xs text-zinc-700">
+                <td className="px-4 py-3 text-xs text-zinc-500">
                   {event.device}
                 </td>
-                <td className="px-6 py-3 text-xs">
+                <td className="px-4 py-3 text-xs">
                   {formatEventStream(event.eventStream)}
                 </td>
-                <td className="px-6 py-3 text-xs font-mono text-zinc-900 text-right">
+                <td className="px-4 py-3 text-xs font-mono text-white text-right tabular-nums">
                   {event.potentialLoss}
                 </td>
-                <td className="px-6 py-3 text-center">
+                <td className="px-4 py-3 text-center">
                   <span
-                    className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-mono font-semibold uppercase tracking-wider border ${
+                    className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-mono font-semibold uppercase tracking-wider ${
                       event.status === "ANALYZING"
-                        ? "bg-red-50 text-red-600 border-red-100"
-                        : "bg-zinc-50 text-zinc-500 border-zinc-100"
+                        ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                        : "bg-white/[0.05] text-zinc-500 border border-white/[0.08]"
                     }`}
                   >
                     {event.status}
