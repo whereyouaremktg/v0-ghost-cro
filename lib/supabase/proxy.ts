@@ -63,10 +63,36 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect to dashboard if accessing login while authenticated
+  // Check if user needs onboarding (logged in but no Shopify store)
+  if (user && request.nextUrl.pathname.startsWith("/dashboard") && request.nextUrl.pathname !== "/dashboard/onboarding") {
+    // Check if user has connected a Shopify store
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+
+    if (!store) {
+      // No store connected - redirect to onboarding
+      const url = request.nextUrl.clone()
+      url.pathname = "/dashboard/onboarding"
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // Redirect to dashboard/onboarding if accessing login/signup while authenticated
   if ((request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup") && user) {
+    // Check if user has connected a Shopify store
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+
     const url = request.nextUrl.clone()
-    url.pathname = "/dashboard"
+    url.pathname = store ? "/dashboard" : "/dashboard/onboarding"
     return NextResponse.redirect(url)
   }
 

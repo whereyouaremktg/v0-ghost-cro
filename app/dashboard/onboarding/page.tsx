@@ -145,8 +145,25 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* Step 1: Success */}
-          {step >= 1 && (
+          {/* Step 1: Connect Shopify */}
+          {!shopifyConnected ? (
+            <div className="mb-6 p-6 rounded-lg border border-blue-200 bg-blue-50 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-500 flex items-center justify-center">
+                <Store className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">Connect Your Shopify Store</h3>
+              <p className="text-sm text-blue-700 mb-4">
+                Ghost needs access to your store to analyze checkout friction and generate fixes.
+              </p>
+              <a href="/api/auth/shopify">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Store className="h-4 w-4 mr-2" />
+                  Connect Shopify Store
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </a>
+            </div>
+          ) : (
             <div className="mb-6 p-4 rounded-lg border border-emerald-200 bg-emerald-50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
@@ -240,17 +257,19 @@ export default function OnboardingPage() {
           )}
 
           {/* Action Button */}
-          <div className="mt-8 pt-6 border-t border-zinc-200">
-            <Button
-              onClick={handleLaunch}
-              disabled={isSaving}
-              className="w-full bg-[#0070F3] hover:bg-[#0060d0] text-white font-medium gap-2"
-              size="lg"
-            >
-              {isSaving ? "Saving..." : "Launch Mission Control"}
-              {!isSaving && <ArrowRight className="h-4 w-4" />}
-            </Button>
-          </div>
+          {shopifyConnected && (
+            <div className="mt-8 pt-6 border-t border-zinc-200">
+              <Button
+                onClick={handleLaunch}
+                disabled={isSaving}
+                className="w-full bg-[#0070F3] hover:bg-[#0060d0] text-white font-medium gap-2"
+                size="lg"
+              >
+                {isSaving ? "Saving..." : "Launch Mission Control"}
+                {!isSaving && <ArrowRight className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
