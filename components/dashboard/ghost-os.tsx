@@ -247,7 +247,15 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: targetUrl, personaMix: "balanced" }),
       })
-      
+
+      // [CRITICAL] PAYWALL INTERCEPTOR
+      if (response.status === 402) {
+        addLog({ type: "threat", message: "🔒 Upgrade required to unlock deep analysis" })
+        setIsRunning(false)
+        router.push("/pricing") // Redirects user to pay
+        return
+      }
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
         throw new Error(errorData.error || "Analysis failed")
