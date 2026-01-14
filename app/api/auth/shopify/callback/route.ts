@@ -95,9 +95,9 @@ export async function GET(request: Request) {
     if (dbError) {
       console.error("SECURITY ERROR: Failed to save store to database:", dbError)
       const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
-      // Hard-fail: redirect to error page, do NOT fall back to localStorage
+      // Hard-fail: redirect to login with install_failed - NO localStorage fallback allowed
       return NextResponse.redirect(
-        `${nextAuthUrl}/dashboard/settings?error=database_error&message=${encodeURIComponent("Failed to save store connection. Please try again.")}`
+        `${nextAuthUrl}/login?error=install_failed`
       )
     }
 

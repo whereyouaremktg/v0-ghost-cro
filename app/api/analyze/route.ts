@@ -17,6 +17,7 @@ import {
   generatePersonasFromGA4Demographics,
   type GA4Metrics 
 } from "@/lib/analytics/ga4-client"
+import { verifyActiveSubscription } from "@/lib/shopify/billing"
 
 /**
  * Raw analysis data structure from Claude's JSON response
@@ -369,6 +370,36 @@ export async function POST(request: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    // BILLING HARD GATE: Verify active subscription before allowing expensive AI analysis
+    // Get user's active store connection
+    const { data: store, error: storeError } = await supabase
+      .from("stores")
+      .select("shop, access_token")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+
+    if (storeError || !store || !store.access_token) {
+      console.warn(`No active store found for user ${user.id}`)
+      return NextResponse.json(
+        { error: "Payment Required", message: "Please connect your Shopify store and subscribe to use this feature." },
+        { status: 402 }
+      )
+    }
+
+    // Verify subscription is active via Shopify API
+    const hasActiveSubscription = await verifyActiveSubscription(store.shop, store.access_token)
+    
+    if (!hasActiveSubscription) {
+      console.warn(`No active subscription found for shop ${store.shop}`)
+      return NextResponse.json(
+        { error: "Payment Required", message: "An active subscription is required to run AI analysis." },
+        { status: 402 }
+      )
+    }
+
+    console.log(`✓ Billing gate passed for shop ${store.shop}`)
 
     // Validation Mode: Compare sandbox against original test (still synchronous for now)
     if (validationMode && sandboxPreviewUrl) {

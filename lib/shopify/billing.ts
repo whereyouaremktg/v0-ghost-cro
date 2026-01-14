@@ -318,3 +318,44 @@ export function getAppBaseUrl(): string {
   }
   return "http://localhost:3000"
 }
+
+/**
+ * Verify that a store has an active subscription
+ * 
+ * This is a hard gate for monetization - checks Shopify directly
+ * to ensure the store has an ACTIVE subscription before allowing
+ * access to expensive AI analysis features.
+ * 
+ * @param shop - Shopify store domain (e.g., "mystore.myshopify.com")
+ * @param accessToken - Shopify OAuth access token
+ * @returns true if store has an active subscription, false otherwise
+ */
+export async function verifyActiveSubscription(
+  shop: string,
+  accessToken: string
+): Promise<boolean> {
+  try {
+    // Run the GET_CURRENT_SUBSCRIPTION query
+    const result = await getCurrentSubscription(shop, accessToken)
+    const subscriptions = result.data?.currentAppInstallation?.activeSubscriptions || []
+    
+    // Return TRUE only if status is "ACTIVE"
+    // Return FALSE if null, cancelled, or frozen
+    if (subscriptions.length === 0) {
+      return false
+    }
+    
+    const hasActiveSubscription = subscriptions.some(
+      (sub: AppSubscription) => {
+        const status = sub.status?.toUpperCase()
+        return status === "ACTIVE"
+      }
+    )
+    
+    return hasActiveSubscription
+  } catch (error) {
+    console.error(`Failed to verify subscription for ${shop}:`, error)
+    // Fail closed - if we can't verify, deny access
+    return false
+  }
+}
