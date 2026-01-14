@@ -8,7 +8,6 @@ import {
   Bot,
   Code2,
   Settings,
-  LifeBuoy,
   Ghost
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -27,7 +26,6 @@ const navItems = [
     title: "Configuration",
     items: [
       { href: "/dashboard/settings", label: "Settings", icon: Settings },
-      { href: "/dashboard/support", label: "Support", icon: LifeBuoy },
     ]
   }
 ]

@@ -23,12 +23,11 @@ export default async function SettingsPage() {
     .eq("is_active", true)
     .maybeSingle()
 
-  // Check for GA4 connection (assuming table name from your migrations)
+  // Check for GA4 connection
   const { data: ga4 } = await supabase
     .from("ga4_connections")
     .select("*")
     .eq("user_id", user.id)
-    .eq("status", "active")
     .maybeSingle()
 
   // 2. Fetch Subscription Status
@@ -42,7 +41,7 @@ export default async function SettingsPage() {
     shopify: !!store,
     shopifyShop: store?.shop || null,
     ga4: !!ga4,
-    ga4Property: ga4?.property_id || null,
+    ga4Property: ga4?.selected_property_id || null,
   }
 
   return (

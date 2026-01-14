@@ -144,7 +144,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
     latestTestResult ? 'dashboard' : 'scanner'
   )
   const [displayMode, setDisplayMode] = useState<'merchant' | 'agency'>('merchant')
-  const [resultsViewMode, setResultsViewMode] = useState<'simple' | 'advanced'>('simple')
+  const [resultsViewMode, setResultsViewMode] = useState<'simple' | 'advanced'>('simple') // Default to simple merchant view
   
   // Refs
   const logContainerRef = useRef<HTMLDivElement>(null)
