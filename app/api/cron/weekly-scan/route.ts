@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 
+// Email integration using Resend
+// Install: npm install resend
+let Resend: any = null
+try {
+  Resend = require("resend").Resend
+} catch {
+  // Resend not installed - will log email simulation instead
+  console.warn("Resend package not installed. Emails will be simulated.")
+}
+
 /**
  * Weekly Watchdog Cron Job
  * 
@@ -62,15 +72,39 @@ export async function GET(request: NextRequest) {
     const storesCount = stores?.length || 0
     console.log(`Found ${storesCount} active stores to scan`)
 
-    // Iterate through stores and log scan (stub for now)
-    // TODO: Implement actual retention monitoring logic:
-    // - Check last activity date
-    // - Verify subscription status
-    // - Flag inactive stores for follow-up
-    // - Send retention emails if needed
+    // Initialize Resend if available
+    const resendApiKey = process.env.RESEND_API_KEY
+    const resend = Resend && resendApiKey ? new Resend(resendApiKey) : null
+
+    // Iterate through stores and send retention emails
+    let emailsSent = 0
     for (const store of stores || []) {
       console.log(`Running scan for ${store.shop} (user: ${store.user_id})`)
-      // Stub: Add actual retention logic here
+      
+      // Get user email from profiles table
+      // TODO: Join with profiles table to get user email
+      // For now, use TEST_EMAIL env var or skip if not available
+      const testEmail = process.env.TEST_EMAIL
+      
+      if (resend && testEmail) {
+        try {
+          await resend.emails.send({
+            from: process.env.RESEND_FROM_EMAIL || "Ghost CRO <noreply@ghostcro.com>",
+            to: testEmail, // TODO: Replace with store.user_email after joining profiles table
+            subject: "Ghost Report: Weekly Scan Complete",
+            text: `We scanned your store ${store.shop}. Log in to see your new Health Score.\n\nVisit: ${process.env.NEXT_PUBLIC_APP_URL || "https://ghostcro.com"}/dashboard`,
+          })
+          emailsSent++
+          console.log(`✓ Email sent for ${store.shop}`)
+        } catch (emailError) {
+          console.error(`Failed to send email for ${store.shop}:`, emailError)
+        }
+      } else {
+        // Email simulation (when Resend not configured)
+        console.log(`[EMAIL SIMULATION] Would send to user for store ${store.shop}`)
+        console.log(`  Subject: Ghost Report: Weekly Scan Complete`)
+        console.log(`  Body: We scanned your store ${store.shop}. Log in to see your new Health Score.`)
+      }
     }
 
     console.log("=== WEEKLY WATCHDOG SCAN COMPLETE ===")
@@ -78,6 +112,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       storesScanned: storesCount,
+      emailsSent: emailsSent,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

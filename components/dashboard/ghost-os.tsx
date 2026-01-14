@@ -248,6 +248,19 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
         body: JSON.stringify({ url: targetUrl, personaMix: "balanced" }),
       })
       
+      // Handle 402 Payment Required - redirect to pricing
+      if (response.status === 402) {
+        setIsRunning(false)
+        addLog({
+          type: "threat",
+          message: "Upgrade required to run analysis",
+          severity: "high",
+        })
+        // Redirect to pricing page
+        window.location.href = "/pricing"
+        return
+      }
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
         throw new Error(errorData.error || "Analysis failed")
