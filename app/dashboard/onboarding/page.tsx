@@ -12,6 +12,7 @@ import Link from "next/link"
 export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [shopifyConnected, setShopifyConnected] = useState(false)
+  const [shopDomain, setShopDomain] = useState("")
   const [storeUrl, setStoreUrl] = useState("")
   const [revenueGoal, setRevenueGoal] = useState("")
   const [slackAlerts, setSlackAlerts] = useState(false)
@@ -57,6 +58,27 @@ export default function OnboardingPage() {
 
     fetchShopifyConnection()
   }, [])
+
+  const handleConnectShopify = () => {
+    if (!shopDomain.trim()) {
+      alert("Please enter your Shopify store domain")
+      return
+    }
+
+    // Clean up the domain (remove https://, www., trailing slashes)
+    let cleanDomain = shopDomain.trim()
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .replace(/\/$/, '')
+
+    // If they didn't include .myshopify.com, add it
+    if (!cleanDomain.includes('.myshopify.com')) {
+      cleanDomain = `${cleanDomain}.myshopify.com`
+    }
+
+    // Redirect to Shopify OAuth
+    window.location.href = `/api/auth/shopify/initiate?shop=${encodeURIComponent(cleanDomain)}`
+  }
 
   const handleLaunch = async () => {
     setIsSaving(true)
@@ -147,21 +169,52 @@ export default function OnboardingPage() {
 
           {/* Step 1: Connect Shopify */}
           {!shopifyConnected ? (
-            <div className="mb-6 p-6 rounded-lg border border-blue-200 bg-blue-50 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-500 flex items-center justify-center">
-                <Store className="h-6 w-6 text-white" />
+            <div className="mb-6 p-6 rounded-lg border border-blue-200 bg-blue-50">
+              <div className="flex flex-col items-center text-center mb-4">
+                <div className="w-12 h-12 mb-4 rounded-full bg-blue-500 flex items-center justify-center">
+                  <Store className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Connect Your Shopify Store</h3>
+                <p className="text-sm text-blue-700 mb-4">
+                  Enter your Shopify store domain to get started
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">Connect Your Shopify Store</h3>
-              <p className="text-sm text-blue-700 mb-4">
-                Ghost needs access to your store to analyze checkout friction and generate fixes.
-              </p>
-              <a href="/api/auth/shopify">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="shop-domain" className="text-sm font-medium text-blue-900 mb-2 block">
+                    Store Domain
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="shop-domain"
+                      type="text"
+                      value={shopDomain}
+                      onChange={(e) => setShopDomain(e.target.value)}
+                      placeholder="mystore"
+                      className="flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleConnectShopify()
+                        }
+                      }}
+                    />
+                    <span className="flex items-center text-sm text-zinc-500">.myshopify.com</span>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Example: if your store is "mystore.myshopify.com", enter "mystore"
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleConnectShopify}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
                   <Store className="h-4 w-4 mr-2" />
                   Connect Shopify Store
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
-              </a>
+              </div>
             </div>
           ) : (
             <div className="mb-6 p-4 rounded-lg border border-emerald-200 bg-emerald-50">
