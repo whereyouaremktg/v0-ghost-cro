@@ -1,38 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase/admin"
+import { Resend } from "resend" 
 
-/**
- * Weekly Watchdog Cron Job
- * Scans all active stores for monitoring and health checks
- */
 export async function GET(request: NextRequest) {
   try {
-    // Auth check: Require CRON_SECRET
     const authHeader = request.headers.get("Authorization")
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Query Supabase for active stores
-    const { data: stores, error: storesError } = await supabaseAdmin
-      .from("stores")
-      .select("shop")
-      .eq("is_active", true)
+    const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+    const { data: stores } = await supabaseAdmin.from("stores").select("shop, is_active").eq("is_active", true)
 
-    if (storesError) {
-      console.error("Failed to query stores:", storesError)
-      return NextResponse.json({ error: "Database query failed" }, { status: 500 })
-    }
-
-    // Loop through stores and log scanning
-    const count = stores?.length || 0
+    let emailCount = 0
     for (const store of stores || []) {
-      console.log(`Scanning ${store.shop}`)
+      if (resend) {
+        await resend.emails.send({
+          from: "Ghost CRO <reports@ghostcro.com>",
+          to: process.env.TEST_EMAIL || "founder@example.com", 
+          subject: `👻 Weekly Report: ${store.shop}`,
+          html: `<p>We scanned <strong>${store.shop}</strong>. Log in to see your new Health Score.</p>`
+        })
+        emailCount++
+      }
     }
-
-    return NextResponse.json({ success: true, count })
+    return NextResponse.json({ success: true, emailsSent: emailCount })
   } catch (error) {
-    console.error("Weekly scan cron failed:", error)
     return NextResponse.json({ error: "Cron failed" }, { status: 500 })
   }
 }

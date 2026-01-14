@@ -248,11 +248,11 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
         body: JSON.stringify({ url: targetUrl, personaMix: "balanced" }),
       })
 
-      // [CRITICAL] PAYWALL INTERCEPTOR
+      // BILLING GATE - FORCE REDIRECT
       if (response.status === 402) {
         addLog({ type: "threat", message: "🔒 Upgrade required to unlock deep analysis" })
         setIsRunning(false)
-        router.push("/pricing") // Redirects user to pay
+        router.push("/pricing") 
         return
       }
 
