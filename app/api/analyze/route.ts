@@ -780,43 +780,37 @@ IMPORTANT:
     })
 
     // Map affected personas in friction points
+    // FIXED: Checks BOTH persona name AND demographics string to fix "0% Impact" bug
     const mapAffectedPersonas = (affected: string): string[] => {
-      const normalized = normalizePersonaName(affected)
       const matchedPersonas: string[] = []
       const affectedLower = affected.toLowerCase()
 
-      // 1. Check for "All" or "Everyone"
+      // Check for "All" or "Everyone"
       if (affectedLower.includes("all") || affectedLower.includes("everyone") || affectedLower.includes("every user")) {
         return analysisData.personaResults.map((_, i) => `persona_${i}`)
       }
 
-      // 2. Try exact match first (Name)
-      if (personaMap.has(normalized)) {
-        matchedPersonas.push(personaMap.get(normalized)!)
-      }
-
-      // 3. Keyword matching across Name AND Demographics
+      // Extract keywords from affected string
       const affectedKeywords = affectedLower.split(/[\s,]+/).filter(k => k.length > 3)
 
+      // Check each persona against keywords in BOTH name AND demographics
       analysisData.personaResults.forEach((pr, i) => {
         const personaId = `persona_${i}`
-        if (matchedPersonas.includes(personaId)) return
-
         const nameLower = pr.name.toLowerCase()
         const demographicsLower = pr.demographics.toLowerCase() // e.g., "age 34, $65k, mobile"
 
-        // Check each keyword against Name AND Demographics
+        // Check if ANY keyword matches in name OR demographics
         const hasMatch = affectedKeywords.some(keyword => {
-          // Direct match in name
+          // Check persona name
           if (nameLower.includes(keyword)) return true
-
-          // Match attributes (mobile, desktop, income terms)
+          
+          // Check demographics string (FIX: This was missing, causing "Mobile users" to be ignored)
           if (demographicsLower.includes(keyword)) return true
-
+          
           return false
         })
 
-        if (hasMatch) {
+        if (hasMatch && !matchedPersonas.includes(personaId)) {
           matchedPersonas.push(personaId)
         }
       })

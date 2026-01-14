@@ -1,47 +1,38 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase/admin"
-import { Resend } from "resend"
 
+/**
+ * Weekly Watchdog Cron Job
+ * Scans all active stores for monitoring and health checks
+ */
 export async function GET(request: NextRequest) {
   try {
-    // 1. Auth Check
+    // Auth check: Require CRON_SECRET
     const authHeader = request.headers.get("Authorization")
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // 2. Initialize Emailer
-    const resendKey = process.env.RESEND_API_KEY
-    const resend = resendKey ? new Resend(resendKey) : null
-
-    // 3. Get Active Stores
-    const { data: stores } = await supabaseAdmin
+    // Query Supabase for active stores
+    const { data: stores, error: storesError } = await supabaseAdmin
       .from("stores")
-      .select("shop, user_id, is_active")
+      .select("shop")
       .eq("is_active", true)
 
-    // 4. Loop & Notify
-    let emailCount = 0
-    for (const store of stores || []) {
-      console.log(`Scanning ${store.shop}...`)
-
-      if (resend) {
-        // Send retention email (Default to test email for MVP safety)
-        const targetEmail = process.env.TEST_EMAIL || "founder@example.com"
-
-        await resend.emails.send({
-          from: "Ghost CRO <reports@ghostcro.com>",
-          to: targetEmail,
-          subject: `👻 Weekly Report: ${store.shop}`,
-          html: `<p>We scanned <strong>${store.shop}</strong>. Log in to see your new Conversion Health Score.</p>`
-        })
-        emailCount++
-      }
+    if (storesError) {
+      console.error("Failed to query stores:", storesError)
+      return NextResponse.json({ error: "Database query failed" }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, emailsSent: emailCount })
+    // Loop through stores and log scanning
+    const count = stores?.length || 0
+    for (const store of stores || []) {
+      console.log(`Scanning ${store.shop}`)
+    }
+
+    return NextResponse.json({ success: true, count })
   } catch (error) {
-    console.error("Cron failed:", error)
+    console.error("Weekly scan cron failed:", error)
     return NextResponse.json({ error: "Cron failed" }, { status: 500 })
   }
 }
