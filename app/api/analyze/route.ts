@@ -533,7 +533,6 @@ async function processAnalysisJob(
             }
           }
         }
-      }
     } catch (error) {
       console.warn('Error checking GA4 connection, using defaults:', error)
       // Fall through to use defaults
@@ -900,14 +899,6 @@ IMPORTANT:
   } catch (error) {
     console.error(`[Job ${jobId}] Analysis failed:`, error)
     throw error // Re-throw to be caught by caller
-  }
-}
-  } catch (error) {
-    console.error("Analysis error:", error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to analyze checkout" },
-      { status: 500 },
-    )
   }
 }
 
