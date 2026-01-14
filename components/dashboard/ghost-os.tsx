@@ -31,6 +31,7 @@ import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils/format"
 import type { TestResult } from "@/lib/types"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
 import { MerchantSummary } from "@/components/dashboard/merchant-summary"
+import { ConnectShopifyGate } from "@/components/dashboard/connect-shopify-gate"
 import {
   Dialog,
   DialogContent,
@@ -379,29 +380,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
   }
 
   if (!shopifyStore) {
-    return (
-      <div className="h-screen flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
-          <div className="ghost-glass rounded-2xl p-8 text-center ghost-glow">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-[#0070F3]/10 border border-[#0070F3]/20 flex items-center justify-center">
-              <Ghost className="w-8 h-8 text-[#0070F3]" />
-            </div>
-            <h1 className="text-2xl font-semibold mb-2">Connect Your Store</h1>
-            <p className="text-[#737373] mb-8">
-              Ghost needs access to your Shopify store to run the simulation.
-            </p>
-            <a
-              href="/api/auth/shopify"
-              className="ghost-fix-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
-            >
-              <Store className="w-5 h-5" />
-              Connect Shopify
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-      </div>
-    )
+    return <ConnectShopifyGate />
   }
 
   // Render results view when not running and in dashboard mode
