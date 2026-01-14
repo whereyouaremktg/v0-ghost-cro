@@ -1,8 +1,17 @@
 import { updateSession } from "@/lib/supabase/proxy"
+import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function proxy(request: NextRequest) {
-  // updateSession handles all auth logic including redirects
+  // Check for demo mode - allow /ghost routes without auth
+  const demoMode = process.env.DEMO_MODE === "true"
+
+  if (demoMode && request.nextUrl.pathname.startsWith("/ghost")) {
+    // Skip auth check for /ghost routes in demo mode
+    return NextResponse.next()
+  }
+
+  // Otherwise, use the normal auth middleware
   return await updateSession(request)
 }
 
