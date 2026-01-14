@@ -130,7 +130,7 @@ export default function PricingPage() {
   }
 
   const handleConnectShopify = () => {
-    router.push("/ghost")
+    router.push("/dashboard")
   }
 
   return (

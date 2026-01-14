@@ -146,7 +146,7 @@ export function DashboardContent({ user, stats, tests, latestTestResult }: Dashb
           )}
 
           <Link
-            href="/ghost#simulation"
+            href="/dashboard"
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium tracking-wide text-sm rounded-xl accent-glow transition-all duration-300 hover:-translate-y-1"
           >
             <Play className="h-4 w-4" strokeWidth={2.5} />

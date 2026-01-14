@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-// Legacy route - redirect to unified Ghost OS simulation view
+// Legacy route - redirect to dashboard
 export default function RunTestPage() {
-  redirect("/ghost#simulation")
+  redirect("/dashboard")
 }
