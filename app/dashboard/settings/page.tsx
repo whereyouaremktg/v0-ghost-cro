@@ -1,61 +1,69 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { SettingsContent } from "@/components/dashboard/settings/settings-content"
+"use client"
 
-export default async function SettingsPage() {
-  const supabase = await createClient()
+import { GhostButton } from "@/components/ui/ghost-button"
+import { GhostCard } from "@/components/ui/ghost-card"
+import { GhostInput } from "@/components/ui/ghost-input"
+import { GhostSelect } from "@/components/ui/ghost-select"
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+const tabs = [
+  "General",
+  "Billing",
+  "Integrations",
+  "Notifications",
+  "Team",
+]
 
-  if (error || !user) {
-    redirect("/login")
-  }
-
-  // 1. Fetch Integrations Status
-  // We use .maybeSingle() because the user might not have connected anything yet
-  const { data: store } = await supabase
-    .from("stores")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .maybeSingle()
-
-  // Check for GA4 connection (assuming table name from your migrations)
-  const { data: ga4 } = await supabase
-    .from("ga4_connections")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle()
-
-  // 2. Fetch Subscription Status
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .single()
-
-  const connections = {
-    shopify: !!store,
-    shopifyShop: store?.shop || null,
-    ga4: !!ga4,
-    ga4Property: ga4?.property_id || null,
-  }
-
+export default function SettingsPage() {
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+        <h2 className="text-xl font-semibold text-white">Settings</h2>
+        <p className="text-sm text-[#9CA3AF]">
+          Manage your store configuration and subscriptions.
+        </p>
       </div>
 
-      {/* Settings Container */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm min-h-[600px] flex overflow-hidden">
-        <SettingsContent connections={connections} subscription={subscription} />
+      <div className="flex flex-wrap gap-2 text-sm">
+        {tabs.map((tab, index) => (
+          <button
+            key={tab}
+            className={`px-4 py-2 rounded-lg border ${
+              index === 0
+                ? "bg-[#111111] border-[#2A2A2A] text-white"
+                : "border-[#1F1F1F] text-[#9CA3AF]"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
+
+      <GhostCard className="p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-[#9CA3AF]">Store name</label>
+            <GhostInput defaultValue="Northwind Co." className="mt-2" />
+          </div>
+          <div>
+            <label className="text-sm text-[#9CA3AF]">Timezone</label>
+            <GhostSelect className="mt-2" defaultValue="pst">
+              <option value="pst">Pacific Time (PST)</option>
+              <option value="est">Eastern Time (EST)</option>
+              <option value="gmt">GMT</option>
+            </GhostSelect>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t border-[#1F1F1F] pt-6">
+          <div>
+            <p className="text-white font-medium">Billing</p>
+            <p className="text-sm text-[#9CA3AF]">
+              You are on the Free plan. Upgrade for automated scans.
+            </p>
+          </div>
+          <GhostButton>Upgrade plan</GhostButton>
+        </div>
+      </GhostCard>
     </div>
   )
 }
