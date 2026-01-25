@@ -3,10 +3,18 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { cn } from '@/lib/utils'
-import { LucideIcon, Check, ArrowRight } from 'lucide-react'
+import { Check, ArrowRight, Type, CreditCard, BarChart3, type LucideIcon } from 'lucide-react'
+
+type IconName = 'type' | 'credit-card' | 'bar-chart-3'
+
+const iconMap: Record<IconName, LucideIcon> = {
+  'type': Type,
+  'credit-card': CreditCard,
+  'bar-chart-3': BarChart3,
+}
 
 interface FeatureSectionProps {
-  icon: LucideIcon
+  icon: IconName
   badge: string
   title: string
   description: string
@@ -17,7 +25,7 @@ interface FeatureSectionProps {
 }
 
 export function FeatureSection({
-  icon: Icon,
+  icon,
   badge,
   title,
   description,
@@ -26,6 +34,7 @@ export function FeatureSection({
   imageSide,
   imageContent,
 }: FeatureSectionProps) {
+  const Icon = iconMap[icon]
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
