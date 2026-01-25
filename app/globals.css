@@ -992,3 +992,62 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ============================================
+   GHOST CRO LANDING PAGE - AMBER THEME
+   ============================================ */
+
+.landing-theme {
+  /* Background Hierarchy */
+  --landing-bg: #0A0A0A;
+  --landing-surface: #111111;
+  --landing-surface-hover: #1A1A1A;
+
+  /* Amber Accent System */
+  --landing-accent: #FBBF24;
+  --landing-accent-hover: #F59E0B;
+  --landing-accent-soft: rgba(251, 191, 36, 0.1);
+  --landing-accent-glow: rgba(251, 191, 36, 0.25);
+
+  /* Typography */
+  --landing-text-primary: #FFFFFF;
+  --landing-text-secondary: #9CA3AF;
+  --landing-text-muted: #6B7280;
+
+  /* Borders */
+  --landing-border: #1F1F1F;
+  --landing-border-subtle: rgba(255, 255, 255, 0.05);
+}
+
+/* Amber Glow Effects */
+.amber-glow {
+  box-shadow: 0 0 20px var(--landing-accent-glow), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.amber-glow:hover {
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Text gradient for amber */
+.text-gradient-amber {
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Amber underline effect */
+.amber-underline {
+  position: relative;
+}
+
+.amber-underline::after {
+  content: '';
+  position: absolute;
+  bottom: 0.1em;
+  left: 0;
+  right: 0;
+  height: 0.15em;
+  background: linear-gradient(90deg, #FBBF24, transparent);
+  opacity: 0.6;
+}
