@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Navbar,
   Hero,
@@ -6,7 +8,6 @@ import {
   CTASection,
   Footer,
 } from '@/components/landing'
-import { Type, CreditCard, BarChart3 } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -17,7 +18,7 @@ export default function LandingPage() {
 
       {/* Feature Section 1: Typography */}
       <FeatureSection
-        icon={Type}
+        icon="type"
         badge="Typography Intelligence"
         title="Typography that converts."
         description="Micro-adjustments in font size, line-height, and hierarchy that compound into meaningful conversion lifts. Our AI spots what the human eye misses."
@@ -31,7 +32,7 @@ export default function LandingPage() {
 
       {/* Feature Section 2: Checkout */}
       <FeatureSection
-        icon={CreditCard}
+        icon="credit-card"
         badge="Checkout Intelligence"
         title="Frictionless checkout."
         description="The most critical point in your funnel deserves the most attention. We analyze every element that could cause a customer to abandon their cart."
@@ -41,7 +42,7 @@ export default function LandingPage() {
 
       {/* Feature Section 3: Merchandising */}
       <FeatureSection
-        icon={BarChart3}
+        icon="bar-chart-3"
         badge="A/B Testing"
         title="Data-driven merchandising."
         description="Stop guessing which product image works best. Our AI tests visual variations and surfaces the winners before you even know there's a problem."

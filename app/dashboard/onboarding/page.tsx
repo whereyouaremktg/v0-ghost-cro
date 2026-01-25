@@ -244,7 +244,7 @@ export default function OnboardingPage() {
             <Button
               onClick={handleLaunch}
               disabled={isSaving}
-              className="w-full bg-[#0070F3] hover:bg-[#0060d0] text-white font-medium gap-2"
+              className="w-full bg-[#FBBF24] hover:bg-[#F59E0B] text-[#0A0A0A] font-medium gap-2"
               size="lg"
             >
               {isSaving ? "Saving..." : "Launch Mission Control"}

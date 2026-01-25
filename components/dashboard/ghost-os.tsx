@@ -63,7 +63,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
             <h2 className="text-lg font-semibold text-white">Latest Scan</h2>
             <Link
               href={`/dashboard/test/${latestTest.id}`}
-              className="text-sm text-blue-500 hover:text-blue-400 flex items-center gap-1"
+              className="text-sm text-[#FBBF24] hover:text-[#FCD34D] flex items-center gap-1"
             >
               View Details <ExternalLink className="w-4 h-4" />
             </Link>
@@ -125,7 +125,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           </p>
           <Link
             href="/dashboard/settings"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#FBBF24] text-[#0A0A0A] rounded-lg hover:bg-[#F59E0B] transition-colors"
           >
             Connect Store
           </Link>

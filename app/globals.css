@@ -17,9 +17,9 @@
   --popover: #FFFFFF;
   --popover-foreground: #0A0A0A;
 
-  /* Primary Accent - Electric Blue */
-  --primary: #0070F3;
-  --primary-foreground: #FFFFFF;
+  /* Primary Accent - Amber */
+  --primary: #FBBF24;
+  --primary-foreground: #0A0A0A;
 
   /* Secondary - Subtle Gray */
   --secondary: #F5F5F7;
@@ -30,35 +30,35 @@
   --muted-foreground: #71717a;
 
   /* Accent */
-  --accent: #0070F3;
-  --accent-foreground: #FFFFFF;
+  --accent: #FBBF24;
+  --accent-foreground: #0A0A0A;
 
   /* Semantic Colors */
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
   --success: #10B981;
   --warning: #F59E0B;
-  --info: #0070F3;
+  --info: #FBBF24;
 
   /* Premium Dashboard Colors */
   --leak: #F43F5E;
   --leak-light: #FFF1F2;
   --win: #10B981;
   --win-light: #ECFDF5;
-  --opportunity: #0070F3;
-  --opportunity-light: #EFF6FF;
+  --opportunity: #FBBF24;
+  --opportunity-light: #FEF3C7;
 
   /* Borders & Dividers - Glassmorphism */
   --border: rgba(0, 0, 0, 0.08);
   --input: rgba(0, 0, 0, 0.08);
-  --ring: #0070F3;
+  --ring: #FBBF24;
 
   /* Charts */
-  --chart-1: #0070F3;
+  --chart-1: #FBBF24;
   --chart-2: #10B981;
   --chart-3: #EF4444;
   --chart-4: #F59E0B;
-  --chart-5: #3291ff;
+  --chart-5: #FCD34D;
 
   /* Radius - ZERO for brutalist (or minimal) */
   --radius: 0rem;
@@ -67,17 +67,17 @@
   --ghost-bg: #020202;
   --ghost-card: #0a0a0a;
   --ghost-card-border: rgba(255, 255, 255, 0.08);
-  --ghost-card-glow: rgba(0, 112, 243, 0.03);
-  --ghost-blue: #0070F3;
-  --ghost-blue-bright: #3291ff;
-  --ghost-blue-dim: #0050b3;
-  --ghost-blue-glow: rgba(0, 112, 243, 0.25);
-  --ghost-blue-soft: rgba(0, 112, 243, 0.08);
+  --ghost-card-glow: rgba(251, 191, 36, 0.03);
+  --ghost-blue: #FBBF24;
+  --ghost-blue-bright: #FCD34D;
+  --ghost-blue-dim: #D97706;
+  --ghost-blue-glow: rgba(251, 191, 36, 0.25);
+  --ghost-blue-soft: rgba(251, 191, 36, 0.08);
   --ghost-danger: #f87171;
   --ghost-danger-glow: rgba(248, 113, 113, 0.2);
   --ghost-warning: #fbbf24;
   --ghost-success: #10b981;
-  --ghost-info: #0070F3;
+  --ghost-info: #FBBF24;
   --ghost-text: #e5e5e5;
   --ghost-text-muted: #a1a1aa;
   --ghost-text-dim: #71717a;
@@ -102,19 +102,19 @@
   /* Sidebar (for dashboard) */
   --sidebar: #FAFAFA;
   --sidebar-foreground: #0A0A0A;
-  --sidebar-primary: #0070F3;
+  --sidebar-primary: #FBBF24;
   --sidebar-primary-foreground: #0A0A0A;
   --sidebar-accent: #F5F5F5;
   --sidebar-accent-foreground: #0A0A0A;
   --sidebar-border: #0A0A0A;
-  --sidebar-ring: #0070F3;
+  --sidebar-ring: #FBBF24;
 
-  /* Ghost OS Electric Blue Accents (global) */
-  --ghost-blue: #0070F3;
-  --ghost-blue-bright: #3291ff;
-  --ghost-blue-dim: #0050b3;
-  --ghost-blue-glow: rgba(0, 112, 243, 0.25);
-  --ghost-blue-soft: rgba(0, 112, 243, 0.08);
+  /* Ghost OS Amber Accents (global) */
+  --ghost-blue: #FBBF24;
+  --ghost-blue-bright: #FCD34D;
+  --ghost-blue-dim: #D97706;
+  --ghost-blue-glow: rgba(251, 191, 36, 0.25);
+  --ghost-blue-soft: rgba(251, 191, 36, 0.08);
 }
 
 .dark {
@@ -125,36 +125,36 @@
   --card-foreground: #e5e5e5;
   --popover: #0a0a0a;
   --popover-foreground: #e5e5e5;
-  --primary: #0070F3;
-  --primary-foreground: #FFFFFF;
+  --primary: #FBBF24;
+  --primary-foreground: #0A0A0A;
   --secondary: #1A1A1A;
   --secondary-foreground: #e5e5e5;
   --muted: #1A1A1A;
   --muted-foreground: #a1a1aa;
-  --accent: #0070F3;
-  --accent-foreground: #FFFFFF;
+  --accent: #FBBF24;
+  --accent-foreground: #0A0A0A;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.08);
-  --ring: #0070F3;
+  --ring: #FBBF24;
 
   /* Premium Dashboard Colors - Dark Mode */
   --leak: #FB7185;
   --leak-light: #1A0A0D;
   --win: #34D399;
   --win-light: #0A1F17;
-  --opportunity: #0070F3;
-  --opportunity-light: rgba(0, 112, 243, 0.1);
+  --opportunity: #FBBF24;
+  --opportunity-light: rgba(251, 191, 36, 0.1);
 
   --sidebar: #0a0a0a;
   --sidebar-foreground: #e5e5e5;
-  --sidebar-primary: #0070F3;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary: #FBBF24;
+  --sidebar-primary-foreground: #0A0A0A;
   --sidebar-accent: #1A1A1A;
   --sidebar-accent-foreground: #e5e5e5;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #0070F3;
+  --sidebar-ring: #FBBF24;
 }
 
 /* Glass Card Effect */
@@ -225,7 +225,7 @@
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 112, 243, 0.03) 50%,
+    rgba(251, 191, 36, 0.03) 50%,
     transparent 100%
   );
   height: 200%;
@@ -244,7 +244,7 @@
 
 /* Dot Matrix Background */
 .ghost-dots {
-  background-image: radial-gradient(rgba(0, 112, 243, 0.1) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(251, 191, 36, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -365,13 +365,13 @@
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.4),
     0 0 30px var(--ghost-blue-glow);
-  border-color: rgba(0, 112, 243, 0.2);
+  border-color: rgba(251, 191, 36, 0.2);
 }
 
 /* Fix Button Glow */
 .ghost-fix-btn {
   background: linear-gradient(135deg, var(--ghost-blue-dim), var(--ghost-blue));
-  color: #ffffff;
+  color: #0A0A0A;
   font-weight: 600;
   transition: all 0.2s ease;
 }
@@ -415,7 +415,7 @@
 
 .ghost-stream-entry:hover {
   border-left-color: var(--ghost-blue);
-  background: rgba(0, 112, 243, 0.02);
+  background: rgba(251, 191, 36, 0.02);
 }
 
 .ghost-stream-entry.active {
@@ -547,7 +547,7 @@ html {
     background-color: transparent;
   }
   50% {
-    background-color: rgba(0, 112, 243, 0.15);
+    background-color: rgba(251, 191, 36, 0.15);
   }
 }
 
@@ -602,7 +602,7 @@ html {
 }
 
 .button-glow:hover {
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Section scroll animation */
@@ -615,12 +615,12 @@ html {
 
 /* Accent button glow effect */
 .accent-glow {
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
 }
 
 .accent-glow:hover {
-  box-shadow: 0 0 30px rgba(0, 112, 243, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.35), 0 6px 16px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
 }
 
@@ -759,18 +759,18 @@ html {
    GHOST OS LANDING PAGE - OBSIDIAN THEME
    ============================================ */
 
-/* Electric Blue Button */
+/* Amber Button */
 .btn-electric {
-  background: #0070F3;
-  color: white;
+  background: #FBBF24;
+  color: #0A0A0A;
   font-weight: 500;
   border-radius: 0.75rem;
   transition: all 0.3s ease;
 }
 
 .btn-electric:hover {
-  background: #0060d0;
-  box-shadow: 0 0 30px rgba(0, 112, 243, 0.4);
+  background: #F59E0B;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
   transform: translateY(-2px);
 }
 
@@ -792,8 +792,8 @@ html {
 /* Obsidian Grid Background */
 .obsidian-grid {
   background-image: 
-    linear-gradient(rgba(0, 112, 243, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 112, 243, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(251, 191, 36, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 191, 36, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -802,8 +802,8 @@ html {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
-  color: #0070F3;
-  text-shadow: 0 0 30px rgba(0, 112, 243, 0.5);
+  color: #FBBF24;
+  text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
 }
 
 .revenue-counter-danger {
@@ -814,7 +814,7 @@ html {
 /* Ambient Glow */
 .ambient-glow-blue {
   position: absolute;
-  background: radial-gradient(circle, rgba(0, 112, 243, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -833,8 +833,8 @@ html {
 }
 
 .landing-card:hover {
-  border-color: rgba(0, 112, 243, 0.3);
-  box-shadow: 0 0 40px rgba(0, 112, 243, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 40px rgba(251, 191, 36, 0.1);
 }
 
 /* Scanline Animation for Hero */
@@ -849,7 +849,7 @@ html {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 112, 243, 0.03) 50%,
+    rgba(251, 191, 36, 0.03) 50%,
     transparent 100%
   );
   height: 200%;
@@ -862,8 +862,8 @@ html {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(0, 112, 243, 0.1);
-  border: 1px solid rgba(0, 112, 243, 0.2);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -872,14 +872,14 @@ html {
 
 .feature-icon-box:hover,
 .landing-card:hover .feature-icon-box {
-  background: rgba(0, 112, 243, 0.2);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.2);
+  background: rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
 }
 
 /* Pricing Card Popular */
 .pricing-popular {
-  background: rgba(0, 112, 243, 0.05);
-  border: 1px solid rgba(0, 112, 243, 0.3);
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.3);
   transform: scale(1.05);
 }
 
@@ -888,8 +888,8 @@ html {
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: #0070F3;
-  color: white;
+  background: #FBBF24;
+  color: #0A0A0A;
   padding: 4px 16px;
   border-radius: 9999px;
   font-size: 12px;
@@ -911,7 +911,7 @@ html {
 }
 
 .stat-card:hover {
-  border-color: rgba(0, 112, 243, 0.3);
+  border-color: rgba(251, 191, 36, 0.3);
 }
 
 .stat-value {
@@ -980,7 +980,7 @@ html {
 
 /* Text Gradient */
 .text-gradient-blue {
-  background: linear-gradient(135deg, #0070F3 0%, #3291ff 100%);
+  background: linear-gradient(135deg, #FBBF24 0%, #FCD34D 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
