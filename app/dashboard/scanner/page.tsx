@@ -1,90 +1,84 @@
 "use client"
 
-import { Calendar, Scan } from "lucide-react"
+import { useState } from "react"
 
 import { GhostButton } from "@/components/ui/ghost-button"
 import { GhostCard } from "@/components/ui/ghost-card"
-import { GhostSelect } from "@/components/ui/ghost-select"
-
-const history = [
-  { id: "scan-1", date: "Today 9:42 AM", status: "Completed", score: 72 },
-  { id: "scan-2", date: "Yesterday 2:10 PM", status: "Completed", score: 66 },
-  { id: "scan-3", date: "Oct 2, 2024", status: "Completed", score: 64 },
-]
 
 export default function ScannerPage() {
+  const [isScanning, setIsScanning] = useState(false)
+  const [progress, setProgress] = useState(68)
+  const [logs, setLogs] = useState([
+    "[INIT] Booting mission control modules...",
+    "[SYNC] Loading storefront telemetry feeds...",
+    "[SCAN] Mapping conversion surface area...",
+    "[SCAN] Flagging high-risk friction nodes...",
+  ])
+
+  const progressClass =
+    progress < 40 ? "w-1/3" : progress < 70 ? "w-2/3" : "w-3/4"
+
   return (
-    <div className="space-y-6">
-      <GhostCard className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-white">Scanner</h2>
-          <p className="text-sm text-[#9CA3AF]">
-            Run a new scan to detect conversion leaks and performance issues.
+    <div className="flex min-h-[70vh] items-center justify-center px-4">
+      {!isScanning ? (
+        <GhostCard className="mx-auto w-full max-w-[800px] p-10 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#111111] text-2xl">
+            📡
+          </div>
+          <h2 className="mt-6 text-2xl font-semibold text-white">
+            Store Scanner
+          </h2>
+          <p className="mt-2 text-sm text-[#9CA3AF]">
+            Mission control is standing by to sweep your storefront for leaks,
+            slowdowns, and high-impact conversion gaps.
           </p>
-        </div>
-        <GhostButton>
-          <Scan className="h-4 w-4" />
-          Trigger new scan
-        </GhostButton>
-      </GhostCard>
-
-      <GhostCard className="p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">Scan configuration</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="space-y-2">
-            <p className="text-[#9CA3AF]">What to scan</p>
-            <div className="flex flex-col gap-2 text-white">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
-                Theme
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
-                Checkout
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
-                Speed
-              </label>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-[#9CA3AF]">Schedule</p>
-            <GhostSelect defaultValue="daily">
-              <option value="daily">Daily (Pro)</option>
-              <option value="weekly">Weekly</option>
-              <option value="manual">Manual only</option>
-            </GhostSelect>
-          </div>
-          <div className="space-y-2">
-            <p className="text-[#9CA3AF]">Next scheduled scan</p>
-            <div className="flex items-center gap-2 text-white">
-              <Calendar className="h-4 w-4 text-[#FBBF24]" />
-              Tomorrow at 9:00 AM
-            </div>
-          </div>
-        </div>
-      </GhostCard>
-
-      <GhostCard className="p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Scan history</h3>
-        <div className="space-y-3">
-          {history.map((scan) => (
-            <div
-              key={scan.id}
-              className="flex items-center justify-between rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4"
-            >
-              <div>
-                <p className="text-white">{scan.date}</p>
-                <p className="text-xs text-[#6B7280]">{scan.status}</p>
+          <GhostButton
+            className="mt-8 w-full max-w-xs animate-pulse bg-amber-500 text-black hover:bg-amber-400"
+            onClick={() => {
+              setIsScanning(true)
+              setProgress(68)
+              setLogs((current) => [...current, "[AUTH] Uplink secured."])
+            }}
+          >
+            Start Deep Analysis
+          </GhostButton>
+        </GhostCard>
+      ) : (
+        <GhostCard className="w-full max-w-[900px] border border-[#27272A] bg-[#000] p-8 text-white shadow-none">
+          <div className="space-y-6 font-mono text-sm">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-amber-400">
+                <span>SCANNING_PROGRESS</span>
+                <span>{progress}%</span>
               </div>
-              <div className="text-sm text-[#FBBF24]">
-                Score {scan.score}
+              <div className="h-2 w-full rounded-full bg-[#111111]">
+                <div
+                  className={`h-full rounded-full bg-amber-400 ${progressClass}`}
+                />
               </div>
             </div>
-          ))}
-        </div>
-      </GhostCard>
+
+            <div className="space-y-2">
+              <div className="text-xs uppercase tracking-[0.2em] text-[#71717A]">
+                Live telemetry
+              </div>
+              <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-[#27272A] bg-[#050505] p-4">
+                {logs.map((line, index) => (
+                  <p key={`${line}-${index}`} className="text-[#E5E7EB]">
+                    {line}
+                  </p>
+                ))}
+                <p className="text-[#E5E7EB]">
+                  [STREAM] Awaiting next signal
+                  <span className="ml-1 inline-block animate-pulse text-amber-400">
+                    _
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </GhostCard>
+      )}
     </div>
   )
 }
