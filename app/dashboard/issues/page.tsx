@@ -1,51 +1,95 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { Search, SlidersHorizontal } from "lucide-react"
 
+import { EmptyState } from "@/components/ui/empty-state"
 import { GhostButton } from "@/components/ui/ghost-button"
 import { GhostCard } from "@/components/ui/ghost-card"
 import { GhostInput } from "@/components/ui/ghost-input"
 import { GhostSelect } from "@/components/ui/ghost-select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuthUserId } from "@/hooks/use-auth-user-id"
+import { useLatestTest } from "@/hooks/use-latest-test"
+import type { FrictionPoint, TestResult } from "@/lib/types"
 
-const issues = [
-  {
-    id: "issue-1",
-    title: "Checkout trust badges missing",
-    severity: "critical",
-    category: "Checkout",
+type IssueRow = {
+  id: string
+  title: string
+  severity: "critical" | "warning" | "suggestion"
+  category: string
+  status: string
+  impact: string
+}
+
+const impactFromText = (impact?: string) => {
+  if (!impact) {
+    return "—"
+  }
+  const match = impact.match(/\d+%?/)
+  return match ? `+${match[0]} lift` : impact
+}
+
+const mapIssues = (test: TestResult): IssueRow[] => {
+  const mapIssue = (
+    issue: FrictionPoint,
+    severity: IssueRow["severity"],
+  ) => ({
+    id: issue.id,
+    title: issue.title,
+    severity,
+    category: issue.location || "General",
     status: "Open",
-    impact: 12,
-  },
-  {
-    id: "issue-2",
-    title: "Mobile CTA contrast too low",
-    severity: "warning",
-    category: "Mobile",
-    status: "Open",
-    impact: 7,
-  },
-  {
-    id: "issue-3",
-    title: "Cart upsell placement",
-    severity: "warning",
-    category: "AOV",
-    status: "In progress",
-    impact: 5,
-  },
-  {
-    id: "issue-4",
-    title: "Exit intent offer missing",
-    severity: "suggestion",
-    category: "Retention",
-    status: "Open",
-    impact: 3,
-  },
-]
+    impact: impactFromText(issue.impact),
+  })
+
+  return [
+    ...test.frictionPoints.critical.map((issue) =>
+      mapIssue(issue, "critical"),
+    ),
+    ...test.frictionPoints.high.map((issue) => mapIssue(issue, "warning")),
+    ...test.frictionPoints.medium.map((issue) =>
+      mapIssue(issue, "suggestion"),
+    ),
+  ]
+}
 
 export default function IssuesPage() {
   const [selected, setSelected] = useState<string[]>([])
+  const { userId, isLoading: isUserLoading } = useAuthUserId()
+  const { test, isLoading } = useLatestTest(userId)
+
+  const issues = useMemo(() => (test ? mapIssues(test) : []), [test])
+
+  if (isUserLoading || isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-24" />
+        <Skeleton className="h-32" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-24" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (!test) {
+    return (
+      <EmptyState
+        icon={SlidersHorizontal}
+        title="No issues yet"
+        description="Run a scan to populate your issue backlog."
+        action={
+          <GhostButton asChild>
+            <a href="/dashboard/onboarding">Start a scan</a>
+          </GhostButton>
+        }
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -116,9 +160,7 @@ export default function IssuesPage() {
                     <span className="px-2 py-0.5 rounded-full bg-[#1A1A1A]">
                       {issue.status}
                     </span>
-                    <span className="text-green-400">
-                      +{issue.impact}% lift
-                    </span>
+                    <span className="text-green-400">{issue.impact}</span>
                   </div>
                 </div>
               </div>

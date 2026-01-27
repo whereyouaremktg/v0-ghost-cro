@@ -1,79 +1,25 @@
 "use client"
 
+import { useMemo } from "react"
 import {
   CheckCircle,
   DollarSign,
   FlaskConical,
   Zap,
 } from "lucide-react"
+import { format } from "date-fns"
 
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { BenchmarkSection } from "@/components/dashboard/benchmark-section"
 import { InsightsPanel } from "@/components/dashboard/insights-panel"
 import { ScoreHeroCard } from "@/components/dashboard/score-hero-card"
+import { EmptyState } from "@/components/ui/empty-state"
+import { GhostButton } from "@/components/ui/ghost-button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { StatCard } from "@/components/ui/stat-card"
-
-const latestScan = {
-  score: 72,
-  previousScore: 66,
-  createdAt: "Today at 9:42 AM",
-}
-
-const metrics = {
-  revenueImpact: 18250,
-  revenueImpactTrend: 12,
-  issuesFixed: 6,
-  issuesFixedTrend: 14,
-  activeTests: 3,
-  pageSpeed: 2.8,
-  pageSpeedTrend: -8,
-  conversionRate: 2.4,
-  aov: 84,
-  revenuePerVisitor: 2.2,
-}
-
-const issues = [
-  {
-    id: "1",
-    title: "Checkout CTA lacks urgency",
-    description: "Add social proof and urgency indicators near checkout.",
-    category: "Checkout",
-    severity: "critical" as const,
-    potentialImpact: 12,
-  },
-  {
-    id: "2",
-    title: "Cart drawer hides recommended add-ons",
-    description: "Surface upsells above the fold to increase AOV.",
-    category: "AOV",
-    severity: "warning" as const,
-    potentialImpact: 8,
-  },
-  {
-    id: "3",
-    title: "Mobile hero button contrast is low",
-    description: "Increase contrast to improve tap-through rate.",
-    category: "Mobile",
-    severity: "warning" as const,
-    potentialImpact: 5,
-  },
-  {
-    id: "4",
-    title: "Exit intent offer not configured",
-    description: "Deploy a save offer on exit intent popups.",
-    category: "Retention",
-    severity: "suggestion" as const,
-    potentialImpact: 4,
-  },
-  {
-    id: "5",
-    title: "Product page speed above 3s",
-    description: "Reduce render-blocking apps to improve speed.",
-    category: "Performance",
-    severity: "critical" as const,
-    potentialImpact: 9,
-  },
-]
+import { useAuthUserId } from "@/hooks/use-auth-user-id"
+import { useLatestTest } from "@/hooks/use-latest-test"
+import type { FrictionPoint, TestResult } from "@/lib/types"
 
 const activities = [
   {
@@ -96,45 +42,129 @@ const activities = [
   },
 ]
 
+const mapImpact = (impact?: string) => {
+  if (!impact) {
+    return 0
+  }
+  const match = impact.match(/\d+/)
+  return match ? Number(match[0]) : 0
+}
+
+const buildIssues = (test: TestResult) => {
+  const mapIssue = (
+    issue: FrictionPoint,
+    severity: "critical" | "warning" | "suggestion",
+  ) => ({
+    id: issue.id,
+    title: issue.title,
+    description: issue.fix || issue.impact || "",
+    category: issue.location || "General",
+    severity,
+    potentialImpact: mapImpact(issue.impact),
+  })
+
+  return [
+    ...test.frictionPoints.critical.map((issue) =>
+      mapIssue(issue, "critical"),
+    ),
+    ...test.frictionPoints.high.map((issue) => mapIssue(issue, "warning")),
+    ...test.frictionPoints.medium.map((issue) =>
+      mapIssue(issue, "suggestion"),
+    ),
+  ]
+}
+
 export default function DashboardPage() {
+  const { userId, isLoading: isUserLoading } = useAuthUserId()
+  const { test, isLoading } = useLatestTest(userId)
+
+  const issues = useMemo(() => (test ? buildIssues(test) : []), [test])
+
+  const scanDate = test?.date
+    ? format(new Date(test.date), "MMM d, yyyy 'at' h:mm a")
+    : "--"
+  const previousScore = test?.previousScore ?? test?.score ?? 0
+
+  const revenueLeak = (test as { revenueLeak?: number } | null)?.revenueLeak
+  const revenueImpactDisplay = revenueLeak
+    ? `$${revenueLeak.toLocaleString()}`
+    : "—"
+
+  const pageSpeed = test?.storeAnalysis?.technical.pageLoadTime
+  const pageSpeedDisplay = pageSpeed ? `${pageSpeed.toFixed(1)}s` : "—"
+
+  const conversionRate = test?.funnelData?.landed
+    ? (test.funnelData.purchased / test.funnelData.landed) * 100
+    : 0
+
+  if (isUserLoading || isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-48" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-24" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <Skeleton className="h-80 xl:col-span-2" />
+          <Skeleton className="h-80" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!test) {
+    return (
+      <EmptyState
+        icon={FlaskConical}
+        title="No completed scans yet"
+        description="Run your first scan to see your score and prioritized fixes."
+        action={
+          <GhostButton asChild>
+            <a href="/dashboard/onboarding">Start a scan</a>
+          </GhostButton>
+        }
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <ScoreHeroCard
-        score={latestScan.score}
-        previousScore={latestScan.previousScore}
-        scanDate={latestScan.createdAt}
+        score={test.score}
+        previousScore={previousScore}
+        scanDate={scanDate}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Revenue Impact"
-          value={`$${metrics.revenueImpact.toLocaleString()}`}
-          trend={metrics.revenueImpactTrend}
-          trendLabel="vs last month"
+          value={revenueImpactDisplay}
+          trend={test.change}
+          trendLabel="vs last scan"
           icon={DollarSign}
           index={0}
         />
         <StatCard
-          label="Issues Fixed"
-          value={`${metrics.issuesFixed}`}
-          trend={metrics.issuesFixedTrend}
-          trendLabel="this month"
+          label="Issues Found"
+          value={`${test.issuesFound}`}
+          trendLabel="in latest scan"
           icon={CheckCircle}
           index={1}
         />
         <StatCard
           label="Active Tests"
-          value={`${metrics.activeTests}`}
-          subtitle="2 showing positive"
+          value="1"
+          subtitle="latest completed"
           icon={FlaskConical}
           index={2}
         />
         <StatCard
           label="Page Speed"
-          value={`${metrics.pageSpeed}s`}
-          trend={metrics.pageSpeedTrend}
-          trendLabel="improvement"
-          trendPositive={metrics.pageSpeedTrend < 0}
+          value={pageSpeedDisplay}
+          trendLabel="estimated"
+          trendPositive={pageSpeed ? pageSpeed < 3 : undefined}
           icon={Zap}
           index={3}
         />
@@ -151,9 +181,9 @@ export default function DashboardPage() {
 
       <BenchmarkSection
         storeMetrics={{
-          conversionRate: metrics.conversionRate,
-          aov: metrics.aov,
-          revenuePerVisitor: metrics.revenuePerVisitor,
+          conversionRate,
+          aov: 0,
+          revenuePerVisitor: 0,
         }}
         industryBenchmarks={{
           conversionRate: 3.1,
