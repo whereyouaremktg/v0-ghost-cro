@@ -5,7 +5,9 @@ import { cancelSubscription } from "@/lib/shopify/billing"
 /**
  * Cancel an active subscription
  *
- * This cancels the subscription on Shopify and updates the local database
+ * This cancels the subscription on Shopify and updates the local database.
+ * If shop/accessToken/subscriptionId are not provided, they will be fetched
+ * from the database for the current user.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,8 +22,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // 2. Get request data
-    const { shop, accessToken, subscriptionId } = await request.json()
+    // 2. Get request data (optional - can auto-fetch if not provided)
+    let body: { shop?: string; accessToken?: string; subscriptionId?: string } = {}
+    try {
+      body = await request.json()
+    } catch {
+      // Empty body is fine - we'll auto-fetch
+    }
+
+    let { shop, accessToken, subscriptionId } = body
+
+    // 3. Auto-fetch missing data from database
+    if (!shop || !accessToken) {
+      const { data: store, error: storeError } = await supabase
+        .from("stores")
+        .select("shop, access_token")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle()
+
+      if (storeError || !store) {
+        return NextResponse.json(
+          { error: "No active store found for this user" },
+          { status: 400 }
+        )
+      }
+
+      shop = shop || store.shop
+      accessToken = accessToken || store.access_token
+    }
+
+    if (!subscriptionId) {
+      const { data: subscription, error: subError } = await supabase
+        .from("subscriptions")
+        .select("shopify_charge_id")
+        .eq("user_id", user.id)
+        .maybeSingle()
+
+      if (subError || !subscription?.shopify_charge_id) {
+        return NextResponse.json(
+          { error: "No active subscription found to cancel" },
+          { status: 400 }
+        )
+      }
+
+      subscriptionId = subscription.shopify_charge_id
+    }
 
     if (!shop || !accessToken || !subscriptionId) {
       return NextResponse.json(
