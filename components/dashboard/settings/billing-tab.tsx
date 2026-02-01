@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { CreditCard, Zap, Loader2 } from "lucide-react"
+import { CreditCard, Zap, Loader2, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function BillingTab({ subscription }: { subscription: any }) {
   const [isUpgrading, setIsUpgrading] = useState(false)
+  const [isCanceling, setIsCanceling] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const plan = subscription?.plan || "free"
   const isPro = plan === "enterprise" || plan === "pro"
@@ -36,6 +38,32 @@ export function BillingTab({ subscription }: { subscription: any }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initiate billing')
       setIsUpgrading(false)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    setIsCanceling(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/shopify/billing/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription')
+      }
+
+      // Refresh page to show updated subscription status
+      window.location.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel subscription')
+      setIsCanceling(false)
+      setShowCancelConfirm(false)
     }
   }
 
@@ -139,6 +167,70 @@ export function BillingTab({ subscription }: { subscription: any }) {
               No invoices yet
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Cancel Subscription */}
+      {isPro && (
+        <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-6">
+          <h3 className="text-sm font-semibold text-zinc-900 mb-2">Cancel Subscription</h3>
+          <p className="text-sm text-zinc-500 mb-4">
+            Cancel your subscription and return to the free plan. You'll lose access to Pro features at the end of your billing period.
+          </p>
+
+          {showCancelConfirm ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-900">
+                    Are you sure you want to cancel?
+                  </p>
+                  <p className="text-xs text-red-700 mt-1 mb-3">
+                    You'll be downgraded to the free plan with limited features.
+                  </p>
+                  {error && (
+                    <p className="text-xs text-red-600 mb-2">{error}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={handleCancelSubscription}
+                      disabled={isCanceling}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isCanceling ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Canceling...
+                        </>
+                      ) : (
+                        'Yes, Cancel Subscription'
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowCancelConfirm(false)}
+                      disabled={isCanceling}
+                    >
+                      Keep Subscription
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              onClick={() => setShowCancelConfirm(true)}
+            >
+              Cancel Subscription
+            </Button>
+          )}
         </div>
       )}
     </div>
