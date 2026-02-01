@@ -1,12 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import useSWR from "swr"
 import {
   AlertCircle,
   FlaskConical,
   LayoutDashboard,
   Lightbulb,
+  Loader2,
   Scan,
   Settings,
 } from "lucide-react"
@@ -15,6 +18,7 @@ import { GhostLogo } from "@/components/ghost-logo"
 import { GhostButton } from "@/components/ui/ghost-button"
 import { cn } from "@/lib/utils"
 import { StoreSelector } from "./store-selector"
+import { createClient } from "@/lib/supabase/client"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -33,10 +37,59 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const stores = [
-    { id: "1", name: "Northwind Co.", domain: "northwind" },
-    { id: "2", name: "Studio Supply", domain: "studiosupply" },
-  ]
+  const [isUpgrading, setIsUpgrading] = useState(false)
+
+  // Fetch real user data
+  const { data: user } = useSWR('current-user', async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    return user
+  })
+
+  // Fetch real stores from Supabase
+  const { data: storesData } = useSWR(
+    user?.id ? `stores-${user.id}` : null,
+    async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('stores')
+        .select('id, shop, name')
+        .eq('user_id', user!.id)
+        .eq('is_active', true)
+      return data || []
+    }
+  )
+
+  // Map stores to the format expected by StoreSelector
+  const stores = storesData?.map(store => ({
+    id: store.id,
+    name: store.name || store.shop?.replace('.myshopify.com', '') || 'Store',
+    domain: store.shop || ''
+  })) || []
+
+  const currentStore = stores[0] || null
+
+  const handleUpgrade = async () => {
+    setIsUpgrading(true)
+    try {
+      const response = await fetch('/api/shopify/billing/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'pro' })
+      })
+      const data = await response.json()
+      if (data.confirmationUrl) {
+        window.location.href = data.confirmationUrl
+      }
+    } catch (error) {
+      console.error('Failed to initiate upgrade', error)
+    } finally {
+      setIsUpgrading(false)
+    }
+  }
+
+  const userEmail = user?.email || 'Loading...'
+  const userInitials = user?.email?.slice(0, 2).toUpperCase() || 'GC'
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-[#0A0A0A] border-r border-[#1F1F1F] flex flex-col">
@@ -48,7 +101,7 @@ export function Sidebar() {
       </div>
 
       <div className="p-4 border-b border-[#1F1F1F]">
-        <StoreSelector currentStore={stores[0]} stores={stores} />
+        <StoreSelector currentStore={currentStore} stores={stores} />
       </div>
 
       <nav className="flex-1 p-4">
@@ -92,22 +145,34 @@ export function Sidebar() {
         <div className="bg-[#111111] rounded-lg p-4">
           <p className="text-sm text-white font-medium mb-1">Free Plan</p>
           <p className="text-xs text-[#6B7280] mb-3">3 scans remaining</p>
-          <GhostButton size="sm" className="w-full">
-            Upgrade
+          <GhostButton
+            size="sm"
+            className="w-full"
+            onClick={handleUpgrade}
+            disabled={isUpgrading}
+          >
+            {isUpgrading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                Processing...
+              </>
+            ) : (
+              'Upgrade'
+            )}
           </GhostButton>
         </div>
       </div>
 
       <div className="p-4 border-t border-[#1F1F1F]">
-        <div className="flex items-center gap-3">
+        <Link href="/dashboard/settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="h-9 w-9 rounded-full bg-[#111111] text-white flex items-center justify-center text-sm">
-            GC
+            {userInitials}
           </div>
           <div>
-            <p className="text-sm text-white font-medium">alex@ghostcro.ai</p>
+            <p className="text-sm text-white font-medium truncate max-w-[140px]">{userEmail}</p>
             <p className="text-xs text-[#6B7280]">Account settings</p>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   )

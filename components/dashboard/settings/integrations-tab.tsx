@@ -17,8 +17,8 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
   const router = useRouter()
 
   const handleConnectShopify = () => {
-    // Redirect to the manual entry page or trigger auth flow directly
-    router.push("/dashboard/test-shopify")
+    // Trigger Shopify OAuth flow directly
+    window.location.href = "/api/auth/shopify/initiate"
   }
 
   return (

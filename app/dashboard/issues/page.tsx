@@ -57,10 +57,68 @@ const mapIssues = (test: TestResult): IssueRow[] => {
 
 export default function IssuesPage() {
   const [selected, setSelected] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState("severity")
+  const [severityFilter, setSeverityFilter] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const { userId, isLoading: isUserLoading } = useAuthUserId()
   const { test, isLoading } = useLatestTest(userId)
 
-  const issues = useMemo(() => (test ? mapIssues(test) : []), [test])
+  const allIssues = useMemo(() => (test ? mapIssues(test) : []), [test])
+
+  // Filter and sort issues
+  const issues = useMemo(() => {
+    let result = [...allIssues]
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(
+        (issue) =>
+          issue.title.toLowerCase().includes(query) ||
+          issue.category.toLowerCase().includes(query)
+      )
+    }
+
+    // Severity filter
+    if (severityFilter) {
+      result = result.filter((issue) => issue.severity === severityFilter)
+    }
+
+    // Status filter
+    if (statusFilter) {
+      result = result.filter((issue) =>
+        statusFilter === "open" ? issue.status === "Open" : issue.status !== "Open"
+      )
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === "severity") {
+        const order = { critical: 0, warning: 1, suggestion: 2 }
+        return order[a.severity] - order[b.severity]
+      }
+      if (sortBy === "impact") {
+        const getImpactNum = (impact: string) => {
+          const match = impact.match(/\d+/)
+          return match ? parseInt(match[0]) : 0
+        }
+        return getImpactNum(b.impact) - getImpactNum(a.impact)
+      }
+      // Default: by title
+      return a.title.localeCompare(b.title)
+    })
+
+    return result
+  }, [allIssues, searchQuery, severityFilter, statusFilter, sortBy])
+
+  const toggleFilter = (type: "severity" | "status", value: string) => {
+    if (type === "severity") {
+      setSeverityFilter((prev) => (prev === value ? null : value))
+    } else {
+      setStatusFilter((prev) => (prev === value ? null : value))
+    }
+  }
 
   if (isUserLoading || isLoading) {
     return (
@@ -107,31 +165,93 @@ export default function IssuesPage() {
         <div className="flex flex-col lg:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3.5 h-4 w-4 text-[#6B7280]" />
-            <GhostInput placeholder="Search issues..." className="pl-9" />
+            <GhostInput
+              placeholder="Search issues..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <GhostSelect defaultValue="impact">
+          <GhostSelect
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="severity">Sort by severity</option>
             <option value="impact">Sort by impact</option>
-            <option value="date">Newest first</option>
-            <option value="severity">Severity</option>
+            <option value="name">Sort by name</option>
           </GhostSelect>
-          <GhostButton variant="secondary" size="sm">
+          <GhostButton
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setSeverityFilter(null)
+              setStatusFilter(null)
+              setSearchQuery("")
+            }}
+          >
             <SlidersHorizontal className="h-4 w-4" />
-            Filters
+            Clear filters
           </GhostButton>
         </div>
 
         <div className="flex flex-wrap gap-2 text-xs">
-          {["Critical", "Warning", "Suggestion", "Open", "Resolved"].map(
-            (filter) => (
-              <span
-                key={filter}
-                className="px-3 py-1 rounded-full border border-[#1F1F1F] text-[#9CA3AF]"
-              >
-                {filter}
-              </span>
-            ),
-          )}
+          <button
+            onClick={() => toggleFilter("severity", "critical")}
+            className={`px-3 py-1 rounded-full border transition-colors ${
+              severityFilter === "critical"
+                ? "border-red-500 text-red-400 bg-red-500/10"
+                : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]"
+            }`}
+          >
+            Critical
+          </button>
+          <button
+            onClick={() => toggleFilter("severity", "warning")}
+            className={`px-3 py-1 rounded-full border transition-colors ${
+              severityFilter === "warning"
+                ? "border-[#FBBF24] text-[#FBBF24] bg-[#FBBF24]/10"
+                : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]"
+            }`}
+          >
+            Warning
+          </button>
+          <button
+            onClick={() => toggleFilter("severity", "suggestion")}
+            className={`px-3 py-1 rounded-full border transition-colors ${
+              severityFilter === "suggestion"
+                ? "border-green-500 text-green-400 bg-green-500/10"
+                : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]"
+            }`}
+          >
+            Suggestion
+          </button>
+          <button
+            onClick={() => toggleFilter("status", "open")}
+            className={`px-3 py-1 rounded-full border transition-colors ${
+              statusFilter === "open"
+                ? "border-blue-500 text-blue-400 bg-blue-500/10"
+                : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]"
+            }`}
+          >
+            Open
+          </button>
+          <button
+            onClick={() => toggleFilter("status", "resolved")}
+            className={`px-3 py-1 rounded-full border transition-colors ${
+              statusFilter === "resolved"
+                ? "border-emerald-500 text-emerald-400 bg-emerald-500/10"
+                : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]"
+            }`}
+          >
+            Resolved
+          </button>
         </div>
+
+        {issues.length !== allIssues.length && (
+          <p className="text-xs text-[#6B7280]">
+            Showing {issues.length} of {allIssues.length} issues
+          </p>
+        )}
       </GhostCard>
 
       <div className="space-y-3">
