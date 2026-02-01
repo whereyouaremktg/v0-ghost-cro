@@ -6,12 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 import { deployFixesToSandbox, findGhostSandboxes } from "@/lib/shopify/theme-sandbox"
 import type { CodeFix, DeploymentResult } from "@/lib/types"
 
 export interface DeployRequest {
-  shop: string
-  accessToken: string
+  shop?: string
+  accessToken?: string
   fixes: Array<{
     frictionPointId: string
     codeFix: CodeFix
@@ -23,33 +24,64 @@ export interface DeployRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: DeployRequest = await request.json()
-    
-    // Validate required fields
-    if (!body.shop || !body.accessToken) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: "Missing shop or accessToken",
-          errorCode: "PERMISSION_DENIED"
-        } as DeploymentResult,
-        { status: 400 }
-      )
-    }
-    
+
     if (!body.fixes || body.fixes.length === 0) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: "No fixes provided for deployment",
           errorCode: "API_ERROR"
         } as DeploymentResult,
         { status: 400 }
       )
     }
-    
+
+    let shop = body.shop
+    let accessToken = body.accessToken
+
+    if (!shop || !accessToken) {
+      const supabase = await createClient()
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized", errorCode: "PERMISSION_DENIED" } as DeploymentResult,
+          { status: 401 }
+        )
+      }
+
+      const { data: store, error: storeError } = await supabase
+        .from("stores")
+        .select("shop, access_token")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle()
+
+      if (storeError || !store) {
+        return NextResponse.json(
+          { success: false, error: "No active store found for this user", errorCode: "PERMISSION_DENIED" } as DeploymentResult,
+          { status: 400 }
+        )
+      }
+
+      shop = shop || store.shop
+      accessToken = accessToken || store.access_token
+    }
+
+    if (!shop || !accessToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing shop or accessToken",
+          errorCode: "PERMISSION_DENIED"
+        } as DeploymentResult,
+        { status: 400 }
+      )
+    }
+
     const config = {
-      shop: body.shop,
-      accessToken: body.accessToken,
+      shop,
+      accessToken,
     }
     
     // Deploy fixes to sandbox

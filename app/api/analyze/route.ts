@@ -350,17 +350,10 @@ function getPersonas(personaMix: string): string[] {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { url, personaMix = "balanced", validationMode = false, originalTestId, sandboxPreviewUrl } = body
+    const body = await request.json().catch(() => ({}))
+    const { url: urlFromBody, personaMix = "balanced", validationMode = false, originalTestId, sandboxPreviewUrl } = body
 
-    console.log('=== ANALYZE API START ===')
-    console.log('Input:', { url, personaMix, validationMode, originalTestId })
-
-    if (!url) {
-      return NextResponse.json({ error: "URL is required" }, { status: 400 })
-    }
-
-    // Get authenticated user
+    // Get authenticated user first so we can derive URL from store if needed
     const supabase = await createClient()
     const {
       data: { user },
@@ -371,8 +364,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // BILLING HARD GATE: Verify active subscription before allowing expensive AI analysis
-    // Get user's active store connection
+    // Get user's active store connection (required for billing and optional URL)
     const { data: store, error: storeError } = await supabase
       .from("stores")
       .select("shop, access_token")
@@ -383,14 +375,23 @@ export async function POST(request: Request) {
     if (storeError || !store || !store.access_token) {
       console.warn(`No active store found for user ${user.id}`)
       return NextResponse.json(
-        { error: "Payment Required", message: "Please connect your Shopify store and subscribe to use this feature." },
+        { error: "Payment Required", message: "Please connect your Shopify store first in Settings." },
         { status: 402 }
       )
     }
 
-    // Verify subscription is active via Shopify API
+    // Use provided URL or derive from connected store
+    const url = urlFromBody || (store.shop ? `https://${store.shop}` : null)
+    if (!url) {
+      return NextResponse.json({ error: "URL is required or connect a store in Settings." }, { status: 400 })
+    }
+
+    console.log('=== ANALYZE API START ===')
+    console.log('Input:', { url, personaMix, validationMode, originalTestId })
+
+    // BILLING HARD GATE: Verify active subscription before allowing expensive AI analysis
     const hasActiveSubscription = await verifyActiveSubscription(store.shop, store.access_token)
-    
+
     if (!hasActiveSubscription) {
       console.warn(`No active subscription found for shop ${store.shop}`)
       return NextResponse.json(

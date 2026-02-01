@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Store, BarChart3, MessageSquare, Zap, ExternalLink, CheckCircle2, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Ga4PropertyModal } from "./ga4-property-modal"
 
 interface IntegrationsTabProps {
   connections: {
@@ -16,7 +17,27 @@ interface IntegrationsTabProps {
 
 export function IntegrationsTab({ connections }: IntegrationsTabProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isDisconnectingGA4, setIsDisconnectingGA4] = useState(false)
+  const [showGa4PropertyModal, setShowGa4PropertyModal] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get("success") === "ga4_connected") {
+      setShowGa4PropertyModal(true)
+    }
+  }, [searchParams])
+
+  const handleGa4ModalClose = (open: boolean) => {
+    setShowGa4PropertyModal(open)
+    if (!open) {
+      router.replace("/dashboard/settings", { scroll: false })
+    }
+  }
+
+  const handleGa4Saved = () => {
+    router.replace("/dashboard/settings", { scroll: false })
+    window.location.reload()
+  }
 
   const handleConnectShopify = () => {
     // Trigger Shopify OAuth flow directly
@@ -189,6 +210,12 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
           </Button>
         </div>
       </div>
+
+      <Ga4PropertyModal
+        open={showGa4PropertyModal}
+        onOpenChange={handleGa4ModalClose}
+        onSaved={handleGa4Saved}
+      />
     </div>
   )
 }

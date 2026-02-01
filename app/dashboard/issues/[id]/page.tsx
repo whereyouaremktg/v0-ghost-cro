@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useParams } from "next/navigation"
-import { CheckCircle2, Copy } from "lucide-react"
+import { CheckCircle2, Copy, ExternalLink, Loader2 } from "lucide-react"
 
 import { EmptyState } from "@/components/ui/empty-state"
 import { GhostButton } from "@/components/ui/ghost-button"
@@ -18,6 +18,8 @@ export default function IssueDetailPage() {
   const { test, isLoading } = useLatestTest(userId)
   const [isCopied, setIsCopied] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeploying, setIsDeploying] = useState(false)
+  const [deployError, setDeployError] = useState<string | null>(null)
 
   const issue = useMemo(() => {
     if (!test || !issueId) {
@@ -64,6 +66,48 @@ export default function IssueDetailPage() {
       console.error("Failed to update issue status", error)
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const canPreviewFix =
+    issue?.codeFix &&
+    issue.codeFix.optimizedCode &&
+    issue.codeFix.targetFile &&
+    issue.codeFix.type
+
+  const handlePreviewFix = async () => {
+    if (!issue?.codeFix || !canPreviewFix) return
+
+    setIsDeploying(true)
+    setDeployError(null)
+    try {
+      const response = await fetch("/api/shopify/sandbox/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fixes: [
+            {
+              frictionPointId: issue.id,
+              codeFix: issue.codeFix,
+            },
+          ],
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setDeployError(data.error ?? "Failed to deploy to sandbox")
+        return
+      }
+      if (data.success && data.previewUrl) {
+        window.open(data.previewUrl, "_blank")
+      } else {
+        setDeployError("No preview URL returned")
+      }
+    } catch (error) {
+      setDeployError(error instanceof Error ? error.message : "Failed to deploy to sandbox")
+    } finally {
+      setIsDeploying(false)
     }
   }
 
@@ -127,16 +171,38 @@ export default function IssueDetailPage() {
       </GhostCard>
 
       <GhostCard className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-white">Code snippet</h3>
-          <GhostButton variant="secondary" size="sm" onClick={handleCopy}>
-            <Copy className="h-4 w-4" />
-            {isCopied ? "Copied" : "Copy"}
-          </GhostButton>
+          <div className="flex items-center gap-2">
+            <GhostButton variant="secondary" size="sm" onClick={handleCopy}>
+              <Copy className="h-4 w-4" />
+              {isCopied ? "Copied" : "Copy"}
+            </GhostButton>
+            <GhostButton
+              variant="secondary"
+              size="sm"
+              onClick={handlePreviewFix}
+              disabled={!canPreviewFix || isDeploying}
+              title={!canPreviewFix ? "No code fix available for this issue" : "Deploy to sandbox and open preview in a new tab"}
+            >
+              {isDeploying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="h-4 w-4" />
+              )}
+              {isDeploying ? "Deploying..." : "Preview Fix"}
+            </GhostButton>
+          </div>
         </div>
+        {deployError && (
+          <p className="text-sm text-red-400">{deployError}</p>
+        )}
         <pre className="rounded-lg bg-[#0A0A0A] border border-[#1F1F1F] p-4 text-sm text-[#9CA3AF] overflow-auto whitespace-pre-wrap">
           {codeSnippet}
         </pre>
+        {canPreviewFix && (
+          <p className="text-xs text-[#6B7280]">Preview Fix opens the sandbox theme in a new tab.</p>
+        )}
       </GhostCard>
 
       <GhostCard className="p-6">
