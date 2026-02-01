@@ -30,11 +30,26 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
+  // If user is authenticated, require a connected store before showing dashboard
+  if (user && supabaseUrl && supabaseKey) {
+    const supabase = await createClient()
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+
+    if (!store) {
+      redirect("/onboarding/connect")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <Sidebar />
       <div className="pl-[240px] flex flex-col min-h-screen">
-        <DashboardHeader lastScan="2 hours ago" />
+        <DashboardHeader />
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>

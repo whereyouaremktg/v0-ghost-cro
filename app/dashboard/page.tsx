@@ -127,7 +127,7 @@ export default function DashboardPage() {
         description="Run your first scan to see your score and prioritized fixes."
         action={
           <GhostButton asChild>
-            <a href="/dashboard/onboarding">Start a scan</a>
+            <a href="/dashboard/scanner">Start a scan</a>
           </GhostButton>
         }
       />

@@ -35,35 +35,34 @@ export default function ScannerPage() {
       return
     }
 
-    // Get store URL from the latest test or redirect to connect if no store
-    const storeUrl = test?.url
-    if (!storeUrl) {
-      setError("No store connected. Please connect your store first.")
-      router.push("/dashboard/settings")
-      return
-    }
-
     setIsScanning(true)
     setError(null)
 
     try {
+      // API uses connected store URL when url is not sent; returns 402 if no store or no subscription
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: storeUrl })
+        body: JSON.stringify({})
       })
 
       const data = await response.json()
 
       if (!response.ok) {
         if (response.status === 402) {
-          throw new Error(data.message || 'Active subscription required')
+          const msg = data.message || data.error || 'Connect your store in Settings and ensure you have an active subscription.'
+          throw new Error(msg)
         }
         throw new Error(data.error || 'Failed to start scan')
       }
 
       // Redirect to scanning page to show progress
-      router.push(`/onboarding/scanning?testId=${data.jobId}`)
+      if (data.jobId) {
+        router.push(`/onboarding/scanning?testId=${data.jobId}`)
+      } else {
+        setError('No job ID returned')
+        setIsScanning(false)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start scan')
       setIsScanning(false)

@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import useSWR from "swr"
 import {
   AlertCircle,
@@ -37,6 +37,8 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [isUpgrading, setIsUpgrading] = useState(false)
 
   // Fetch real user data
@@ -46,8 +48,8 @@ export function Sidebar() {
     return user
   })
 
-  // Fetch real stores from Supabase
-  const { data: storesData } = useSWR(
+  // Fetch real stores from Supabase (revalidate on focus so sidebar updates after Settings/navigation)
+  const { data: storesData, mutate: mutateStores } = useSWR(
     user?.id ? `stores-${user.id}` : null,
     async () => {
       const supabase = createClient()
@@ -57,8 +59,27 @@ export function Sidebar() {
         .eq('user_id', user!.id)
         .eq('is_active', true)
       return data || []
-    }
+    },
+    { revalidateOnFocus: true }
   )
+
+  // Revalidate stores when landing after OAuth (store_connected=1), then clear the param
+  useEffect(() => {
+    if (searchParams.get('store_connected') !== '1') return
+    mutateStores().then(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('store_connected')
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    })
+  }, [searchParams, pathname, router, mutateStores])
+
+  // Revalidate stores when mounting on dashboard so sidebar shows connected store after Settings/navigation
+  useEffect(() => {
+    if (pathname?.startsWith('/dashboard')) {
+      mutateStores()
+    }
+  }, [pathname, mutateStores])
 
   // Map stores to the format expected by StoreSelector
   const stores = storesData?.map(store => ({

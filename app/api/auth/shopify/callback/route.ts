@@ -142,8 +142,8 @@ export async function GET(request: Request) {
 
     // Clean redirect - NO tokens in URL or cookies
     // Always redirect to onboarding - the onboarding page will check if setup is already complete
-    // and redirect to dashboard if needed
-    return NextResponse.redirect(`${nextAuthUrl}/dashboard/onboarding`)
+    // and redirect to dashboard if needed. store_connected=1 triggers sidebar to revalidate stores.
+    return NextResponse.redirect(`${nextAuthUrl}/dashboard/onboarding?store_connected=1`)
   } catch (error) {
     console.error("Shopify OAuth callback error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"

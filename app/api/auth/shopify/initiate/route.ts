@@ -12,7 +12,10 @@ export async function GET(request: Request) {
 
     const clientId = process.env.SHOPIFY_CLIENT_ID
     if (!clientId) {
-      return NextResponse.json({ error: "Shopify OAuth not configured" }, { status: 500 })
+      const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      return NextResponse.redirect(
+        `${baseUrl}/onboarding/connect?error=shopify_not_configured`
+      )
     }
 
     // Generate state for CSRF protection
