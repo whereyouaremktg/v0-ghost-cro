@@ -99,8 +99,10 @@ export function InsightsPanel({ issues }: { issues: Issue[] }) {
                   </span>
                 </div>
               </div>
-              <GhostButton variant="ghost" size="sm">
-                Fix →
+              <GhostButton variant="ghost" size="sm" asChild>
+                <Link href={`/dashboard/issues/${issue.id}`}>
+                  Fix →
+                </Link>
               </GhostButton>
             </div>
           </motion.div>

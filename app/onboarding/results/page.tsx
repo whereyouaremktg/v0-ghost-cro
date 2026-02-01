@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
-import { useSearchParams } from "next/navigation"
-import { CheckCircle } from "lucide-react"
+import { useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { CheckCircle, Loader2 } from "lucide-react"
 
 import { ResultsPreview } from "@/components/onboarding/results-preview"
 import { GhostButton } from "@/components/ui/ghost-button"
@@ -30,9 +30,37 @@ const toPreviewIssue = (
 })
 
 export default function ResultsPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const testId = searchParams.get("testId")
   const { test, isLoading } = useTestResult(testId)
+  const [isStartingTrial, setIsStartingTrial] = useState(false)
+
+  const handleStartTrial = async () => {
+    setIsStartingTrial(true)
+    try {
+      const response = await fetch('/api/shopify/billing/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'pro' })
+      })
+      const data = await response.json()
+      if (data.confirmationUrl) {
+        window.location.href = data.confirmationUrl
+      } else {
+        // If no billing URL, just go to dashboard
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Failed to start trial', error)
+      // On error, still navigate to dashboard
+      router.push('/dashboard')
+    }
+  }
+
+  const handleContinueFree = () => {
+    router.push('/dashboard')
+  }
 
   const topIssues = useMemo(() => {
     if (!test) {
@@ -131,12 +159,28 @@ export default function ResultsPage() {
               Get detailed fixes, code snippets, and ongoing monitoring
             </p>
           </div>
-          <GhostButton className="px-6">Start Free Trial →</GhostButton>
+          <GhostButton
+            className="px-6"
+            onClick={handleStartTrial}
+            disabled={isStartingTrial}
+          >
+            {isStartingTrial ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Processing...
+              </>
+            ) : (
+              'Start Free Trial →'
+            )}
+          </GhostButton>
         </div>
       </div>
 
       <div className="text-center mt-4">
-        <button className="text-[#6B7280] hover:text-[#9CA3AF] text-sm">
+        <button
+          className="text-[#6B7280] hover:text-[#9CA3AF] text-sm"
+          onClick={handleContinueFree}
+        >
           Continue with limited access →
         </button>
       </div>

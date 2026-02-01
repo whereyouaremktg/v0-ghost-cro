@@ -1,7 +1,8 @@
 "use client"
 
-import { usePathname } from "next/navigation"
-import { Bell, RefreshCw, Search } from "lucide-react"
+import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { Bell, RefreshCw, Search, Loader2 } from "lucide-react"
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -14,8 +15,18 @@ const titles: Record<string, string> = {
 }
 
 export function DashboardHeader({ lastScan }: { lastScan?: string }) {
+  const router = useRouter()
   const pathname = usePathname()
   const pageTitle = titles[pathname] ?? "Dashboard"
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    // Use router.refresh() to re-fetch server components without full page reload
+    router.refresh()
+    // Reset after a short delay for visual feedback
+    setTimeout(() => setIsRefreshing(false), 1000)
+  }
 
   return (
     <header className="h-16 border-b border-[#1F1F1F] flex items-center justify-between px-6 bg-[#0A0A0A]">
@@ -27,9 +38,16 @@ export function DashboardHeader({ lastScan }: { lastScan?: string }) {
           <span>Last scan: {lastScan ?? "2 hours ago"}</span>
           <button
             type="button"
-            className="text-[#FBBF24] hover:text-[#F59E0B]"
+            className="text-[#FBBF24] hover:text-[#F59E0B] disabled:opacity-50"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh data"
           >
-            <RefreshCw className="w-4 h-4" />
+            {isRefreshing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
           </button>
         </div>
 

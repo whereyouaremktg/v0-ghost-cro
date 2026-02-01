@@ -1,15 +1,43 @@
 "use client"
 
-import { CreditCard, Check, Zap } from "lucide-react"
+import { useState } from "react"
+import { CreditCard, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
 
 export function BillingTab({ subscription }: { subscription: any }) {
-  const router = useRouter()
+  const [isUpgrading, setIsUpgrading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const plan = subscription?.plan || "free"
   const isPro = plan === "enterprise" || plan === "pro"
   const limit = subscription?.tests_limit || 3
   const used = subscription?.tests_used || 0
+
+  const handleUpgrade = async () => {
+    setIsUpgrading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/shopify/billing/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'pro' })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate billing')
+      }
+
+      if (data.confirmationUrl) {
+        window.location.href = data.confirmationUrl
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to initiate billing')
+      setIsUpgrading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -57,8 +85,23 @@ export function BillingTab({ subscription }: { subscription: any }) {
                 <p className="text-xs text-[#D97706] mt-1 mb-3">
                   Unlock unlimited simulations, competitor analysis, and priority support.
                 </p>
-                <Button size="sm" className="bg-[#FBBF24] hover:bg-[#F59E0B] text-[#0A0A0A] w-full md:w-auto" onClick={() => router.push('/pricing')}>
-                  Upgrade Plan
+                {error && (
+                  <p className="text-xs text-red-600 mb-2">{error}</p>
+                )}
+                <Button
+                  size="sm"
+                  className="bg-[#FBBF24] hover:bg-[#F59E0B] text-[#0A0A0A] w-full md:w-auto"
+                  onClick={handleUpgrade}
+                  disabled={isUpgrading}
+                >
+                  {isUpgrading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Upgrade Plan'
+                  )}
                 </Button>
               </div>
             </div>
