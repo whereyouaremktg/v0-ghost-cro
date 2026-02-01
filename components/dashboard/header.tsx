@@ -3,6 +3,11 @@
 import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Bell, RefreshCw, Search, Loader2 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import useSWR from "swr"
+
+import { createClient } from "@/lib/supabase/client"
+import { useAuthUserId } from "@/hooks/use-auth-user-id"
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -14,15 +19,46 @@ const titles: Record<string, string> = {
   "/dashboard/history": "History",
 }
 
-export function DashboardHeader({ lastScan }: { lastScan?: string }) {
+export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const pageTitle = titles[pathname] ?? "Dashboard"
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const { userId } = useAuthUserId()
+
+  // Fetch last scan timestamp
+  const { data: lastScanData, mutate } = useSWR(
+    userId ? ["last-scan", userId] : null,
+    async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from("tests")
+        .select("created_at, status")
+        .eq("user_id", userId!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      return data
+    }
+  )
+
+  // Format last scan time
+  const lastScanTime = lastScanData?.created_at
+    ? formatDistanceToNow(new Date(lastScanData.created_at), { addSuffix: true })
+    : lastScanProp ?? "No scans yet"
+
+  // Determine status indicator color
+  const statusColor = lastScanData?.status === "running"
+    ? "bg-[#FBBF24] animate-pulse"
+    : lastScanData?.status === "failed"
+      ? "bg-red-500"
+      : "bg-green-500"
 
   const handleRefresh = () => {
     setIsRefreshing(true)
-    // Use router.refresh() to re-fetch server components without full page reload
+    // Refresh both the SWR cache and the page
+    mutate()
     router.refresh()
     // Reset after a short delay for visual feedback
     setTimeout(() => setIsRefreshing(false), 1000)
@@ -34,8 +70,8 @@ export function DashboardHeader({ lastScan }: { lastScan?: string }) {
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <span>Last scan: {lastScan ?? "2 hours ago"}</span>
+          <div className={`w-2 h-2 rounded-full ${statusColor}`} />
+          <span>Last scan: {lastScanTime}</span>
           <button
             type="button"
             className="text-[#FBBF24] hover:text-[#F59E0B] disabled:opacity-50"

@@ -1,55 +1,100 @@
 "use client"
 
-import { FlaskConical } from "lucide-react"
+import { useState } from "react"
+import { FlaskConical, Bell, Check, Sparkles, Target, TrendingUp } from "lucide-react"
 
 import { GhostButton } from "@/components/ui/ghost-button"
 import { GhostCard } from "@/components/ui/ghost-card"
 
-const experiments = [
+const upcomingFeatures = [
   {
-    id: "exp-1",
-    name: "Checkout CTA copy",
-    status: "Running",
-    lift: "+4.2%",
+    icon: Target,
+    title: "A/B Test Creation",
+    description: "Create and launch A/B tests with AI-generated variations",
   },
   {
-    id: "exp-2",
-    name: "Sticky cart drawer",
-    status: "Draft",
-    lift: "--",
+    icon: TrendingUp,
+    title: "Conversion Tracking",
+    description: "Track conversion rates and statistical significance in real-time",
+  },
+  {
+    icon: Sparkles,
+    title: "AI Recommendations",
+    description: "Get AI-powered suggestions for what to test next",
   },
 ]
 
 export default function ExperimentsPage() {
+  const [isNotified, setIsNotified] = useState(false)
+
+  const handleNotifyMe = () => {
+    setIsNotified(true)
+    // In production, this would call an API to add the user to a waitlist
+  }
+
   return (
     <div className="space-y-6">
       <GhostCard className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-white">Experiments</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-xl font-semibold text-white">Experiments</h2>
+            <span className="px-2 py-0.5 text-xs rounded-full border border-[#FBBF24]/40 text-[#FBBF24]">
+              Beta
+            </span>
+          </div>
           <p className="text-sm text-[#9CA3AF]">
-            Launch guided A/B tests (Beta).
+            Launch guided A/B tests powered by AI.
           </p>
         </div>
-        <GhostButton>Start experiment</GhostButton>
+        {isNotified ? (
+          <div className="flex items-center gap-2 text-green-400 text-sm">
+            <Check className="h-4 w-4" />
+            You'll be notified when this launches!
+          </div>
+        ) : (
+          <GhostButton variant="secondary" onClick={handleNotifyMe}>
+            <Bell className="h-4 w-4" />
+            Notify me when ready
+          </GhostButton>
+        )}
       </GhostCard>
 
-      <div className="grid gap-4">
-        {experiments.map((experiment) => (
-          <GhostCard key={experiment.id} className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#FBBF24]/10 flex items-center justify-center">
-                  <FlaskConical className="h-5 w-5 text-[#FBBF24]" />
+      <GhostCard className="p-8 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="h-16 w-16 rounded-full bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-4">
+            <FlaskConical className="h-8 w-8 text-[#FBBF24]" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">
+            Coming Soon
+          </h3>
+          <p className="text-[#9CA3AF] mb-6">
+            We're building a powerful experimentation platform that will help you
+            test changes and measure their impact on conversions.
+          </p>
+        </div>
+      </GhostCard>
+
+      <div>
+        <h3 className="text-sm font-medium text-[#9CA3AF] mb-4 uppercase tracking-wider">
+          What to expect
+        </h3>
+        <div className="grid gap-4 md:grid-cols-3">
+          {upcomingFeatures.map((feature) => (
+            <GhostCard key={feature.title} className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-lg bg-[#1A1A1A] flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="h-5 w-5 text-[#FBBF24]" />
                 </div>
                 <div>
-                  <p className="text-white font-medium">{experiment.name}</p>
-                  <p className="text-xs text-[#6B7280]">{experiment.status}</p>
+                  <p className="text-white font-medium">{feature.title}</p>
+                  <p className="text-xs text-[#6B7280] mt-1">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
-              <span className="text-sm text-[#9CA3AF]">{experiment.lift}</span>
-            </div>
-          </GhostCard>
-        ))}
+            </GhostCard>
+          ))}
+        </div>
       </div>
     </div>
   )

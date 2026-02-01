@@ -7,7 +7,7 @@ import {
   FlaskConical,
   Zap,
 } from "lucide-react"
-import { format } from "date-fns"
+import { format, formatDistanceToNow } from "date-fns"
 
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { BenchmarkSection } from "@/components/dashboard/benchmark-section"
@@ -19,28 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { StatCard } from "@/components/ui/stat-card"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { useLatestTest } from "@/hooks/use-latest-test"
+import { useTestHistory } from "@/hooks/use-test-history"
 import type { FrictionPoint, TestResult } from "@/lib/types"
-
-const activities = [
-  {
-    id: "a1",
-    type: "scan" as const,
-    title: "Daily scan completed",
-    timestamp: "2 hours ago",
-  },
-  {
-    id: "a2",
-    type: "fix" as const,
-    title: "Fixed product page sticky CTA",
-    timestamp: "Yesterday",
-  },
-  {
-    id: "a3",
-    type: "alert" as const,
-    title: "Checkout speed dropped 12%",
-    timestamp: "2 days ago",
-  },
-]
 
 const mapImpact = (impact?: string) => {
   if (!impact) {
@@ -77,8 +57,33 @@ const buildIssues = (test: TestResult) => {
 export default function DashboardPage() {
   const { userId, isLoading: isUserLoading } = useAuthUserId()
   const { test, isLoading } = useLatestTest(userId)
+  const { tests: testHistory } = useTestHistory(userId, 5)
 
   const issues = useMemo(() => (test ? buildIssues(test) : []), [test])
+
+  // Build activities from test history
+  const activities = useMemo(() => {
+    return testHistory.map((t) => {
+      const isCompleted = t.status === "completed"
+      const isFailed = t.status === "failed"
+
+      return {
+        id: t.id,
+        type: isFailed ? "alert" as const : "scan" as const,
+        title: isCompleted
+          ? `Scan completed${t.overall_score ? ` - Score: ${t.overall_score}` : ''}`
+          : isFailed
+            ? "Scan failed"
+            : "Scan in progress",
+        timestamp: t.created_at
+          ? formatDistanceToNow(new Date(t.created_at), { addSuffix: true })
+          : "Unknown",
+      }
+    })
+  }, [testHistory])
+
+  // Count completed tests
+  const completedTestsCount = testHistory.filter(t => t.status === "completed").length
 
   const scanDate = test?.date
     ? format(new Date(test.date), "MMM d, yyyy 'at' h:mm a")
@@ -154,9 +159,9 @@ export default function DashboardPage() {
           index={1}
         />
         <StatCard
-          label="Active Tests"
-          value="1"
-          subtitle="latest completed"
+          label="Completed Scans"
+          value={`${completedTestsCount}`}
+          subtitle="total scans"
           icon={FlaskConical}
           index={2}
         />
