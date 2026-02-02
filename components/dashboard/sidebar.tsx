@@ -113,15 +113,15 @@ export function Sidebar() {
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || 'GC'
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-[#0A0A0A] border-r border-[#1F1F1F] flex flex-col">
-      <div className="p-4 border-b border-[#1F1F1F]">
+    <aside className="fixed left-0 top-0 bottom-0 w-[240px] bg-[#101012] border-r border-[#2A2A2E] flex flex-col">
+      <div className="p-4 border-b border-[#2A2A2E]">
         <Link href="/dashboard" className="flex items-center gap-2">
           <GhostLogo size={28} />
           <span className="font-semibold text-white">GhostCRO</span>
         </Link>
       </div>
 
-      <div className="p-4 border-b border-[#1F1F1F]">
+      <div className="p-4 border-b border-[#2A2A2E]">
         <StoreSelector currentStore={currentStore} stores={stores} />
       </div>
 
@@ -136,8 +136,8 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
                   isActive
-                    ? "bg-[#111111] text-white"
-                    : "text-[#9CA3AF] hover:text-white hover:bg-[#111111]",
+                    ? "bg-[#1E1E22] text-white"
+                    : "text-[#A8A8B3] hover:text-white hover:bg-[#1E1E22]",
                 )}
               >
                 <span className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export function Sidebar() {
                       "text-xs px-2 py-0.5 rounded-full border",
                       item.badgeColor === "amber"
                         ? "border-[#FBBF24]/40 text-[#FBBF24]"
-                        : "border-[#1F1F1F] text-[#9CA3AF]",
+                        : "border-[#2A2A2E] text-[#A8A8B3]",
                     )}
                   >
                     {item.badge}
@@ -162,10 +162,10 @@ export function Sidebar() {
         </div>
       </nav>
 
-      <div className="p-4 border-t border-[#1F1F1F]">
-        <div className="bg-[#111111] rounded-lg p-4">
+      <div className="p-4 border-t border-[#2A2A2E]">
+        <div className="bg-[#1A1A1E] rounded-lg p-4">
           <p className="text-sm text-white font-medium mb-1">Free Plan</p>
-          <p className="text-xs text-[#6B7280] mb-3">3 scans remaining</p>
+          <p className="text-xs text-[#7A7A85] mb-3">3 scans remaining</p>
           <GhostButton
             size="sm"
             className="w-full"
@@ -184,14 +184,14 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="p-4 border-t border-[#1F1F1F]">
+      <div className="p-4 border-t border-[#2A2A2E]">
         <Link href="/dashboard/settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="h-9 w-9 rounded-full bg-[#111111] text-white flex items-center justify-center text-sm">
+          <div className="h-9 w-9 rounded-full bg-[#1E1E22] text-white flex items-center justify-center text-sm">
             {userInitials}
           </div>
           <div>
             <p className="text-sm text-white font-medium truncate max-w-[140px]">{userEmail}</p>
-            <p className="text-xs text-[#6B7280]">Account settings</p>
+            <p className="text-xs text-[#7A7A85]">Account settings</p>
           </div>
         </Link>
       </div>

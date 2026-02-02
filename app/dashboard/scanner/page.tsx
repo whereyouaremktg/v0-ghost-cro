@@ -3,31 +3,56 @@
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Calendar, Scan, Loader2, AlertCircle } from "lucide-react"
-import { format } from "date-fns"
+import { format, addDays, setHours, setMinutes } from "date-fns"
 
 import { GhostButton } from "@/components/ui/ghost-button"
 import { GhostCard } from "@/components/ui/ghost-card"
 import { GhostSelect } from "@/components/ui/ghost-select"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
-import { useLatestTest } from "@/hooks/use-latest-test"
+import { useTestHistory } from "@/hooks/use-test-history"
+
+type ScanConfig = {
+  theme: boolean
+  checkout: boolean
+  speed: boolean
+}
+
+type Schedule = "daily" | "weekly" | "manual"
 
 export default function ScannerPage() {
   const router = useRouter()
   const { userId } = useAuthUserId()
-  const { test } = useLatestTest(userId)
+  const { tests: testHistory, isLoading: isLoadingHistory } = useTestHistory(userId, 20)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Scan configuration state
+  const [scanConfig, setScanConfig] = useState<ScanConfig>({
+    theme: true,
+    checkout: true,
+    speed: true,
+  })
+  const [schedule, setSchedule] = useState<Schedule>("daily")
+
+  // Calculate next scheduled scan based on schedule setting
+  const nextScheduledScan = useMemo(() => {
+    if (schedule === "manual") return null
+    const now = new Date()
+    const nextScan = schedule === "daily"
+      ? addDays(setMinutes(setHours(now, 9), 0), 1)
+      : addDays(setMinutes(setHours(now, 9), 0), 7)
+    return format(nextScan, "EEEE 'at' h:mm a")
+  }, [schedule])
+
   // Build scan history from actual test data
   const history = useMemo(() => {
-    if (!test) return []
-    return [{
+    return testHistory.map(test => ({
       id: test.id,
-      date: test.date ? format(new Date(test.date), "MMM d, yyyy 'at' h:mm a") : "Unknown",
-      status: "Completed",
-      score: test.score
-    }]
-  }, [test])
+      date: test.created_at ? format(new Date(test.created_at), "MMM d, yyyy 'at' h:mm a") : "Unknown",
+      status: test.status === "completed" ? "Completed" : test.status === "running" ? "Running" : test.status === "failed" ? "Failed" : "Pending",
+      score: test.overall_score ?? undefined
+    }))
+  }, [testHistory])
 
   const handleTriggerScan = async () => {
     if (!userId) {
@@ -43,7 +68,13 @@ export default function ScannerPage() {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          scanConfig: {
+            theme: scanConfig.theme,
+            checkout: scanConfig.checkout,
+            speed: scanConfig.speed,
+          }
+        })
       })
 
       const data = await response.json()
@@ -100,23 +131,41 @@ export default function ScannerPage() {
           <div className="space-y-2">
             <p className="text-[#9CA3AF]">What to scan</p>
             <div className="flex flex-col gap-2 text-white">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={scanConfig.theme}
+                  onChange={(e) => setScanConfig(prev => ({ ...prev, theme: e.target.checked }))}
+                  className="accent-[#FBBF24]"
+                />
                 Theme
               </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={scanConfig.checkout}
+                  onChange={(e) => setScanConfig(prev => ({ ...prev, checkout: e.target.checked }))}
+                  className="accent-[#FBBF24]"
+                />
                 Checkout
               </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={scanConfig.speed}
+                  onChange={(e) => setScanConfig(prev => ({ ...prev, speed: e.target.checked }))}
+                  className="accent-[#FBBF24]"
+                />
                 Speed
               </label>
             </div>
           </div>
           <div className="space-y-2">
             <p className="text-[#9CA3AF]">Schedule</p>
-            <GhostSelect defaultValue="daily">
+            <GhostSelect
+              value={schedule}
+              onChange={(e) => setSchedule(e.target.value as Schedule)}
+            >
               <option value="daily">Daily (Pro)</option>
               <option value="weekly">Weekly</option>
               <option value="manual">Manual only</option>
@@ -126,7 +175,7 @@ export default function ScannerPage() {
             <p className="text-[#9CA3AF]">Next scheduled scan</p>
             <div className="flex items-center gap-2 text-white">
               <Calendar className="h-4 w-4 text-[#FBBF24]" />
-              Tomorrow at 9:00 AM
+              {nextScheduledScan || "Manual scans only"}
             </div>
           </div>
         </div>
@@ -135,7 +184,11 @@ export default function ScannerPage() {
       <GhostCard className="p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Scan history</h3>
         <div className="space-y-3">
-          {history.length === 0 ? (
+          {isLoadingHistory ? (
+            <p className="text-sm text-[#6B7280] text-center py-4">
+              Loading scan history...
+            </p>
+          ) : history.length === 0 ? (
             <p className="text-sm text-[#6B7280] text-center py-4">
               No scans yet. Run your first scan to see history.
             </p>
@@ -143,15 +196,26 @@ export default function ScannerPage() {
             history.map((scan) => (
               <div
                 key={scan.id}
-                className="flex items-center justify-between rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4"
+                className="flex items-center justify-between rounded-lg border border-[#2A2A2A] bg-[#141414] p-4"
               >
                 <div>
                   <p className="text-white">{scan.date}</p>
-                  <p className="text-xs text-[#6B7280]">{scan.status}</p>
+                  <p className={`text-xs ${
+                    scan.status === "Completed" ? "text-green-400" :
+                    scan.status === "Running" ? "text-[#FBBF24]" :
+                    scan.status === "Failed" ? "text-red-400" :
+                    "text-[#6B7280]"
+                  }`}>
+                    {scan.status}
+                  </p>
                 </div>
-                <div className="text-sm text-[#FBBF24]">
-                  Score {scan.score}
-                </div>
+                {scan.score !== undefined ? (
+                  <div className="text-sm text-[#FBBF24]">
+                    Score {scan.score}
+                  </div>
+                ) : scan.status === "Running" ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-[#FBBF24]" />
+                ) : null}
               </div>
             ))
           )}

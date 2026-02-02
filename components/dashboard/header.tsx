@@ -65,11 +65,11 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
   }
 
   return (
-    <header className="h-16 border-b border-[#1F1F1F] flex items-center justify-between px-6 bg-[#0A0A0A]">
+    <header className="h-16 border-b border-[#2A2A2E] flex items-center justify-between px-6 bg-[#0C0C0E]">
       <h1 className="text-lg font-semibold text-white">{pageTitle}</h1>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+        <div className="flex items-center gap-2 text-sm text-[#7A7A85]">
           <div className={`w-2 h-2 rounded-full ${statusColor}`} />
           <span>Last scan: {lastScanTime}</span>
           <button
@@ -89,16 +89,16 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
 
         <button
           type="button"
-          className="flex items-center gap-2 px-3 py-1.5 bg-[#111111] border border-[#1F1F1F] rounded-lg text-sm text-[#9CA3AF] hover:border-[#2A2A2A]"
+          className="flex items-center gap-2 px-3 py-1.5 bg-[#141416] border border-[#2A2A2E] rounded-lg text-sm text-[#A8A8B3] hover:border-[#3A3A40]"
         >
           <Search className="w-4 h-4" />
           <span>Search...</span>
-          <kbd className="text-xs bg-[#0A0A0A] px-1.5 py-0.5 rounded">
+          <kbd className="text-xs bg-[#1E1E22] px-1.5 py-0.5 rounded">
             ⌘K
           </kbd>
         </button>
 
-        <button className="relative p-2 text-[#9CA3AF] hover:text-white">
+        <button className="relative p-2 text-[#A8A8B3] hover:text-white">
           <Bell className="w-5 h-5" />
           <div className="absolute top-1 right-1 w-2 h-2 bg-[#FBBF24] rounded-full" />
         </button>

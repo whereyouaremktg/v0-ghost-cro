@@ -1,9 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Search } from "lucide-react"
-import { mockTests } from "@/lib/mock-data"
+import { Search, Loader2 } from "lucide-react"
+import { startOfMonth, subMonths, isWithinInterval, endOfMonth } from "date-fns"
+
+import { useAuthUserId } from "@/hooks/use-auth-user-id"
+import { useTestHistory } from "@/hooks/use-test-history"
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -13,7 +16,8 @@ function formatDate(dateString: string) {
   })
 }
 
-function getScoreColor(score: number) {
+function getScoreColor(score: number | null) {
+  if (score === null) return "bg-muted text-muted-foreground"
   if (score < 50) return "bg-destructive text-destructive-foreground"
   if (score < 70) return "bg-chart-5 text-foreground"
   return "bg-primary text-primary-foreground"
@@ -35,10 +39,50 @@ function getStatusStyle(status: string) {
 const tabs = ["All", "This Month", "Last Month"]
 
 export function HistoryContent() {
+  const { userId, isLoading: isUserLoading } = useAuthUserId()
+  const { tests, isLoading: isTestsLoading } = useTestHistory(userId, 50)
   const [activeTab, setActiveTab] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredTests = mockTests.filter((test) => test.url.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredTests = useMemo(() => {
+    const now = new Date()
+    const thisMonthStart = startOfMonth(now)
+    const thisMonthEnd = endOfMonth(now)
+    const lastMonthStart = startOfMonth(subMonths(now, 1))
+    const lastMonthEnd = endOfMonth(subMonths(now, 1))
+
+    return tests
+      .filter((test) => {
+        // Search filter
+        if (searchQuery && !test.store_url.toLowerCase().includes(searchQuery.toLowerCase())) {
+          return false
+        }
+        // Tab filter
+        if (activeTab === "This Month") {
+          const testDate = new Date(test.created_at)
+          return isWithinInterval(testDate, { start: thisMonthStart, end: thisMonthEnd })
+        }
+        if (activeTab === "Last Month") {
+          const testDate = new Date(test.created_at)
+          return isWithinInterval(testDate, { start: lastMonthStart, end: lastMonthEnd })
+        }
+        return true
+      })
+      .map((test, index, arr) => ({
+        id: test.id,
+        date: test.created_at,
+        url: test.store_url,
+        personaMix: "Standard Mix",
+        score: test.overall_score,
+        change: index < arr.length - 1 && test.overall_score && arr[index + 1].overall_score
+          ? test.overall_score - (arr[index + 1].overall_score || 0)
+          : 0,
+        issuesFound: test.friction_score ?? 0,
+        status: test.status,
+      }))
+  }, [tests, activeTab, searchQuery])
+
+  const isLoading = isUserLoading || isTestsLoading
 
   return (
     <div className="p-8">
@@ -92,46 +136,61 @@ export function HistoryContent() {
             </tr>
           </thead>
           <tbody>
-            {filteredTests.map((test) => (
-              <tr
-                key={test.id}
-                className="border-b-2 border-border last:border-b-0 hover:bg-muted/50 transition-colors"
-              >
-                <td className="p-4 font-mono text-sm">{formatDate(test.date)}</td>
-                <td className="p-4 text-sm truncate max-w-[200px]">{test.url.replace("https://", "")}</td>
-                <td className="p-4 text-sm">{test.personaMix}</td>
-                <td className="p-4">
-                  <span
-                    className={`inline-block px-3 py-1 font-mono font-bold text-sm border-2 border-border ${getScoreColor(test.score)}`}
-                  >
-                    {test.score}
-                  </span>
-                </td>
-                <td className="p-4">
-                  <span
-                    className={`font-mono font-bold text-sm ${test.change > 0 ? "text-primary" : test.change < 0 ? "text-destructive" : "text-muted-foreground"}`}
-                  >
-                    {test.change > 0 ? `+${test.change}` : test.change === 0 ? "—" : test.change}
-                  </span>
-                </td>
-                <td className="p-4 font-mono text-sm">{test.issuesFound}</td>
-                <td className="p-4">
-                  <span
-                    className={`inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-wide border-2 border-border ${getStatusStyle(test.status)}`}
-                  >
-                    {test.status}
-                  </span>
-                </td>
-                <td className="p-4">
-                  <Link
-                    href={`/ghost/test/${test.id}`}
-                    className="inline-block px-4 py-2 text-xs font-bold uppercase tracking-wide border-2 border-border bg-card hover:bg-muted brutal-hover transition-all"
-                  >
-                    View
-                  </Link>
+            {isLoading ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                  <p className="text-sm text-muted-foreground mt-2">Loading scan history...</p>
                 </td>
               </tr>
-            ))}
+            ) : filteredTests.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                  {searchQuery ? "No scans match your search." : "No scans yet. Run your first scan to see history."}
+                </td>
+              </tr>
+            ) : (
+              filteredTests.map((test) => (
+                <tr
+                  key={test.id}
+                  className="border-b-2 border-border last:border-b-0 hover:bg-muted/50 transition-colors"
+                >
+                  <td className="p-4 font-mono text-sm">{formatDate(test.date)}</td>
+                  <td className="p-4 text-sm truncate max-w-[200px]">{test.url?.replace("https://", "") || "—"}</td>
+                  <td className="p-4 text-sm">{test.personaMix}</td>
+                  <td className="p-4">
+                    <span
+                      className={`inline-block px-3 py-1 font-mono font-bold text-sm border-2 border-border ${getScoreColor(test.score)}`}
+                    >
+                      {test.score ?? "—"}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span
+                      className={`font-mono font-bold text-sm ${test.change > 0 ? "text-primary" : test.change < 0 ? "text-destructive" : "text-muted-foreground"}`}
+                    >
+                      {test.change > 0 ? `+${test.change}` : test.change === 0 ? "—" : test.change}
+                    </span>
+                  </td>
+                  <td className="p-4 font-mono text-sm">{test.issuesFound}</td>
+                  <td className="p-4">
+                    <span
+                      className={`inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-wide border-2 border-border ${getStatusStyle(test.status)}`}
+                    >
+                      {test.status}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <Link
+                      href={`/dashboard/issues?testId=${test.id}`}
+                      className="inline-block px-4 py-2 text-xs font-bold uppercase tracking-wide border-2 border-border bg-card hover:bg-muted brutal-hover transition-all"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

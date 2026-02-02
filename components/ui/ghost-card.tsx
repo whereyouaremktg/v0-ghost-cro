@@ -8,7 +8,7 @@ export function GhostCard({ className, ...props }: GhostCardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#1F1F1F] bg-[#111111] text-white shadow-sm",
+        "rounded-xl border border-[#2A2A2E] bg-[#141416] text-white shadow-sm",
         className,
       )}
       {...props}
