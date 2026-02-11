@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import Link from "next/link"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { Bell, RefreshCw, Search, Loader2 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import useSWR from "swr"
@@ -9,16 +10,8 @@ import useSWR from "swr"
 import { createClient } from "@/lib/supabase/client"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { GhostInput } from "@/components/ui/ghost-input"
-
-const titles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/scanner": "Scanner",
-  "/dashboard/issues": "Issues",
-  "/dashboard/experiments": "Experiments",
-  "/dashboard/insights": "Insights",
-  "/dashboard/settings": "Settings",
-  "/dashboard/history": "History",
-}
+import { GhostButton } from "@/components/ui/ghost-button"
+import { StoreSelector, type StoreData } from "./store-selector"
 
 type SearchTest = {
   id: string
@@ -27,18 +20,111 @@ type SearchTest = {
   status: "pending" | "running" | "completed" | "failed"
 }
 
+type StoreRow = {
+  id: string
+  shop: string | null
+  name: string | null
+}
+
+type SubscriptionRow = {
+  plan: string | null
+  tests_limit: number | null
+  tests_used: number | null
+}
+
+function resolvePageTitle(pathname: string): string {
+  if (pathname.startsWith("/dashboard/issues/")) return "Issue Details"
+  if (pathname.startsWith("/dashboard/test/")) return "Scan Results"
+
+  const titles: Record<string, string> = {
+    "/dashboard": "Dashboard",
+    "/dashboard/scanner": "Scanner",
+    "/dashboard/issues": "Issues",
+    "/dashboard/history": "History",
+    "/dashboard/experiments": "Experiments",
+    "/dashboard/insights": "Insights",
+    "/dashboard/settings": "Settings",
+  }
+
+  return titles[pathname] ?? "Dashboard"
+}
+
+function formatPlanName(plan: string | null | undefined): string {
+  if (!plan) return "Free"
+  const normalized = plan === "pro" ? "growth" : plan
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+}
+
 export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string }) {
   const router = useRouter()
   const pathname = usePathname()
-  const pageTitle = titles[pathname] ?? "Dashboard"
+  const searchParams = useSearchParams()
+  const pageTitle = resolvePageTitle(pathname)
+
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isUpgrading, setIsUpgrading] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const searchRef = useRef<HTMLDivElement>(null)
+
   const { userId } = useAuthUserId()
 
-  // Fetch last scan timestamp
+  const { data: currentUser } = useSWR("header-current-user", async () => {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    return user
+  })
+
+  const { data: storesData, mutate: mutateStores } = useSWR(
+    currentUser?.id ? `header-stores-${currentUser.id}` : null,
+    async (): Promise<StoreRow[]> => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("stores")
+        .select("id, shop, name")
+        .eq("user_id", currentUser!.id)
+        .eq("is_active", true)
+
+      if (error) {
+        throw error
+      }
+
+      return (data as StoreRow[]) ?? []
+    },
+    { revalidateOnFocus: true },
+  )
+
+  const stores: StoreData[] =
+    storesData?.map((store) => ({
+      id: store.id,
+      name: store.name || store.shop?.replace(".myshopify.com", "") || "Store",
+      domain: store.shop || "",
+    })) ?? []
+
+  const currentStore = stores[0] || null
+
+  const { data: subscription } = useSWR(
+    currentUser?.id ? `header-subscription-${currentUser.id}` : null,
+    async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("plan, tests_limit, tests_used")
+        .eq("user_id", currentUser!.id)
+        .maybeSingle()
+
+      if (error && error.code !== "PGRST116") {
+        throw error
+      }
+
+      return (data as SubscriptionRow | null) ?? null
+    },
+  )
+
   const { data: lastScanData, mutate } = useSWR(
     userId ? ["last-scan", userId] : null,
     async () => {
@@ -52,7 +138,7 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
         .maybeSingle()
 
       return data
-    }
+    },
   )
 
   const { data: searchHistory = [] } = useSWR(
@@ -74,26 +160,40 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
     },
   )
 
-  // Format last scan time
+  useEffect(() => {
+    if (searchParams.get("store_connected") !== "1") return
+
+    mutateStores().then(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete("store_connected")
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    })
+  }, [searchParams, mutateStores, pathname, router])
+
+  useEffect(() => {
+    if (pathname?.startsWith("/dashboard")) {
+      mutateStores()
+    }
+  }, [pathname, mutateStores])
+
   const lastScanTime = lastScanData?.created_at
     ? formatDistanceToNow(new Date(lastScanData.created_at), { addSuffix: true })
     : lastScanProp ?? "No scans yet"
 
-  // Determine status indicator color
-  const statusColor = lastScanData?.status === "running"
-    ? "bg-[#FBBF24] animate-pulse"
-    : lastScanData?.status === "failed"
-      ? "bg-red-500"
-      : "bg-green-500"
+  const statusColor =
+    lastScanData?.status === "running"
+      ? "bg-[#FBBF24] animate-pulse"
+      : lastScanData?.status === "failed"
+        ? "bg-red-500"
+        : "bg-green-500"
 
-  const handleRefresh = () => {
-    setIsRefreshing(true)
-    // Refresh both the SWR cache and the page
-    mutate()
-    router.refresh()
-    // Reset after a short delay for visual feedback
-    setTimeout(() => setIsRefreshing(false), 1000)
-  }
+  const scansRemaining = Math.max(
+    (subscription?.tests_limit ?? 0) - (subscription?.tests_used ?? 0),
+    0,
+  )
+
+  const userInitials = currentUser?.email?.slice(0, 2).toUpperCase() || "GC"
 
   const filteredSearchResults = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -105,8 +205,11 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
       .filter((test) => {
         const urlMatch = test.store_url?.toLowerCase().includes(query)
         const dateMatch = test.created_at
-          ? format(new Date(test.created_at), "MMM d, yyyy h:mm a").toLowerCase().includes(query)
+          ? format(new Date(test.created_at), "MMM d, yyyy h:mm a")
+              .toLowerCase()
+              .includes(query)
           : false
+
         return urlMatch || dateMatch
       })
       .slice(0, 8)
@@ -123,9 +226,38 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
     router.push(`/dashboard/test/${id}`)
   }
 
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    mutate()
+    router.refresh()
+    setTimeout(() => setIsRefreshing(false), 1000)
+  }
+
+  const handleUpgrade = async () => {
+    setIsUpgrading(true)
+
+    try {
+      const response = await fetch("/api/shopify/billing/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "pro" }),
+      })
+      const data = await response.json()
+      if (data.confirmationUrl) {
+        window.location.href = data.confirmationUrl
+      }
+    } catch (error) {
+      console.error("Failed to initiate upgrade", error)
+    } finally {
+      setIsUpgrading(false)
+    }
+  }
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const isOpenCommand = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k"
+      const isOpenCommand =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k"
+
       if (isOpenCommand) {
         event.preventDefault()
         setIsSearchOpen(true)
@@ -143,7 +275,9 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
 
       if (event.key === "ArrowDown") {
         event.preventDefault()
-        setHighlightedIndex((prev) => Math.min(prev + 1, filteredSearchResults.length - 1))
+        setHighlightedIndex((prev) =>
+          Math.min(prev + 1, filteredSearchResults.length - 1),
+        )
       }
 
       if (event.key === "ArrowUp") {
@@ -184,78 +318,108 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
   }, [searchQuery])
 
   return (
-    <header className="h-16 border-b border-[#1F1F1F] flex items-center justify-between px-6 bg-[#0A0A0A]">
-      <h1 className="text-lg font-semibold text-white">{pageTitle}</h1>
+    <header className="sticky top-0 z-30 border-b border-[#1A1A1A] bg-[#0A0A0A]/95 px-4 py-3 backdrop-blur md:px-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <h1 className="truncate text-lg font-semibold text-white">{pageTitle}</h1>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <div className={`w-2 h-2 rounded-full ${statusColor}`} />
-          <span>Last scan: {lastScanTime}</span>
-          <button
-            type="button"
-            className="text-[#FBBF24] hover:text-[#F59E0B] disabled:opacity-50"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh data"
-          >
-            {isRefreshing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-
-        <div ref={searchRef} className="relative">
-          {isSearchOpen ? (
-            <GhostInput
-              autoFocus
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by store URL or date..."
-              className="w-[360px] h-10"
-            />
-          ) : (
+          <div className="hidden items-center gap-2 text-xs text-[#9CA3AF] lg:flex">
+            <div className={`h-2 w-2 rounded-full ${statusColor}`} />
+            <span>Last scan: {lastScanTime}</span>
             <button
               type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#111111] border border-[#1F1F1F] rounded-lg text-sm text-[#9CA3AF] hover:border-[#2A2A2A]"
+              className="text-[#FBBF24] hover:text-[#F59E0B] disabled:opacity-50"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Refresh data"
             >
-              <Search className="w-4 h-4" />
-              <span>Search...</span>
-              <kbd className="text-xs bg-[#0A0A0A] px-1.5 py-0.5 rounded">⌘K</kbd>
-            </button>
-          )}
-
-          {isSearchOpen && (
-            <div className="absolute right-0 top-12 w-[420px] max-h-80 overflow-auto rounded-lg border border-[#1F1F1F] bg-[#111111] shadow-xl z-50">
-              {filteredSearchResults.length === 0 ? (
-                <p className="px-4 py-3 text-sm text-[#6B7280]">No matching scans found.</p>
+              {isRefreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                filteredSearchResults.map((result, index) => (
-                  <button
-                    key={result.id}
-                    type="button"
-                    onClick={() => handleResultSelect(result.id)}
-                    className={`w-full text-left px-4 py-3 border-b border-[#1F1F1F] last:border-0 ${
-                      index === highlightedIndex ? "bg-[#161616]" : "hover:bg-[#161616]"
-                    }`}
-                  >
-                    <p className="text-sm text-white truncate">{result.store_url}</p>
-                    <p className="text-xs text-[#6B7280]">
-                      {format(new Date(result.created_at), "MMM d, yyyy h:mm a")} • {result.status}
-                    </p>
-                  </button>
-                ))
+                <RefreshCw className="h-4 w-4" />
               )}
-            </div>
-          )}
+            </button>
+          </div>
+
+          <div className="hidden min-w-[240px] xl:block">
+            <StoreSelector currentStore={currentStore} stores={stores} />
+          </div>
         </div>
 
-        <button className="relative p-2 text-[#9CA3AF] hover:text-white">
-          <Bell className="w-5 h-5" />
-          <div className="absolute top-1 right-1 w-2 h-2 bg-[#FBBF24] rounded-full" />
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 rounded-lg border border-[#1F1F1F] bg-[#111111] px-3 py-1.5 text-xs lg:flex">
+            <span className="font-medium text-white">{formatPlanName(subscription?.plan)} Plan</span>
+            <span className="text-[#6B7280]">{scansRemaining} left</span>
+          </div>
+
+          <GhostButton
+            size="sm"
+            variant="outline"
+            className="hidden lg:flex"
+            onClick={handleUpgrade}
+            disabled={isUpgrading}
+          >
+            {isUpgrading ? "Processing..." : "Upgrade"}
+          </GhostButton>
+
+          <div ref={searchRef} className="relative hidden md:block">
+            {isSearchOpen ? (
+              <GhostInput
+                autoFocus
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search scans..."
+                className="h-10 w-[320px]"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center gap-2 rounded-lg border border-[#1F1F1F] bg-[#111111] px-3 py-1.5 text-sm text-[#9CA3AF] hover:border-[#2A2A2A]"
+              >
+                <Search className="h-4 w-4" />
+                <span>Search...</span>
+                <kbd className="rounded bg-[#0A0A0A] px-1.5 py-0.5 text-xs">⌘K</kbd>
+              </button>
+            )}
+
+            {isSearchOpen && (
+              <div className="absolute right-0 top-12 z-50 max-h-80 w-[420px] overflow-auto rounded-lg border border-[#1F1F1F] bg-[#111111] shadow-xl">
+                {filteredSearchResults.length === 0 ? (
+                  <p className="px-4 py-3 text-sm text-[#6B7280]">No matching scans found.</p>
+                ) : (
+                  filteredSearchResults.map((result, index) => (
+                    <button
+                      key={result.id}
+                      type="button"
+                      onClick={() => handleResultSelect(result.id)}
+                      className={`w-full border-b border-[#1F1F1F] px-4 py-3 text-left last:border-0 ${
+                        index === highlightedIndex ? "bg-[#161616]" : "hover:bg-[#161616]"
+                      }`}
+                    >
+                      <p className="truncate text-sm text-white">{result.store_url}</p>
+                      <p className="text-xs text-[#6B7280]">
+                        {format(new Date(result.created_at), "MMM d, yyyy h:mm a")} • {result.status}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <button className="relative rounded-lg p-2 text-[#9CA3AF] hover:bg-[#111111] hover:text-white">
+            <Bell className="h-5 w-5" />
+            <div className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#FBBF24]" />
+          </button>
+
+          <Link
+            href="/dashboard/settings"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111111] text-sm font-semibold text-white hover:bg-[#1A1A1A]"
+          >
+            {userInitials}
+          </Link>
+        </div>
       </div>
     </header>
   )

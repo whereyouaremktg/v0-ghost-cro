@@ -49,9 +49,9 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <Sidebar />
-      <div className="pl-[240px] flex flex-col min-h-screen">
+      <div className="min-h-screen pl-14">
         <DashboardHeader />
-        <main className="flex-1 p-6">
+        <main className="min-h-[calc(100vh-72px)] p-4 md:p-6">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>

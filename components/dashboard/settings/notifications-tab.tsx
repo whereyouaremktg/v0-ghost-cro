@@ -13,97 +13,69 @@ export function NotificationsTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold tracking-tight mb-1">Notifications</h2>
-        <p className="text-sm text-zinc-500">Configure how you receive alerts</p>
+        <h2 className="text-lg font-semibold text-white">Notifications</h2>
+        <p className="text-sm text-[#71717A]">Choose how Ghost should alert your team.</p>
       </div>
 
-      {/* Email Alerts */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">Email Alerts</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#9CA3AF]">Email Alerts</h3>
 
-        <div className="space-y-4">
-          {/* Weekly Digest */}
-          <div className="flex items-start justify-between p-4 rounded-lg border border-zinc-200 bg-white">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between rounded-lg border border-[#1A1A1A] bg-[#111111] p-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <Label htmlFor="weekly-digest" className="text-sm font-medium text-zinc-900 cursor-pointer">
-                  Weekly Digest
-                </Label>
-              </div>
-              <p className="text-xs text-zinc-500">
-                Get a summary of recovered revenue every Monday
+              <Label htmlFor="weekly-digest" className="cursor-pointer text-sm font-medium text-white">
+                Weekly Digest
+              </Label>
+              <p className="mt-1 text-xs text-[#71717A]">
+                Receive a summary of recovered revenue and scan outcomes every Monday.
               </p>
             </div>
-            <Toggle
-              id="weekly-digest"
-              checked={weeklyDigest}
-              onCheckedChange={setWeeklyDigest}
-            />
+            <Toggle id="weekly-digest" checked={weeklyDigest} onCheckedChange={setWeeklyDigest} />
           </div>
 
-          {/* New Leak Detected */}
-          <div className="flex items-start justify-between p-4 rounded-lg border border-zinc-200 bg-white">
+          <div className="flex items-start justify-between rounded-lg border border-[#1A1A1A] bg-[#111111] p-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <Label htmlFor="new-leak" className="text-sm font-medium text-zinc-900 cursor-pointer">
-                  New Leak Detected
-                </Label>
-              </div>
-              <p className="text-xs text-zinc-500">
-                Receive an email when Ghost identifies a new revenue leak
+              <Label htmlFor="new-leak" className="cursor-pointer text-sm font-medium text-white">
+                New Leak Detected
+              </Label>
+              <p className="mt-1 text-xs text-[#71717A]">
+                Alert when Ghost identifies a new high-confidence conversion leak.
               </p>
             </div>
-            <Toggle
-              id="new-leak"
-              checked={newLeakDetected}
-              onCheckedChange={setNewLeakDetected}
-            />
+            <Toggle id="new-leak" checked={newLeakDetected} onCheckedChange={setNewLeakDetected} />
           </div>
 
-          {/* System Errors */}
-          <div className="flex items-start justify-between p-4 rounded-lg border border-zinc-200 bg-white">
+          <div className="flex items-start justify-between rounded-lg border border-[#1A1A1A] bg-[#111111] p-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                <Label htmlFor="system-errors" className="text-sm font-medium text-zinc-900 cursor-pointer">
-                  System Errors
-                </Label>
-              </div>
-              <p className="text-xs text-zinc-500">
-                Get notified when there are issues with Ghost's analysis engine
+              <Label htmlFor="system-errors" className="cursor-pointer text-sm font-medium text-white">
+                System Errors
+              </Label>
+              <p className="mt-1 text-xs text-[#71717A]">
+                Notify when analysis jobs fail due to external platform issues.
               </p>
             </div>
-            <Toggle
-              id="system-errors"
-              checked={systemErrors}
-              onCheckedChange={setSystemErrors}
-            />
+            <Toggle id="system-errors" checked={systemErrors} onCheckedChange={setSystemErrors} />
           </div>
         </div>
       </div>
 
-      {/* Real-time Alerts (Slack) */}
-      <div className="space-y-4 pt-6 border-t border-zinc-200">
-        <h3 className="text-sm font-semibold text-zinc-900 uppercase tracking-wider">Real-time Alerts (Slack)</h3>
+      <div className="space-y-4 border-t border-[#1A1A1A] pt-6">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#9CA3AF]">
+          Real-time Alerts (Slack)
+        </h3>
 
-        <div className="flex items-start justify-between p-4 rounded-lg border border-zinc-200 bg-white">
+        <div className="flex items-start justify-between rounded-lg border border-[#1A1A1A] bg-[#111111] p-4">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
-              <Label htmlFor="high-impact" className="text-sm font-medium text-zinc-900 cursor-pointer">
-                High Impact Leaks (&gt; $1000/day)
-              </Label>
-            </div>
-            <p className="text-xs text-zinc-500">
-              Send instant Slack notifications for leaks exceeding $1000 per day
+            <Label htmlFor="high-impact" className="cursor-pointer text-sm font-medium text-white">
+              High Impact Leaks (&gt; $1000/day)
+            </Label>
+            <p className="mt-1 text-xs text-[#71717A]">
+              Send instant Slack notifications for the highest-impact opportunities.
             </p>
           </div>
-          <Toggle
-            id="high-impact"
-            checked={highImpactLeaks}
-            onCheckedChange={setHighImpactLeaks}
-          />
+          <Toggle id="high-impact" checked={highImpactLeaks} onCheckedChange={setHighImpactLeaks} />
         </div>
       </div>
     </div>
   )
 }
-

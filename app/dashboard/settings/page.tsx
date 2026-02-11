@@ -14,8 +14,6 @@ export default async function SettingsPage() {
     redirect("/login")
   }
 
-  // 1. Fetch Integrations Status
-  // We use .maybeSingle() because the user might not have connected anything yet
   const { data: store } = await supabase
     .from("stores")
     .select("*")
@@ -23,14 +21,12 @@ export default async function SettingsPage() {
     .eq("is_active", true)
     .maybeSingle()
 
-  // Check for GA4 connection
   const { data: ga4 } = await supabase
     .from("ga4_connections")
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle()
 
-  // 2. Fetch Subscription Status
   const { data: subscription } = await supabase
     .from("subscriptions")
     .select("*")
@@ -45,14 +41,13 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-2xl font-semibold text-white">Settings</h1>
+        <p className="text-sm text-[#71717A]">Manage integrations, billing, and alerts.</p>
       </div>
 
-      {/* Settings Container */}
-      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm min-h-[600px] flex overflow-hidden">
+      <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-4 md:p-6">
         <SettingsContent connections={connections} subscription={subscription} />
       </div>
     </div>

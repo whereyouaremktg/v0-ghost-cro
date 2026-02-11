@@ -1,9 +1,18 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Scan, Loader2, AlertCircle } from "lucide-react"
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  Palette,
+  Scan,
+  ShoppingCart,
+  Zap,
+} from "lucide-react"
 import { format } from "date-fns"
 
 import { GhostButton } from "@/components/ui/ghost-button"
@@ -11,10 +20,39 @@ import { GhostCard } from "@/components/ui/ghost-card"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { useLatestTest } from "@/hooks/use-latest-test"
 
+type ToggleCard = {
+  id: "analyzeTheme" | "analyzeCheckout" | "analyzeSpeed"
+  icon: typeof Palette
+  label: string
+  description: string
+}
+
+const toggleCards: ToggleCard[] = [
+  {
+    id: "analyzeTheme",
+    icon: Palette,
+    label: "Analyze Theme",
+    description: "Scan storefront UX friction and conversion blockers.",
+  },
+  {
+    id: "analyzeCheckout",
+    icon: ShoppingCart,
+    label: "Analyze Checkout",
+    description: "Evaluate checkout path with AI buyer personas.",
+  },
+  {
+    id: "analyzeSpeed",
+    icon: Zap,
+    label: "Analyze Speed",
+    description: "Check load performance and key experience metrics.",
+  },
+]
+
 export default function ScannerPage() {
   const router = useRouter()
   const { userId } = useAuthUserId()
   const { test } = useLatestTest(userId)
+
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanConfig, setScanConfig] = useState({
@@ -23,15 +61,18 @@ export default function ScannerPage() {
     analyzeSpeed: true,
   })
 
-  // Build scan history from actual test data
   const history = useMemo(() => {
     if (!test) return []
-    return [{
-      id: test.id,
-      date: test.date ? format(new Date(test.date), "MMM d, yyyy 'at' h:mm a") : "Unknown",
-      status: "Completed",
-      score: test.score
-    }]
+
+    return [
+      {
+        id: test.id,
+        date: test.date ? format(new Date(test.date), "MMM d, yyyy") : "Unknown",
+        score: test.score,
+        duration: "~3m",
+        status: "completed",
+      },
+    ]
   }, [test])
 
   const shouldShowSettingsLink =
@@ -47,11 +88,10 @@ export default function ScannerPage() {
     setError(null)
 
     try {
-      // API uses connected store URL when url is not sent; returns 402 if no store or no subscription
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config: scanConfig })
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: scanConfig }),
       })
 
       const data = await response
@@ -60,145 +100,171 @@ export default function ScannerPage() {
 
       if (!response.ok) {
         if (response.status === 402) {
-          const msg =
+          const message =
             data.message ||
             data.error ||
             "Complete setup required: connect your Shopify store in Settings and activate a billing plan before running scans."
-          throw new Error(msg)
+          throw new Error(message)
         }
+
         if (response.status === 429) {
           const retryAfter = typeof data.retryAfter === "number" ? data.retryAfter : null
           throw new Error(
             retryAfter
               ? `Rate limit exceeded. Try again in ${retryAfter} seconds.`
-              : "Rate limit exceeded. Please try again shortly."
+              : "Rate limit exceeded. Please try again shortly.",
           )
         }
+
         if (response.status === 401) {
           throw new Error("Your session expired. Please refresh and sign in again.")
         }
-        throw new Error(data.error || 'Failed to start scan')
+
+        throw new Error(data.error || "Failed to start scan")
       }
 
-      // Redirect to scanning page to show progress
-      if (data.jobId) {
-        router.push(`/onboarding/scanning?testId=${data.jobId}`)
-      } else {
-        setError('No job ID returned')
-        setIsScanning(false)
+      if (!data.jobId) {
+        throw new Error("No job ID returned")
       }
+
+      router.push(`/onboarding/scanning?testId=${data.jobId}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start scan')
+      setError(err instanceof Error ? err.message : "Failed to start scan")
       setIsScanning(false)
     }
   }
 
   return (
-    <div className="space-y-6">
-      <GhostCard className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-white">Scanner</h2>
-          <p className="text-sm text-[#9CA3AF]">
-            Run a new scan to detect conversion leaks and performance issues.
-          </p>
-          {error && (
-            <>
-              <div className="flex items-start gap-2 mt-2 text-sm text-red-400">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>{error}</span>
-              </div>
-              {shouldShowSettingsLink && (
-                <p className="mt-1 text-xs text-[#9CA3AF]">
-                  Open{" "}
-                  <Link href="/dashboard/settings" className="text-[#FBBF24] hover:text-[#F59E0B] underline">
-                    Settings
-                  </Link>{" "}
-                  and complete both Integrations and Billing.
-                </p>
-              )}
-            </>
-          )}
-        </div>
-        <GhostButton onClick={handleTriggerScan} disabled={isScanning}>
-          {isScanning ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Scan className="h-4 w-4" />
-          )}
-          {isScanning ? "Starting scan..." : "Trigger new scan"}
-        </GhostButton>
-      </GhostCard>
-
-      <GhostCard className="p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">Scan configuration</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2">
-            <p className="text-[#9CA3AF]">What to scan</p>
-            <div className="flex flex-col gap-2 text-white">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={scanConfig.analyzeTheme}
-                  onChange={(event) =>
-                    setScanConfig((prev) => ({ ...prev, analyzeTheme: event.target.checked }))
-                  }
-                />
-                Theme
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={scanConfig.analyzeCheckout}
-                  onChange={(event) =>
-                    setScanConfig((prev) => ({ ...prev, analyzeCheckout: event.target.checked }))
-                  }
-                />
-                Checkout
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={scanConfig.analyzeSpeed}
-                  onChange={(event) =>
-                    setScanConfig((prev) => ({ ...prev, analyzeSpeed: event.target.checked }))
-                  }
-                />
-                Speed
-              </label>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-[#9CA3AF]">Schedule</p>
-            <p className="text-white">Manual only</p>
-          </div>
-        </div>
-      </GhostCard>
-
-      <GhostCard className="p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Scan history</h3>
-        <div className="space-y-3">
-          {history.length === 0 ? (
-            <p className="text-sm text-[#6B7280] text-center py-4">
-              No scans yet. Run your first scan to see history.
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <GhostCard className="overflow-hidden border-[#1A1A1A] bg-[#0F0F0F]">
+        <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-white">Run Ghost Scan</h2>
+            <p className="mt-1 text-sm text-[#71717A]">
+              AI-powered analysis of your storefront conversion funnel.
             </p>
-          ) : (
-            history.map((scan) => (
+
+            {error && (
+              <>
+                <div className="mt-3 flex items-start gap-2 text-sm text-red-400">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+                {shouldShowSettingsLink && (
+                  <p className="mt-1 text-xs text-[#9CA3AF]">
+                    Open{" "}
+                    <Link
+                      href="/dashboard/settings"
+                      className="text-[#FBBF24] underline hover:text-[#F59E0B]"
+                    >
+                      Settings
+                    </Link>{" "}
+                    and complete Integrations + Billing first.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
+          <GhostButton onClick={handleTriggerScan} disabled={isScanning} size="lg">
+            {isScanning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Scan className="h-4 w-4" />
+            )}
+            {isScanning ? "Starting..." : "Trigger New Scan"}
+          </GhostButton>
+        </div>
+      </GhostCard>
+
+      <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-6">
+        <h3 className="mb-4 text-lg font-semibold text-white">Scan Configuration</h3>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {toggleCards.map((card) => {
+            const enabled = scanConfig[card.id]
+            const Icon = card.icon
+
+            return (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() =>
+                  setScanConfig((prev) => ({
+                    ...prev,
+                    [card.id]: !prev[card.id],
+                  }))
+                }
+                className="rounded-xl border p-4 text-left transition-all"
+                style={{
+                  backgroundColor: enabled ? "rgba(251, 191, 36, 0.06)" : "#111111",
+                  borderColor: enabled ? "rgba(251, 191, 36, 0.3)" : "#1A1A1A",
+                }}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-lg"
+                    style={{
+                      backgroundColor: enabled ? "rgba(251, 191, 36, 0.15)" : "#1A1A1A",
+                    }}
+                  >
+                    <Icon className="h-4 w-4" color={enabled ? "#FBBF24" : "#71717A"} />
+                  </div>
+                  <span
+                    className="inline-flex h-5 w-10 items-center rounded-full transition-colors"
+                    style={{ backgroundColor: enabled ? "#FBBF24" : "#333333" }}
+                  >
+                    <span
+                      className="h-4 w-4 rounded-full bg-white transition-all"
+                      style={{ transform: enabled ? "translateX(20px)" : "translateX(2px)" }}
+                    />
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-white">{card.label}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#71717A]">{card.description}</p>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="mt-5 flex items-center gap-2 text-xs text-[#71717A]">
+          <Clock className="h-3.5 w-3.5" />
+          Manual only
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-6">
+        <h3 className="mb-4 text-lg font-semibold text-white">Scan History</h3>
+
+        {history.length === 0 ? (
+          <p className="py-6 text-center text-sm text-[#6B7280]">
+            No scans yet. Run your first scan to see history.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {history.map((scan) => (
               <div
                 key={scan.id}
-                className="flex items-center justify-between rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4"
+                className="flex flex-col gap-3 rounded-xl border border-[#1A1A1A] bg-[#111111] p-4 md:flex-row md:items-center md:justify-between"
               >
-                <div>
-                  <p className="text-white">{scan.date}</p>
-                  <p className="text-xs text-[#6B7280]">{scan.status}</p>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-[#FBBF24]/10 p-2">
+                    <CheckCircle2 className="h-4 w-4 text-[#FBBF24]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{scan.date}</p>
+                    <p className="text-xs text-[#6B7280]">
+                      {scan.status} • {scan.duration}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-sm text-[#FBBF24]">
-                  Score {scan.score}
-                </div>
+
+                <div className="text-sm font-semibold text-[#FBBF24]">Score {scan.score}</div>
               </div>
-            ))
-          )}
-        </div>
-      </GhostCard>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
