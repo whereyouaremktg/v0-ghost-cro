@@ -2,12 +2,11 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { Calendar, Scan, Loader2, AlertCircle } from "lucide-react"
+import { Scan, Loader2, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
 
 import { GhostButton } from "@/components/ui/ghost-button"
 import { GhostCard } from "@/components/ui/ghost-card"
-import { GhostSelect } from "@/components/ui/ghost-select"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { useLatestTest } from "@/hooks/use-latest-test"
 
@@ -17,6 +16,11 @@ export default function ScannerPage() {
   const { test } = useLatestTest(userId)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [scanConfig, setScanConfig] = useState({
+    analyzeTheme: true,
+    analyzeCheckout: true,
+    analyzeSpeed: true,
+  })
 
   // Build scan history from actual test data
   const history = useMemo(() => {
@@ -43,7 +47,7 @@ export default function ScannerPage() {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({ config: scanConfig })
       })
 
       const data = await response.json()
@@ -96,38 +100,45 @@ export default function ScannerPage() {
 
       <GhostCard className="p-6 space-y-4">
         <h3 className="text-lg font-semibold text-white">Scan configuration</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="space-y-2">
             <p className="text-[#9CA3AF]">What to scan</p>
             <div className="flex flex-col gap-2 text-white">
               <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
+                <input
+                  type="checkbox"
+                  checked={scanConfig.analyzeTheme}
+                  onChange={(event) =>
+                    setScanConfig((prev) => ({ ...prev, analyzeTheme: event.target.checked }))
+                  }
+                />
                 Theme
               </label>
               <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
+                <input
+                  type="checkbox"
+                  checked={scanConfig.analyzeCheckout}
+                  onChange={(event) =>
+                    setScanConfig((prev) => ({ ...prev, analyzeCheckout: event.target.checked }))
+                  }
+                />
                 Checkout
               </label>
               <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked />
+                <input
+                  type="checkbox"
+                  checked={scanConfig.analyzeSpeed}
+                  onChange={(event) =>
+                    setScanConfig((prev) => ({ ...prev, analyzeSpeed: event.target.checked }))
+                  }
+                />
                 Speed
               </label>
             </div>
           </div>
           <div className="space-y-2">
             <p className="text-[#9CA3AF]">Schedule</p>
-            <GhostSelect defaultValue="daily">
-              <option value="daily">Daily (Pro)</option>
-              <option value="weekly">Weekly</option>
-              <option value="manual">Manual only</option>
-            </GhostSelect>
-          </div>
-          <div className="space-y-2">
-            <p className="text-[#9CA3AF]">Next scheduled scan</p>
-            <div className="flex items-center gap-2 text-white">
-              <Calendar className="h-4 w-4 text-[#FBBF24]" />
-              Tomorrow at 9:00 AM
-            </div>
+            <p className="text-white">Manual only</p>
           </div>
         </div>
       </GhostCard>

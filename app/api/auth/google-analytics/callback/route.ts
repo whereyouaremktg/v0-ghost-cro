@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { google } from 'googleapis'
 import { createClient } from "@/lib/supabase/server"
+import { encryptToken } from "@/lib/security/encryption"
+import { validateOAuthState } from "@/lib/security/oauth-state"
 
 export async function GET(request: Request) {
   try {
@@ -30,7 +32,7 @@ export async function GET(request: Request) {
     const cookieStore = await cookies()
     const savedState = cookieStore.get("google_analytics_oauth_state")?.value
 
-    if (!savedState || savedState !== state) {
+    if (!savedState || !validateOAuthState(savedState, state)) {
       return NextResponse.redirect(
         `${nextAuthUrl}/dashboard/settings?error=invalid_state&message=${encodeURIComponent("Invalid OAuth state - possible CSRF attempt")}`
       )
@@ -80,8 +82,8 @@ export async function GET(request: Request) {
       .from('ga4_connections')
       .upsert({
         user_id: user.id,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
+        access_token: encryptToken(tokens.access_token),
+        refresh_token: encryptToken(tokens.refresh_token),
         expires_at: new Date(tokens.expiry_date || Date.now() + 3600000).toISOString(),
         scope: tokens.scope || 'https://www.googleapis.com/auth/analytics.readonly',
         connected_at: new Date().toISOString(),
@@ -98,7 +100,7 @@ export async function GET(request: Request) {
 
     // Clear the state cookie
     const response = NextResponse.redirect(
-      `${nextAuthUrl}/dashboard/settings?success=ga4_connected`
+      `${nextAuthUrl}/dashboard/settings?tab=integrations&show_property_modal=true`
     )
     response.cookies.delete("google_analytics_oauth_state")
 

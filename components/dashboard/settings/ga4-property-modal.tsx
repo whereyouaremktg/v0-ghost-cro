@@ -78,7 +78,7 @@ export function Ga4PropertyModal({ open, onOpenChange, onSaved }: Ga4PropertyMod
     setIsSaving(true)
     setError(null)
     try {
-      const res = await fetch("/api/analytics/ga4/properties", {
+      const res = await fetch("/api/analytics/ga4/select-property", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ propertyId: selectedId }),

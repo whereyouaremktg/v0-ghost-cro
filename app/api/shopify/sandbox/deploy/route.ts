@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { deployFixesToSandbox, findGhostSandboxes } from "@/lib/shopify/theme-sandbox"
 import type { CodeFix, DeploymentResult } from "@/lib/types"
+import { decryptToken } from "@/lib/security/encryption"
 
 export interface DeployRequest {
   shop?: string
@@ -38,6 +39,9 @@ export async function POST(request: NextRequest) {
 
     let shop = body.shop
     let accessToken = body.accessToken
+    if (accessToken) {
+      accessToken = decryptToken(accessToken)
+    }
 
     if (!shop || !accessToken) {
       const supabase = await createClient()
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
       }
 
       shop = shop || store.shop
-      accessToken = accessToken || store.access_token
+      accessToken = accessToken || decryptToken(store.access_token)
     }
 
     if (!shop || !accessToken) {
@@ -151,5 +155,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
-

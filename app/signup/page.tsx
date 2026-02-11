@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Ghost } from "lucide-react"
+import { mapAuthError } from "@/lib/errors/user-friendly"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -15,8 +17,20 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError(null)
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.")
+      return
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.")
+      return
+    }
+
+    setLoading(true)
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -24,7 +38,7 @@ export default function SignupPage() {
     })
 
     if (error) {
-      setError(error.message)
+      setError(mapAuthError(error))
       setLoading(false)
     } else {
       router.push("/dashboard")
@@ -85,9 +99,9 @@ export default function SignupPage() {
 
         <p className="text-center text-zinc-500 text-sm mt-6">
           Already have an account?{" "}
-          <a href="/login" className="text-[#FBBF24] hover:underline">
+          <Link href="/login" className="text-[#FBBF24] hover:underline">
             Sign in
-          </a>
+          </Link>
         </p>
       </div>
     </div>

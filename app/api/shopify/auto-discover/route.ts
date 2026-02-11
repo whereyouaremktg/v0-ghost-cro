@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { ShopifyClientConfig } from "@/lib/shopify/client"
+import { decryptToken } from "@/lib/security/encryption"
 
 /**
  * Shopify Product interface (subset of fields we need)
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+    const resolvedAccessToken = decryptToken(accessToken)
 
     // Fetch the first product from the store
     const productsUrl = `https://${shop}/admin/api/2024-01/products.json?limit=1&status=active`
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
     const response = await fetch(productsUrl, {
       method: "GET",
       headers: {
-        "X-Shopify-Access-Token": accessToken,
+        "X-Shopify-Access-Token": resolvedAccessToken,
         "Content-Type": "application/json",
       },
     })
@@ -123,5 +125,4 @@ export async function POST(request: Request) {
     )
   }
 }
-
 

@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { Lock, Eye } from "lucide-react"
+import { Lock, Eye, Loader2 } from "lucide-react"
 
 import { GhostLogo } from "@/components/ghost-logo"
 import { GhostButton } from "@/components/ui/ghost-button"
@@ -21,6 +21,14 @@ function normalizeShopInput(input: string): string | null {
 }
 
 export default function ConnectPage() {
+  return (
+    <Suspense fallback={<div className="max-w-md mx-auto flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-amber-400" /></div>}>
+      <ConnectPageContent />
+    </Suspense>
+  )
+}
+
+function ConnectPageContent() {
   const searchParams = useSearchParams()
   const [storeInput, setStoreInput] = useState("")
   const [validationError, setValidationError] = useState<string | null>(null)

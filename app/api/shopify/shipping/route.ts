@@ -4,6 +4,7 @@ import {
   analyzeShippingShock,
   fetchAbandonedCheckouts,
 } from "@/lib/shopify/client"
+import { decryptToken } from "@/lib/security/encryption"
 
 /**
  * POST /api/shopify/shipping
@@ -26,9 +27,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    const resolvedAccessToken = decryptToken(accessToken)
 
     // Fetch shipping zones
-    const shippingZones = await fetchShippingZones({ shop, accessToken })
+    const shippingZones = await fetchShippingZones({ shop, accessToken: resolvedAccessToken })
 
     // Optionally fetch abandoned checkouts for analysis
     let shippingShockAnalysis = null
@@ -40,7 +42,7 @@ export async function POST(request: NextRequest) {
         startDate.setDate(startDate.getDate() - 30)
 
         const abandonedCheckouts = await fetchAbandonedCheckouts(
-          { shop, accessToken },
+          { shop, accessToken: resolvedAccessToken },
           {
             status: "open",
             limit: 250,
@@ -73,7 +75,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
 
 
 

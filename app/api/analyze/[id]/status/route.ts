@@ -9,9 +9,11 @@ import { createClient } from "@/lib/supabase/server"
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    void request
+    const params = await context.params
     const jobId = params.id
 
     if (!jobId) {

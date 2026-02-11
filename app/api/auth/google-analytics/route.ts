@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { generateOAuthState } from "@/lib/security/oauth-state"
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
       )
     }
 
-    const state = Math.random().toString(36).substring(7) // CSRF protection
+    const state = generateOAuthState()
 
     // Build Google OAuth URL
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')

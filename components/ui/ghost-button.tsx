@@ -14,6 +14,8 @@ const ghostButtonVariants = cva(
           'border border-[var(--landing-border)] bg-transparent text-[var(--landing-text-primary)] hover:bg-[var(--landing-surface-hover)] hover:border-[var(--landing-accent)]/30 hover:-translate-y-0.5',
         ghost:
           'text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-[var(--landing-surface)]',
+        secondary:
+          'bg-[var(--landing-surface)] text-[var(--landing-text-primary)] border border-[var(--landing-border)] hover:bg-[var(--landing-surface-hover)] hover:border-[var(--landing-accent)]/30',
       },
       size: {
         sm: 'h-9 px-4 rounded-lg text-sm',

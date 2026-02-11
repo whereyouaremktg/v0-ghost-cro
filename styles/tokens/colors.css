@@ -1,0 +1,197 @@
+/* Ghost OS Color Tokens
+ * Extract from globals.css — source of truth for all colors.
+ */
+
+:root {
+  /* ── Ghost OS Branding ────────────────────────── */
+
+  /* Backgrounds */
+  --ghost-bg-primary: #0A0A0A;
+  --ghost-bg-secondary: #111111;
+  --ghost-bg-elevated: #1A1A1A;
+  --ghost-bg-surface: #1F1F1F;
+
+  /* Text */
+  --ghost-text-primary: #FFFFFF;
+  --ghost-text-secondary: #e5e5e5;
+  --ghost-text-muted: #9CA3AF;
+  --ghost-text-subtle: #6B7280;
+
+  /* Accent */
+  --ghost-accent-primary: #FBBF24;
+  --ghost-accent-secondary: #F59E0B;
+  --ghost-accent-hover: #FCD34D;
+
+  /* Status / Semantic */
+  --ghost-success: #10B981;
+  --ghost-warning: #F59E0B;
+  --ghost-error: #EF4444;
+  --ghost-critical: #F43F5E;
+  --ghost-info: #3B82F6;
+
+  /* Borders */
+  --ghost-border: #1F1F1F;
+  --ghost-border-hover: #374151;
+  --ghost-border-active: #FBBF24;
+
+  /* Landing Page Theme */
+  --obsidian: #0A0A0A;
+  --obsidian-light: #111111;
+  --amber: #FBBF24;
+  --amber-dark: #D97706;
+  --amber-light: #FDE68A;
+
+  /* ── Base Colors — Ghost OS Light Mode ────────── */
+
+  --background: #FFFFFF;
+  --foreground: #0A0A0A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+
+  /* Primary Accent - Amber */
+  --primary: #FBBF24;
+  --primary-foreground: #0A0A0A;
+
+  /* Secondary - Subtle Gray */
+  --secondary: #F5F5F7;
+  --secondary-foreground: #0A0A0A;
+
+  /* Muted */
+  --muted: #F5F5F7;
+  --muted-foreground: #71717a;
+
+  /* Accent */
+  --accent: #FBBF24;
+  --accent-foreground: #0A0A0A;
+
+  /* Semantic Colors */
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --info: #FBBF24;
+
+  /* Premium Dashboard Colors */
+  --leak: #F43F5E;
+  --leak-light: #FFF1F2;
+  --win: #10B981;
+  --win-light: #ECFDF5;
+  --opportunity: #FBBF24;
+  --opportunity-light: #FEF3C7;
+
+  /* Borders & Dividers - Glassmorphism */
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.08);
+  --ring: #FBBF24;
+
+  /* Charts */
+  --chart-1: #FBBF24;
+  --chart-2: #10B981;
+  --chart-3: #EF4444;
+  --chart-4: #F59E0B;
+  --chart-5: #FCD34D;
+
+  /* Radius */
+  --radius: 0rem;
+
+  /* Ghost OS Variables */
+  --ghost-bg: #020202;
+  --ghost-card: #0a0a0a;
+  --ghost-card-border: rgba(255, 255, 255, 0.08);
+  --ghost-card-glow: rgba(251, 191, 36, 0.03);
+  --ghost-blue: #FBBF24;
+  --ghost-blue-bright: #FCD34D;
+  --ghost-blue-dim: #D97706;
+  --ghost-blue-glow: rgba(251, 191, 36, 0.25);
+  --ghost-blue-soft: rgba(251, 191, 36, 0.08);
+  --ghost-danger: #f87171;
+  --ghost-danger-glow: rgba(248, 113, 113, 0.2);
+  --ghost-warning: #fbbf24;
+  --ghost-success: #10b981;
+  --ghost-info: #FBBF24;
+  --ghost-text: #e5e5e5;
+  --ghost-text-muted: #a1a1aa;
+  --ghost-text-dim: #71717a;
+
+  /* Brutalist Shadows */
+  --shadow-brutal: 4px 4px 0 0 #0A0A0A;
+  --shadow-brutal-lg: 6px 6px 0 0 #0A0A0A;
+  --shadow-brutal-hover: 2px 2px 0 0 #0A0A0A;
+  --shadow-card: 4px 4px 0 0 #0A0A0A;
+  --shadow-card-hover: 2px 2px 0 0 #0A0A0A;
+  --shadow-metric: 0 0 0 1px rgb(0 0 0 / 0.03);
+  --shadow-elevated: 6px 6px 0 0 #0A0A0A;
+
+  /* Sidebar */
+  --sidebar: #FAFAFA;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #FBBF24;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #F5F5F5;
+  --sidebar-accent-foreground: #0A0A0A;
+  --sidebar-border: #0A0A0A;
+  --sidebar-ring: #FBBF24;
+}
+
+/* ── Dark Mode ────────────────────────────────── */
+
+.dark {
+  --background: #020202;
+  --foreground: #e5e5e5;
+  --card: #0a0a0a;
+  --card-foreground: #e5e5e5;
+  --popover: #0a0a0a;
+  --popover-foreground: #e5e5e5;
+  --primary: #FBBF24;
+  --primary-foreground: #0A0A0A;
+  --secondary: #1A1A1A;
+  --secondary-foreground: #e5e5e5;
+  --muted: #1A1A1A;
+  --muted-foreground: #a1a1aa;
+  --accent: #FBBF24;
+  --accent-foreground: #0A0A0A;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #FBBF24;
+
+  /* Premium Dashboard Colors - Dark Mode */
+  --leak: #FB7185;
+  --leak-light: #1A0A0D;
+  --win: #34D399;
+  --win-light: #0A1F17;
+  --opportunity: #FBBF24;
+  --opportunity-light: rgba(251, 191, 36, 0.1);
+
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #e5e5e5;
+  --sidebar-primary: #FBBF24;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #1A1A1A;
+  --sidebar-accent-foreground: #e5e5e5;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #FBBF24;
+}
+
+/* ── Landing Page Theme ───────────────────────── */
+
+.landing-theme {
+  --landing-bg: #0A0A0A;
+  --landing-surface: #111111;
+  --landing-surface-hover: #1A1A1A;
+
+  --landing-accent: #FBBF24;
+  --landing-accent-hover: #F59E0B;
+  --landing-accent-soft: rgba(251, 191, 36, 0.1);
+  --landing-accent-glow: rgba(251, 191, 36, 0.25);
+
+  --landing-text-primary: #FFFFFF;
+  --landing-text-secondary: #9CA3AF;
+  --landing-text-muted: #6B7280;
+
+  --landing-border: #1F1F1F;
+  --landing-border-subtle: rgba(255, 255, 255, 0.05);
+}

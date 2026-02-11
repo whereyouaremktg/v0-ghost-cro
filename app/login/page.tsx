@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Ghost } from "lucide-react"
+import { mapAuthError } from "@/lib/errors/user-friendly"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -24,7 +26,7 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError(error.message)
+      setError(mapAuthError(error))
       setLoading(false)
     } else {
       router.push("/dashboard")
@@ -62,7 +64,12 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">Password</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-zinc-400">Password</label>
+              <Link href="/reset-password" className="text-xs text-[#FBBF24] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               value={password}
@@ -84,9 +91,9 @@ export default function LoginPage() {
 
         <p className="text-center text-zinc-500 text-sm mt-6">
           Don't have an account?{" "}
-          <a href="/signup" className="text-[#FBBF24] hover:underline">
+          <Link href="/signup" className="text-[#FBBF24] hover:underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } },
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const params = await context.params
+    const { id } = params
     const { test_id, status } = await request.json()
 
     if (!test_id || !status) {
@@ -28,7 +30,7 @@ export async function PATCH(
     const { error } = await supabase.from("issue_status").upsert({
       user_id: user.id,
       test_id,
-      issue_id: params.id,
+      issue_id: id,
       status,
       fixed_at: status === "fixed" ? new Date().toISOString() : null,
     })

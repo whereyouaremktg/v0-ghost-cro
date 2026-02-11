@@ -53,7 +53,7 @@ export async function buildStoreSnapshot(
   storeName?: string
 ): Promise<StoreSnapshotData> {
   // Extract domain from storeUrl
-  const domain = storeUrl || test.storeUrl || ""
+  const domain = storeUrl || test.url || ""
   
   // Fetch real benchmark data from Store Leads API (with DB caching)
   const benchmarkData = await getStoreBenchmarks(domain)
@@ -99,9 +99,9 @@ export async function buildStoreSnapshot(
   })
 
   return {
-    storeUrl: storeUrl || test.storeUrl || "Unknown Store",
+    storeUrl: storeUrl || test.url || "Unknown Store",
     storeName: storeName || "Your Store",
-    lastScanAt: test.createdAt || new Date(),
+    lastScanAt: test.date || new Date(),
     metrics: {
       monthlyVisitors,
       monthlyOrders,
@@ -115,7 +115,7 @@ export async function buildStoreSnapshot(
       currentMonthlyRevenue: revenueOpportunity.currentMonthlyRevenue,
       potentialMonthlyRevenue: revenueOpportunity.potentialMonthlyRevenue,
       monthlyGap: revenueOpportunity.monthlyOpportunity.max,
-      annualGap: revenueOpportunity.annualOpportunity,
+      annualGap: revenueOpportunity.annualOpportunity.max,
     },
   }
 }

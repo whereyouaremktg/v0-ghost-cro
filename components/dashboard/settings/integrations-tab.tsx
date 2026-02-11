@@ -22,20 +22,32 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
   const [showGa4PropertyModal, setShowGa4PropertyModal] = useState(false)
 
   useEffect(() => {
-    if (searchParams.get("success") === "ga4_connected") {
-      setShowGa4PropertyModal(true)
+    if (searchParams.get("show_property_modal") !== "true") {
+      return
     }
-  }, [searchParams])
+
+    setShowGa4PropertyModal(true)
+
+    const nextParams = new URLSearchParams(searchParams.toString())
+    nextParams.delete("show_property_modal")
+    if (!nextParams.get("tab")) {
+      nextParams.set("tab", "integrations")
+    }
+
+    const nextQuery = nextParams.toString()
+    const nextUrl = nextQuery ? `/dashboard/settings?${nextQuery}` : "/dashboard/settings?tab=integrations"
+    router.replace(nextUrl, { scroll: false })
+  }, [searchParams, router])
 
   const handleGa4ModalClose = (open: boolean) => {
     setShowGa4PropertyModal(open)
     if (!open) {
-      router.replace("/dashboard/settings", { scroll: false })
+      router.replace("/dashboard/settings?tab=integrations", { scroll: false })
     }
   }
 
   const handleGa4Saved = () => {
-    router.replace("/dashboard/settings", { scroll: false })
+    router.replace("/dashboard/settings?tab=integrations", { scroll: false })
     window.location.reload()
   }
 

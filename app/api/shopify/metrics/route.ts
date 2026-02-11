@@ -7,6 +7,7 @@ import {
   fetchAnalytics,
   type AbandonedCheckout,
 } from "@/lib/shopify/client"
+import { decryptToken } from "@/lib/security/encryption"
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    const resolvedAccessToken = decryptToken(accessToken)
 
     // Calculate date range for last 30 days
     const endDate = new Date()
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
     const ordersUrl = `https://${shop}/admin/api/2024-01/orders.json?status=any&created_at_min=${startDate.toISOString()}`
     const ordersResponse = await fetch(ordersUrl, {
       headers: {
-        "X-Shopify-Access-Token": accessToken,
+        "X-Shopify-Access-Token": resolvedAccessToken,
         "Content-Type": "application/json",
       },
     })
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
     
     try {
       abandonedCheckouts = await fetchAbandonedCheckouts(
-        { shop, accessToken },
+        { shop, accessToken: resolvedAccessToken },
         {
           status: "open",
           limit: 250,
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
     let shippingShockAnalysis = null
     
     try {
-      shippingZones = await fetchShippingZones({ shop, accessToken })
+      shippingZones = await fetchShippingZones({ shop, accessToken: resolvedAccessToken })
       
       // Analyze shipping shock using abandoned checkout data
       if (abandonedCheckouts.length > 0) {
@@ -131,7 +133,7 @@ export async function POST(request: NextRequest) {
         console.warn('GA4 failed, falling back to Shopify Analytics:', error)
         // Fall back to Shopify Analytics
         analyticsData = await fetchAnalytics(
-          { shop, accessToken },
+          { shop, accessToken: resolvedAccessToken },
           startDate,
           endDate,
           totalOrders
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
     } else {
       // No GA4 credentials, use Shopify Analytics
       analyticsData = await fetchAnalytics(
-        { shop, accessToken },
+        { shop, accessToken: resolvedAccessToken },
         startDate,
         endDate,
         totalOrders
@@ -151,7 +153,7 @@ export async function POST(request: NextRequest) {
     const shopUrl = `https://${shop}/admin/api/2024-01/shop.json`
     const shopResponse = await fetch(shopUrl, {
       headers: {
-        "X-Shopify-Access-Token": accessToken,
+        "X-Shopify-Access-Token": resolvedAccessToken,
         "Content-Type": "application/json",
       },
     })

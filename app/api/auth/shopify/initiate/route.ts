@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { generateOAuthState } from "@/lib/security/oauth-state"
+import { SHOPIFY_SCOPES } from "@/lib/shopify/scopes"
 
 export async function GET(request: Request) {
   try {
@@ -19,18 +21,19 @@ export async function GET(request: Request) {
     }
 
     // Generate state for CSRF protection
-    const state = Math.random().toString(36).substring(7)
+    const state = generateOAuthState()
     const cookieStore = await cookies()
     cookieStore.set("shopify_oauth_state", state, {
       path: "/",
       maxAge: 600, // 10 minutes
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     })
 
     // Build OAuth URL
     const redirectUri = `${process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'}/api/auth/shopify/callback`
-    const scopes = "read_products,read_orders,read_checkouts"
+    const scopes = SHOPIFY_SCOPES.join(",")
     const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`
 
     return NextResponse.redirect(authUrl)
@@ -39,4 +42,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to initiate OAuth" }, { status: 500 })
   }
 }
-

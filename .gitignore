@@ -29,3 +29,5 @@ next-env.d.ts
 
 # pnpm
 .pnpm-store/
+
+.DS_Store

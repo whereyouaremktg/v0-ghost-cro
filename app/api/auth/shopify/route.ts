@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { getAllScopesString } from "@/lib/shopify/scopes"
+import { generateOAuthState } from "@/lib/security/oauth-state"
+import { SHOPIFY_SCOPES } from "@/lib/shopify/scopes"
 
 /**
  * Sanitize shop domain by removing https:// and trailing slashes
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
     const clientId = process.env.SHOPIFY_CLIENT_ID
     const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
     const redirectUri = `${nextAuthUrl}/api/auth/shopify/callback`
-    const scopes = getAllScopesString()
+    const scopes = SHOPIFY_SCOPES.join(",")
 
     // Validate required environment variables
     if (!clientId) {
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       )
     }
 
-    const state = Math.random().toString(36).substring(7) // Generate random state for CSRF protection
+    const state = generateOAuthState()
 
     // Build Shopify OAuth URL
     const shopifyAuthUrl = new URL(`https://${shop}/admin/oauth/authorize`)

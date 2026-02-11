@@ -4,6 +4,7 @@ import {
   calculateAbandonedCheckoutStats,
   type AbandonedCheckout,
 } from "@/lib/shopify/client"
+import { decryptToken } from "@/lib/security/encryption"
 
 /**
  * GET /api/shopify/checkouts
@@ -28,6 +29,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    const resolvedAccessToken = decryptToken(accessToken)
 
     // Calculate date range
     const endDate = new Date()
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch abandoned checkouts
     const checkouts = await fetchAbandonedCheckouts(
-      { shop, accessToken },
+      { shop, accessToken: resolvedAccessToken },
       {
         status: status as "open" | "closed",
         limit,
@@ -69,7 +71,6 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
 
 
 

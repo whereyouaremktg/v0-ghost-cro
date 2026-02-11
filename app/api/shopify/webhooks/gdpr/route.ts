@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
 
-// Helper to verify Shopify webhook signature
-function verifyWebhook(data: string, hmac: string | null) {
+function verifyWebhookSignature(body: string, hmac: string | null): boolean {
   const secret = process.env.SHOPIFY_WEBHOOK_SECRET
   if (!secret) {
-    console.warn("SHOPIFY_WEBHOOK_SECRET not set - skipping verification in development")
-    return process.env.NODE_ENV !== "production"
+    console.error("SHOPIFY_WEBHOOK_SECRET not set - cannot verify GDPR webhook")
+    return false
   }
-  
-  if (!hmac) return false
-  
+
+  if (!hmac) {
+    return false
+  }
+
   const hash = crypto
     .createHmac("sha256", secret)
-    .update(data, "utf8")
+    .update(body, "utf8")
     .digest("base64")
 
   try {
@@ -25,23 +26,50 @@ function verifyWebhook(data: string, hmac: string | null) {
 
 export async function POST(req: Request) {
   try {
-    const topic = req.headers.get("x-shopify-topic") || "unknown"
+    const topic = req.headers.get("x-shopify-topic") || ""
     const hmac = req.headers.get("x-shopify-hmac-sha256")
+    const shop = req.headers.get("x-shopify-shop-domain") || "unknown-shop"
     const rawBody = await req.text()
 
-    // Verify source (Security Best Practice)
-    if (!verifyWebhook(rawBody, hmac)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!verifyWebhookSignature(rawBody, hmac)) {
+      return NextResponse.json(
+        { error: "Webhook signature verification failed" },
+        { status: 401 },
+      )
     }
 
-    console.log(`[GDPR] Webhook received: ${topic}`)
+    const payload = rawBody ? JSON.parse(rawBody) : {}
 
-    // In a production app, you would handle data erasure here.
-    // For MVP/Audits, returning 200 OK is sufficient to pass the check.
+    switch (topic) {
+      case "customers/data_request":
+        console.log("[GDPR] customers/data_request received", {
+          shop,
+          customerId: payload?.customer?.id ?? null,
+          orderCount: payload?.orders_requested?.length ?? 0,
+        })
+        break
+      case "customers/redact":
+        console.log("[GDPR] customers/redact received", {
+          shop,
+          customerId: payload?.customer?.id ?? null,
+          note: "TODO: implement customer data deletion flow",
+        })
+        break
+      case "shop/redact":
+        console.log("[GDPR] shop/redact received", {
+          shop,
+          shopId: payload?.shop_id ?? null,
+          note: "TODO: implement shop data deletion flow",
+        })
+        break
+      default:
+        console.log("[GDPR] Unhandled webhook topic", { shop, topic })
+        break
+    }
+
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
     console.error("GDPR Webhook Error:", error)
     return NextResponse.json({ error: "Server Error" }, { status: 500 })
   }
 }
-

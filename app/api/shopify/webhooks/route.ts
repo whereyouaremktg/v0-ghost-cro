@@ -23,8 +23,8 @@ function getSupabaseAdmin() {
 function verifyWebhookSignature(body: string, hmac: string): boolean {
   const secret = process.env.SHOPIFY_WEBHOOK_SECRET
   if (!secret) {
-    console.warn("SHOPIFY_WEBHOOK_SECRET not set - skipping verification in development")
-    return process.env.NODE_ENV !== "production"
+    console.error("SHOPIFY_WEBHOOK_SECRET not set - cannot verify webhook signature")
+    return false
   }
 
   const hash = crypto
@@ -55,10 +55,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`Received Shopify webhook: ${topic} from ${shop}`)
 
-    // Verify webhook signature in production
+    // Always verify webhook signature (including development)
     if (!verifyWebhookSignature(body, hmac)) {
       console.error("Invalid webhook signature")
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
+      return NextResponse.json(
+        { error: "Webhook signature verification failed" },
+        { status: 401 }
+      )
     }
 
     const payload = JSON.parse(body)

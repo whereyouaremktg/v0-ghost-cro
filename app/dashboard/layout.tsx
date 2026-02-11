@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export default async function DashboardLayout({
   children,
@@ -50,7 +51,9 @@ export default async function DashboardLayout({
       <Sidebar />
       <div className="pl-[240px] flex flex-col min-h-screen">
         <DashboardHeader />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
     </div>
   )

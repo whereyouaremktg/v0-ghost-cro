@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { getCurrentSubscription } from "@/lib/shopify/billing"
+import { decryptToken } from "@/lib/security/encryption"
 
 /**
  * Get current subscription status
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     if (shop && accessToken) {
       try {
-        const result = await getCurrentSubscription(shop, accessToken)
+        const result = await getCurrentSubscription(shop, decryptToken(accessToken))
         const subscriptions = result.data?.currentAppInstallation?.activeSubscriptions || []
         shopifySubscription = subscriptions[0] || null
       } catch (shopifyError) {

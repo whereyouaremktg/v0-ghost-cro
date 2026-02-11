@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@/lib/supabase/admin"
+import { encryptToken } from "@/lib/security/encryption"
+import { validateOAuthState } from "@/lib/security/oauth-state"
 
 export async function GET(request: Request) {
   try {
@@ -22,10 +24,11 @@ export async function GET(request: Request) {
     const cookieStore = await cookies()
     const savedState = cookieStore.get("shopify_oauth_state")?.value
 
-    if (!savedState || savedState !== state) {
+    if (!savedState || !validateOAuthState(savedState, state)) {
       const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
       return NextResponse.redirect(`${nextAuthUrl}/dashboard/settings?error=invalid_state`)
     }
+    cookieStore.delete("shopify_oauth_state")
 
     // Exchange code for access token
     const clientId = process.env.SHOPIFY_CLIENT_ID
@@ -84,7 +87,7 @@ export async function GET(request: Request) {
       .upsert({
         user_id: user.id,
         shop: shop,
-        access_token: accessToken, // TODO: Encrypt this in production
+        access_token: encryptToken(accessToken),
         scopes: scopes,
         is_active: true,
         updated_at: new Date().toISOString(),

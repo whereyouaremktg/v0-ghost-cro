@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { publishTheme } from "@/lib/shopify/theme-sandbox"
+import { decryptToken } from "@/lib/security/encryption"
 
 export interface PublishRequest {
   shop: string
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     
     const config = {
       shop: body.shop,
-      accessToken: body.accessToken,
+      accessToken: decryptToken(body.accessToken),
     }
     
     // Publish the theme
@@ -66,5 +67,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
 

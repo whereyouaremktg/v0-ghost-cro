@@ -66,6 +66,12 @@ export interface FunnelData {
   purchased: number
 }
 
+export interface ScanConfig {
+  analyzeTheme: boolean
+  analyzeCheckout: boolean
+  analyzeSpeed: boolean
+}
+
 export interface TestResult {
   id: string
   date: string
@@ -85,6 +91,8 @@ export interface TestResult {
   personaResults: PersonaResult[]
   recommendations: Recommendation[]
   funnelData: FunnelData
+  /** Optional scan toggles selected when the test was created */
+  scanConfig?: ScanConfig
   /** Optional detailed store analysis from structured schema */
   storeAnalysis?: StoreAnalysis
 }

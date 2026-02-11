@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { cancelSubscription } from "@/lib/shopify/billing"
+import { decryptToken } from "@/lib/security/encryption"
 
 /**
  * Cancel an active subscription
@@ -31,6 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     let { shop, accessToken, subscriptionId } = body
+    if (accessToken) {
+      accessToken = decryptToken(accessToken)
+    }
 
     // 3. Auto-fetch missing data from database
     if (!shop || !accessToken) {
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
       }
 
       shop = shop || store.shop
-      accessToken = accessToken || store.access_token
+      accessToken = accessToken || decryptToken(store.access_token)
     }
 
     if (!subscriptionId) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { Suspense, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CheckCircle, Loader2 } from "lucide-react"
 
@@ -30,6 +30,14 @@ const toPreviewIssue = (
 })
 
 export default function ResultsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-amber-400" /></div>}>
+      <ResultsPageContent />
+    </Suspense>
+  )
+}
+
+function ResultsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const testId = searchParams.get("testId")

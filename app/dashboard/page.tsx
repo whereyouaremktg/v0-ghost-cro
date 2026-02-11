@@ -8,9 +8,9 @@ import {
   Zap,
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
+import useSWR from "swr"
 
 import { ActivityFeed } from "@/components/dashboard/activity-feed"
-import { BenchmarkSection } from "@/components/dashboard/benchmark-section"
 import { InsightsPanel } from "@/components/dashboard/insights-panel"
 import { ScoreHeroCard } from "@/components/dashboard/score-hero-card"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -20,6 +20,8 @@ import { StatCard } from "@/components/ui/stat-card"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { useLatestTest } from "@/hooks/use-latest-test"
 import { useTestHistory } from "@/hooks/use-test-history"
+import { getCategoryBenchmarks } from "@/lib/data/benchmarks"
+import { createClient } from "@/lib/supabase/client"
 import type { FrictionPoint, TestResult } from "@/lib/types"
 
 const mapImpact = (impact?: string) => {
@@ -54,10 +56,60 @@ const buildIssues = (test: TestResult) => {
   ]
 }
 
+type StoreIntelligenceRow = {
+  industry: string | null
+  estimated_sales_monthly: number | null
+  estimated_traffic_monthly: number | null
+}
+
+function getDomainFromUrl(url?: string | null): string | null {
+  if (!url) {
+    return null
+  }
+
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`)
+    return parsed.hostname.replace(/^www\./, "").toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+function formatStoreMetric(
+  value: number | null,
+  options: { prefix?: string; suffix?: string; decimals?: number } = {},
+): string {
+  if (value === null || Number.isNaN(value)) {
+    return "No data yet"
+  }
+
+  const { prefix = "", suffix = "", decimals = 1 } = options
+  return `${prefix}${value.toFixed(decimals)}${suffix}`
+}
+
 export default function DashboardPage() {
   const { userId, isLoading: isUserLoading } = useAuthUserId()
   const { test, isLoading } = useLatestTest(userId)
   const { tests: testHistory } = useTestHistory(userId, 5)
+  const storeDomain = useMemo(() => getDomainFromUrl(test?.url), [test?.url])
+
+  const { data: storeIntelligence } = useSWR(
+    storeDomain ? ["store-intelligence", storeDomain] : null,
+    async (): Promise<StoreIntelligenceRow | null> => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("store_intelligence")
+        .select("industry, estimated_sales_monthly, estimated_traffic_monthly")
+        .eq("domain", storeDomain!)
+        .maybeSingle()
+
+      if (error && error.code !== "PGRST116") {
+        throw error
+      }
+
+      return (data as StoreIntelligenceRow | null) ?? null
+    },
+  )
 
   const issues = useMemo(() => (test ? buildIssues(test) : []), [test])
 
@@ -98,9 +150,20 @@ export default function DashboardPage() {
   const pageSpeed = test?.storeAnalysis?.technical.pageLoadTime
   const pageSpeedDisplay = pageSpeed ? `${pageSpeed.toFixed(1)}s` : "—"
 
-  const conversionRate = test?.funnelData?.landed
-    ? (test.funnelData.purchased / test.funnelData.landed) * 100
-    : 0
+  const conversionRate =
+    test?.funnelData?.landed && test.funnelData.landed > 0
+      ? (test.funnelData.purchased / test.funnelData.landed) * 100
+      : null
+  const revenuePerVisitor =
+    storeIntelligence?.estimated_sales_monthly !== null &&
+    storeIntelligence?.estimated_sales_monthly !== undefined &&
+    storeIntelligence?.estimated_traffic_monthly !== null &&
+    storeIntelligence?.estimated_traffic_monthly !== undefined &&
+    storeIntelligence.estimated_traffic_monthly > 0
+      ? Number(storeIntelligence.estimated_sales_monthly) /
+        Number(storeIntelligence.estimated_traffic_monthly)
+      : null
+  const industryBenchmarks = getCategoryBenchmarks(storeIntelligence?.industry)
 
   if (isUserLoading || isLoading) {
     return (
@@ -184,18 +247,49 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <BenchmarkSection
-        storeMetrics={{
-          conversionRate,
-          aov: 0,
-          revenuePerVisitor: 0,
-        }}
-        industryBenchmarks={{
-          conversionRate: 3.1,
-          aov: 92,
-          revenuePerVisitor: 2.8,
-        }}
-      />
+      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Industry Benchmarks</h2>
+            <p className="text-sm text-[#9CA3AF]">
+              Compare your store against top {industryBenchmarks.categoryName} performers.
+            </p>
+          </div>
+          <span className="text-xs text-[#6B7280]">Live data</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4">
+            <p className="text-sm text-[#9CA3AF]">Conversion Rate</p>
+            <p className="text-2xl font-semibold text-white">
+              {formatStoreMetric(conversionRate, { suffix: "%" })}
+            </p>
+            <p className="text-xs text-[#6B7280]">
+              Benchmark: {(industryBenchmarks.avgConversionRate * 100).toFixed(1)}%
+            </p>
+          </div>
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4">
+            <p className="text-sm text-[#9CA3AF]">Average Order Value</p>
+            <p className="text-2xl font-semibold text-white">
+              {formatStoreMetric(null, { prefix: "$", decimals: 2 })}
+            </p>
+            <p className="text-xs text-[#6B7280]">
+              Benchmark: ${industryBenchmarks.avgAOV.toFixed(0)}
+            </p>
+          </div>
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4">
+            <p className="text-sm text-[#9CA3AF]">Revenue per Visitor</p>
+            <p className="text-2xl font-semibold text-white">
+              {formatStoreMetric(revenuePerVisitor, { prefix: "$", decimals: 2 })}
+            </p>
+            <p className="text-xs text-[#6B7280]">
+              Benchmark: $
+              {industryBenchmarks.avgAOV > 0
+                ? (industryBenchmarks.avgAOV * industryBenchmarks.avgConversionRate).toFixed(2)
+                : "0.00"}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

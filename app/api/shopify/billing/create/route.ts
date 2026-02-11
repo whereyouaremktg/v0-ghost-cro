@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createSubscription, SHOPIFY_PLANS, getAppBaseUrl } from "@/lib/shopify/billing"
+import { BillingRequestSchema } from "@/lib/types/subscription"
+import { decryptToken } from "@/lib/security/encryption"
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +18,28 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Get plan and Shopify credentials from request
-    const { plan, shop, accessToken } = await request.json()
+    const rawBody: unknown = await request.json().catch(() => ({}))
+    const body = (typeof rawBody === "object" && rawBody !== null
+      ? { ...(rawBody as Record<string, unknown>) }
+      : {}) as Record<string, unknown>
+
+    // Temporary compatibility for in-flight clients still sending "pro"
+    if (body.plan === "pro") {
+      body.plan = "growth"
+    }
+
+    const parsedBody = BillingRequestSchema.safeParse(body)
+
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: parsedBody.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const { plan } = parsedBody.data
+    const shop = typeof body.shop === "string" ? body.shop : undefined
+    const accessToken = typeof body.accessToken === "string" ? body.accessToken : undefined
 
     if (!plan || !shop || !accessToken) {
       return NextResponse.json(
@@ -42,7 +65,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`Creating ${isTestMode ? "TEST" : "LIVE"} subscription for plan: ${plan}`)
 
-    const result = await createSubscription(shop, accessToken, plan, returnUrl, isTestMode)
+    const result = await createSubscription(
+      shop,
+      decryptToken(accessToken),
+      plan,
+      returnUrl,
+      isTestMode
+    )
 
     // Check for GraphQL errors
     if (result.errors && result.errors.length > 0) {

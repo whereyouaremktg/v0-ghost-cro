@@ -1,6 +1,7 @@
 import { google } from 'googleapis'
 import { createClient } from '@/lib/supabase/server'
 import { BetaAnalyticsDataClient } from '@google-analytics/data'
+import { decryptToken, encryptToken } from "@/lib/security/encryption"
 
 interface TokenData {
   access_token: string
@@ -29,12 +30,14 @@ export async function refreshAccessTokenIfNeeded(
 
   const expiresAt = new Date(connection.expires_at)
   const now = new Date()
+  const accessToken = decryptToken(connection.access_token)
+  const refreshToken = decryptToken(connection.refresh_token)
 
   // If token is still valid (with 5-minute buffer), return it
   if (expiresAt.getTime() - now.getTime() > 5 * 60 * 1000) {
     return {
-      access_token: connection.access_token,
-      refresh_token: connection.refresh_token,
+      access_token: accessToken,
+      refresh_token: refreshToken,
       expires_at: connection.expires_at,
     }
   }
@@ -47,7 +50,7 @@ export async function refreshAccessTokenIfNeeded(
   )
 
   oauth2Client.setCredentials({
-    refresh_token: connection.refresh_token,
+    refresh_token: refreshToken,
   })
 
   try {
@@ -63,14 +66,14 @@ export async function refreshAccessTokenIfNeeded(
     await supabase
       .from('ga4_connections')
       .update({
-        access_token: credentials.access_token,
+        access_token: encryptToken(credentials.access_token),
         expires_at: newExpiresAt.toISOString(),
       })
       .eq('user_id', userId)
 
     return {
       access_token: credentials.access_token,
-      refresh_token: connection.refresh_token,
+      refresh_token: refreshToken,
       expires_at: newExpiresAt.toISOString(),
     }
   } catch (error) {
@@ -97,7 +100,7 @@ export async function createGA4ClientWithOAuth(
   })
 
   return new BetaAnalyticsDataClient({
-    auth: oauth2Client,
+    auth: oauth2Client as any,
   })
 }
 

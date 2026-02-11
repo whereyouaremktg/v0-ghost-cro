@@ -18,6 +18,7 @@ export const SHOPIFY_SCOPES = [
   "read_products",        // Product details and inventory
   "read_reports",         // Store performance reports
   "read_themes",          // Theme information for checkout analysis
+  "write_themes",         // Create/update sandbox themes for fix previews
   "read_checkouts",       // Abandoned checkout data (critical for CRO)
   "read_shipping",        // Shipping rates and zones
   "read_customers",       // Customer segments and data
@@ -44,7 +45,6 @@ export function getShopifyScopesString(): string {
 export function isRequiredScope(scope: string): boolean {
   return SHOPIFY_SCOPES.includes(scope as any)
 }
-
 
 
 

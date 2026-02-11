@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
+import type { ComponentType } from "react"
 import Link from "next/link"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import useSWR from "swr"
@@ -20,10 +21,34 @@ import { cn } from "@/lib/utils"
 import { StoreSelector } from "./store-selector"
 import { createClient } from "@/lib/supabase/client"
 
-const navItems = [
+type SubscriptionRow = {
+  plan: string | null
+  tests_limit: number | null
+  tests_used: number | null
+}
+
+type LatestTestRow = {
+  results: {
+    frictionPoints?: {
+      critical?: unknown[]
+      high?: unknown[]
+      medium?: unknown[]
+    }
+  } | null
+}
+
+type NavItem = {
+  href: string
+  label: string
+  icon: ComponentType<{ className?: string }>
+  badge?: string | number
+  badgeColor?: "amber"
+}
+
+const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/scanner", label: "Scanner", icon: Scan },
-  { href: "/dashboard/issues", label: "Issues", icon: AlertCircle, badge: 12 },
+  { href: "/dashboard/issues", label: "Issues", icon: AlertCircle },
   {
     href: "/dashboard/experiments",
     label: "Experiments",
@@ -34,6 +59,24 @@ const navItems = [
   { href: "/dashboard/insights", label: "Insights", icon: Lightbulb },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
+
+function formatPlanName(plan: string | null | undefined): string {
+  if (!plan) return "Free"
+  return plan.charAt(0).toUpperCase() + plan.slice(1)
+}
+
+function getIssueCountFromTest(test: LatestTestRow | null | undefined): number {
+  const frictionPoints = test?.results?.frictionPoints
+  if (!frictionPoints) {
+    return 0
+  }
+
+  return (
+    (frictionPoints.critical?.length ?? 0) +
+    (frictionPoints.high?.length ?? 0) +
+    (frictionPoints.medium?.length ?? 0)
+  )
+}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -63,6 +106,45 @@ export function Sidebar() {
     { revalidateOnFocus: true }
   )
 
+  const { data: subscription } = useSWR(
+    user?.id ? `subscription-${user.id}` : null,
+    async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("plan, tests_limit, tests_used")
+        .eq("user_id", user!.id)
+        .maybeSingle()
+
+      if (error && error.code !== "PGRST116") {
+        throw error
+      }
+
+      return (data as SubscriptionRow | null) ?? null
+    },
+  )
+
+  const { data: latestTest } = useSWR(
+    user?.id ? `latest-completed-test-${user.id}` : null,
+    async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("tests")
+        .select("results")
+        .eq("user_id", user!.id)
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (error) {
+        throw error
+      }
+
+      return (data as LatestTestRow | null) ?? null
+    },
+  )
+
   // Revalidate stores when landing after OAuth (store_connected=1), then clear the param
   useEffect(() => {
     if (searchParams.get('store_connected') !== '1') return
@@ -89,6 +171,13 @@ export function Sidebar() {
   })) || []
 
   const currentStore = stores[0] || null
+
+  const issuesCount = useMemo(() => getIssueCountFromTest(latestTest), [latestTest])
+  const planName = `${formatPlanName(subscription?.plan)} Plan`
+  const scansRemaining = Math.max(
+    (subscription?.tests_limit ?? 0) - (subscription?.tests_used ?? 0),
+    0,
+  )
 
   const handleUpgrade = async () => {
     setIsUpgrading(true)
@@ -129,6 +218,9 @@ export function Sidebar() {
         <div className="space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href
+            const badge =
+              item.href === "/dashboard/issues" ? issuesCount : item.badge
+
             return (
               <Link
                 key={item.href}
@@ -144,7 +236,7 @@ export function Sidebar() {
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </span>
-                {item.badge && (
+                {badge !== undefined && badge !== null && (
                   <span
                     className={cn(
                       "text-xs px-2 py-0.5 rounded-full border",
@@ -153,7 +245,7 @@ export function Sidebar() {
                         : "border-[#1F1F1F] text-[#9CA3AF]",
                     )}
                   >
-                    {item.badge}
+                    {badge}
                   </span>
                 )}
               </Link>
@@ -164,8 +256,10 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-[#1F1F1F]">
         <div className="bg-[#111111] rounded-lg p-4">
-          <p className="text-sm text-white font-medium mb-1">Free Plan</p>
-          <p className="text-xs text-[#6B7280] mb-3">3 scans remaining</p>
+          <p className="text-sm text-white font-medium mb-1">{planName}</p>
+          <p className="text-xs text-[#6B7280] mb-3">
+            {scansRemaining} scans remaining
+          </p>
           <GhostButton
             size="sm"
             className="w-full"

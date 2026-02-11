@@ -1,9 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { NextResponse } from "next/server"
 import * as cheerio from "cheerio"
-import type { TestResult, PersonaResult } from "@/lib/types"
+import type { TestResult, PersonaResult, ScanConfig } from "@/lib/types"
 import type { StoreAnalysis } from "@/lib/analysis/schema"
 import { buildStoreAnalysisPrompt } from "@/lib/analysis/prompts/store-analysis"
+import { detectStoreCategory, normalizeStoreCategory } from "@/lib/analysis/category-detection"
 import { scrapeSandboxTheme, compareSandboxToOriginal } from "@/lib/shopify/sandbox-scraper"
 import { createClient } from "@/lib/supabase/server"
 import { supabaseAdmin } from "@/lib/supabase/admin"
@@ -12,6 +13,9 @@ import {
   getSelectedPropertyId, 
   createGA4ClientWithOAuth 
 } from "@/lib/analytics/ga4-oauth"
+import { analyzeRateLimit, checkRateLimit } from "@/lib/security/rate-limit"
+import { AnalyzeRequestSchema } from "@/lib/types/analysis"
+import { decryptToken } from "@/lib/security/encryption"
 import { 
   fetchGA4Demographics, 
   generatePersonasFromGA4Demographics,
@@ -348,32 +352,152 @@ function getPersonas(personaMix: string): string[] {
   return PERSONA_MIXES[normalizedMix as keyof typeof PERSONA_MIXES] || PERSONA_MIXES.balanced
 }
 
+const DEFAULT_SCAN_CONFIG: ScanConfig = {
+  analyzeTheme: true,
+  analyzeCheckout: true,
+  analyzeSpeed: true,
+}
+
+function normalizeScanConfig(input?: Partial<ScanConfig>): ScanConfig {
+  return {
+    analyzeTheme: input?.analyzeTheme ?? DEFAULT_SCAN_CONFIG.analyzeTheme,
+    analyzeCheckout: input?.analyzeCheckout ?? DEFAULT_SCAN_CONFIG.analyzeCheckout,
+    analyzeSpeed: input?.analyzeSpeed ?? DEFAULT_SCAN_CONFIG.analyzeSpeed,
+  }
+}
+
+function buildScanConfigInstruction(scanConfig: ScanConfig): string {
+  return `
+SCAN CONFIG:
+- Theme analysis: ${scanConfig.analyzeTheme ? "enabled" : "disabled"}
+- Checkout analysis: ${scanConfig.analyzeCheckout ? "enabled" : "disabled"}
+- Speed analysis: ${scanConfig.analyzeSpeed ? "enabled" : "disabled"}
+
+Apply this scope strictly:
+- If a section is disabled, de-prioritize issues in that area.
+- Keep response JSON shape unchanged even when a section is disabled.
+`.trim()
+}
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => ({}))
-    const { url: urlFromBody, personaMix = "balanced", validationMode = false, originalTestId, sandboxPreviewUrl } = body
+    const cronSecret = request.headers.get("x-cron-secret")
+    const isCronRequest =
+      Boolean(cronSecret) &&
+      Boolean(process.env.CRON_SECRET) &&
+      cronSecret === process.env.CRON_SECRET
 
-    // Get authenticated user first so we can derive URL from store if needed
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    let authenticatedUserId: string | null = null
+    if (!isCronRequest) {
+      const supabase = await createClient()
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser()
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (authError || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+
+      authenticatedUserId = user.id
+
+      const rateLimitResult = await checkRateLimit(analyzeRateLimit, user.id)
+      if (!rateLimitResult.success) {
+        const retryAfter = Math.max(
+          1,
+          Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
+        )
+        return NextResponse.json(
+          { error: "Rate limit exceeded", retryAfter },
+          { status: 429 }
+        )
+      }
     }
 
-    // Get user's active store connection (required for billing and optional URL)
-    const { data: store, error: storeError } = await supabase
-      .from("stores")
-      .select("shop, access_token")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .maybeSingle()
+    const body = await request.json().catch(() => ({}))
+    const parsedBody = AnalyzeRequestSchema.safeParse(body)
 
-    if (storeError || !store || !store.access_token) {
-      console.warn(`No active store found for user ${user.id}`)
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: parsedBody.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const {
+      url: urlFromBody,
+      personaMix = "balanced",
+      category: categoryFromBody,
+      config: configFromBody,
+    } = parsedBody.data
+    const {
+      validationMode = false,
+      originalTestId,
+      sandboxPreviewUrl,
+      userId: cronUserIdRaw,
+    } = body as {
+      validationMode?: boolean
+      originalTestId?: string
+      sandboxPreviewUrl?: string
+      userId?: string
+    }
+
+    const scanConfig = normalizeScanConfig(configFromBody)
+    const cronUserId =
+      typeof cronUserIdRaw === "string" && cronUserIdRaw.trim().length > 0
+        ? cronUserIdRaw.trim()
+        : null
+
+    let actorUserId: string
+    let store:
+      | {
+          shop: string | null
+          access_token: string | null
+        }
+      | null
+
+    if (isCronRequest) {
+      if (!cronUserId) {
+        return NextResponse.json({ error: "Cron request requires userId" }, { status: 400 })
+      }
+
+      actorUserId = cronUserId
+      const { data: cronStore, error: cronStoreError } = await supabaseAdmin
+        .from("stores")
+        .select("shop, access_token")
+        .eq("user_id", actorUserId)
+        .eq("is_active", true)
+        .maybeSingle()
+
+      if (cronStoreError) {
+        console.error(`Cron failed to load active store for user ${actorUserId}:`, cronStoreError)
+        return NextResponse.json({ error: "Failed to load store for cron" }, { status: 500 })
+      }
+
+      store = cronStore
+    } else {
+      if (!authenticatedUserId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+
+      actorUserId = authenticatedUserId
+      const supabase = await createClient()
+      const { data: userStore, error: storeError } = await supabase
+        .from("stores")
+        .select("shop, access_token")
+        .eq("user_id", authenticatedUserId)
+        .eq("is_active", true)
+        .maybeSingle()
+
+      if (storeError) {
+        console.error(`Failed to load active store for user ${authenticatedUserId}:`, storeError)
+      }
+
+      store = userStore
+    }
+
+    if (!store || !store.access_token || !store.shop) {
+      console.warn(`No active store found for user ${actorUserId}`)
       return NextResponse.json(
         { error: "Payment Required", message: "Please connect your Shopify store first in Settings." },
         { status: 402 }
@@ -387,10 +511,11 @@ export async function POST(request: Request) {
     }
 
     console.log('=== ANALYZE API START ===')
-    console.log('Input:', { url, personaMix, validationMode, originalTestId })
+    console.log('Input:', { url, personaMix, validationMode, originalTestId, isCronRequest, actorUserId })
 
     // BILLING HARD GATE: Verify active subscription before allowing expensive AI analysis
-    const hasActiveSubscription = await verifyActiveSubscription(store.shop, store.access_token)
+    const storeAccessToken = decryptToken(store.access_token)
+    const hasActiveSubscription = await verifyActiveSubscription(store.shop, storeAccessToken)
 
     if (!hasActiveSubscription) {
       console.warn(`No active subscription found for shop ${store.shop}`)
@@ -402,6 +527,11 @@ export async function POST(request: Request) {
 
     console.log(`✓ Billing gate passed for shop ${store.shop}`)
 
+    const category = categoryFromBody
+      ? normalizeStoreCategory(categoryFromBody)
+      : await detectStoreCategory(url)
+    console.log(`✓ Using category "${category}" for analysis`)
+
     // Validation Mode: Compare sandbox against original test (still synchronous for now)
     if (validationMode && sandboxPreviewUrl) {
       return await handleValidationMode(url, sandboxPreviewUrl, originalTestId, personaMix)
@@ -411,7 +541,7 @@ export async function POST(request: Request) {
     const { data: job, error: jobError } = await supabaseAdmin
       .from("tests")
       .insert({
-        user_id: user.id,
+        user_id: actorUserId,
         store_url: url,
         status: "pending",
         results: null,
@@ -436,19 +566,20 @@ export async function POST(request: Request) {
       .eq("id", jobId)
 
     // Process analysis asynchronously (don't await - let it run in background)
-    processAnalysisJob(jobId, url, personaMix, user.id).catch((error) => {
+    processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig).catch(async (error) => {
       console.error(`Analysis job ${jobId} failed:`, error)
       // Update job status to failed
-      supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from("tests")
         .update({
           status: "failed",
           results: { error: error instanceof Error ? error.message : "Unknown error" },
         })
         .eq("id", jobId)
-        .catch((updateError) => {
-          console.error("Failed to update job status to failed:", updateError)
-        })
+
+      if (updateError) {
+        console.error("Failed to update job status to failed:", updateError)
+      }
     })
 
     // Return job ID immediately
@@ -474,7 +605,9 @@ async function processAnalysisJob(
   jobId: string,
   url: string,
   personaMix: string,
-  userId: string
+  userId: string,
+  category: string,
+  scanConfig: ScanConfig
 ): Promise<void> {
 
   try {
@@ -547,12 +680,12 @@ async function processAnalysisJob(
 
     // Scrape the URL to get real data
     const scrapedData = await scrapeURL(url)
-
-    // Determine category from URL or use default (could be enhanced with AI classification)
-    const category = "apparel" // TODO: Auto-detect category from store content
+    const scanConfigInstruction = buildScanConfigInstruction(scanConfig)
 
     // Build the structured store analysis prompt with category benchmark
-    const storeAnalysisPrompt = buildStoreAnalysisPrompt(url, scrapedData, category)
+    const storeAnalysisPrompt = `${scanConfigInstruction}
+
+${buildStoreAnalysisPrompt(url, scrapedData, category)}`
 
     // First, get the detailed structured analysis
     const storeAnalysisMessage = await anthropic.messages.create({
@@ -626,6 +759,10 @@ ${JSON.stringify(storeAnalysis, null, 2)}
 
 Use this detailed analysis to inform your persona evaluation and friction point identification.
 ${digitalTwinContext}
+${scanConfigInstruction}
+
+STORE CATEGORY: ${category}
+
 ANALYSIS SCOPE:
 Analyze the ENTIRE cart-to-checkout experience for this Shopify store. This includes:
 1. **Product Page** → Add to Cart experience
@@ -861,6 +998,7 @@ IMPORTANT:
       personaResults,
       recommendations: analysisData.recommendations,
       funnelData: analysisData.funnelData,
+      scanConfig,
       // Store the detailed analysis for future reference
       storeAnalysis: storeAnalysis,
     }

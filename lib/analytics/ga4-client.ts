@@ -166,7 +166,7 @@ export async function fetchGA4Metrics(
 
     const locations = (locationResponse.rows || []).map((row) => ({
       country: row.dimensionValues?.[0]?.value || 'Unknown',
-      city: row.dimensionValues?.[1]?.value,
+      city: row.dimensionValues?.[1]?.value ?? undefined,
       sessions: parseInt(row.metricValues?.[0]?.value || '0'),
       percentage: 0,
     }))
@@ -251,7 +251,7 @@ export async function fetchGA4Demographics(
       ageRange: row.dimensionValues?.[0]?.value || 'Unknown',
       sessions: parseInt(row.metricValues?.[0]?.value || '0'),
       percentage: 0,
-    }))
+    })) as Array<{ ageRange: string; sessions: number; percentage: number }>
 
     const totalAgeSessions = ageGroups.reduce((sum, group) => sum + group.sessions, 0)
     ageGroups.forEach((group) => {
@@ -275,7 +275,7 @@ export async function fetchGA4Demographics(
       gender: row.dimensionValues?.[0]?.value || 'Unknown',
       sessions: parseInt(row.metricValues?.[0]?.value || '0'),
       percentage: 0,
-    }))
+    })) as Array<{ gender: string; sessions: number; percentage: number }>
 
     const totalGenderSessions = genders.reduce((sum, g) => sum + g.sessions, 0)
     genders.forEach((g) => {
@@ -299,7 +299,7 @@ export async function fetchGA4Demographics(
       deviceCategory: row.dimensionValues?.[0]?.value || 'Unknown',
       sessions: parseInt(row.metricValues?.[0]?.value || '0'),
       percentage: 0,
-    }))
+    })) as Array<{ deviceCategory: string; sessions: number; percentage: number }>
 
     const totalDeviceSessions = devices.reduce((sum, d) => sum + d.sessions, 0)
     devices.forEach((d) => {
@@ -323,10 +323,10 @@ export async function fetchGA4Demographics(
 
     const locations = (locationResponse.rows || []).map((row: any) => ({
       country: row.dimensionValues?.[0]?.value || 'Unknown',
-      city: row.dimensionValues?.[1]?.value,
+      city: (row.dimensionValues?.[1]?.value ?? undefined) as string | undefined,
       sessions: parseInt(row.metricValues?.[0]?.value || '0'),
       percentage: 0,
-    }))
+    })) as Array<{ country: string; city?: string; sessions: number; percentage: number }>
 
     const totalLocationSessions = locations.reduce((sum, loc) => sum + loc.sessions, 0)
     locations.forEach((loc) => {
