@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Scan, Loader2, AlertCircle } from "lucide-react"
 import { format } from "date-fns"
@@ -33,6 +34,9 @@ export default function ScannerPage() {
     }]
   }, [test])
 
+  const shouldShowSettingsLink =
+    typeof error === "string" && /subscription|shopify store|connect/i.test(error)
+
   const handleTriggerScan = async () => {
     if (!userId) {
       setError("Please log in to run a scan")
@@ -50,12 +54,28 @@ export default function ScannerPage() {
         body: JSON.stringify({ config: scanConfig })
       })
 
-      const data = await response.json()
+      const data = await response
+        .json()
+        .catch(() => ({ error: "Unexpected response from analyze API" }))
 
       if (!response.ok) {
         if (response.status === 402) {
-          const msg = data.message || data.error || 'Connect your store in Settings and ensure you have an active subscription.'
+          const msg =
+            data.message ||
+            data.error ||
+            "Complete setup required: connect your Shopify store in Settings and activate a billing plan before running scans."
           throw new Error(msg)
+        }
+        if (response.status === 429) {
+          const retryAfter = typeof data.retryAfter === "number" ? data.retryAfter : null
+          throw new Error(
+            retryAfter
+              ? `Rate limit exceeded. Try again in ${retryAfter} seconds.`
+              : "Rate limit exceeded. Please try again shortly."
+          )
+        }
+        if (response.status === 401) {
+          throw new Error("Your session expired. Please refresh and sign in again.")
         }
         throw new Error(data.error || 'Failed to start scan')
       }
@@ -82,10 +102,21 @@ export default function ScannerPage() {
             Run a new scan to detect conversion leaks and performance issues.
           </p>
           {error && (
-            <div className="flex items-center gap-2 mt-2 text-sm text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              {error}
-            </div>
+            <>
+              <div className="flex items-start gap-2 mt-2 text-sm text-red-400">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+              {shouldShowSettingsLink && (
+                <p className="mt-1 text-xs text-[#9CA3AF]">
+                  Open{" "}
+                  <Link href="/dashboard/settings" className="text-[#FBBF24] hover:text-[#F59E0B] underline">
+                    Settings
+                  </Link>{" "}
+                  and complete both Integrations and Billing.
+                </p>
+              )}
+            </>
           )}
         </div>
         <GhostButton onClick={handleTriggerScan} disabled={isScanning}>

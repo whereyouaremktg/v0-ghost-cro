@@ -38,12 +38,40 @@ export async function POST(request: NextRequest) {
     }
 
     const { plan } = parsedBody.data
-    const shop = typeof body.shop === "string" ? body.shop : undefined
-    const accessToken = typeof body.accessToken === "string" ? body.accessToken : undefined
+    let shop =
+      typeof body.shop === "string" && body.shop.trim().length > 0
+        ? body.shop.trim()
+        : undefined
+    let accessToken =
+      typeof body.accessToken === "string" && body.accessToken.trim().length > 0
+        ? body.accessToken.trim()
+        : undefined
 
-    if (!plan || !shop || !accessToken) {
+    // Backwards compatibility for existing clients that only send { plan }.
+    // Pull active store credentials from DB when request body omits shop/token.
+    if (!shop || !accessToken) {
+      const { data: store, error: storeError } = await supabase
+        .from("stores")
+        .select("shop, access_token")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle()
+
+      if (storeError) {
+        console.error("Failed to load active store for billing create:", storeError)
+        return NextResponse.json(
+          { error: "Failed to load connected Shopify store" },
+          { status: 500 }
+        )
+      }
+
+      shop = store?.shop || undefined
+      accessToken = store?.access_token || undefined
+    }
+
+    if (!shop || !accessToken) {
       return NextResponse.json(
-        { error: "Missing required fields: plan, shop, and accessToken are required" },
+        { error: "Connect your Shopify store in Settings before starting billing." },
         { status: 400 }
       )
     }
