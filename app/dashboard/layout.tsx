@@ -26,8 +26,8 @@ export default async function DashboardLayout({
     error = fetchError
   }
 
-  // Production Auth Check
-  if (process.env.NODE_ENV === "production" && (error || !user)) {
+  // Auth Check - redirect to login if not authenticated
+  if (error || !user) {
     redirect("/login")
   }
 

@@ -27,7 +27,7 @@ export function BillingTab({ subscription }: { subscription: any }) {
       const response = await fetch("/api/shopify/billing/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "pro" }),
+        body: JSON.stringify({ plan: "growth" }),
       })
 
       const data = await response.json()

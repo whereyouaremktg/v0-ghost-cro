@@ -481,8 +481,9 @@ export async function POST(request: Request) {
       }
 
       actorUserId = authenticatedUserId
-      const supabase = await createClient()
-      const { data: userStore, error: storeError } = await supabase
+      // Use admin client to bypass RLS - user is already authenticated above
+      // (RLS-gated client can fail in POST API routes due to cookie session issues)
+      const { data: userStore, error: storeError } = await supabaseAdmin
         .from("stores")
         .select("shop, access_token")
         .eq("user_id", authenticatedUserId)
