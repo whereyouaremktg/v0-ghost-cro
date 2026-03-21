@@ -19,6 +19,7 @@ import { GhostButton } from "@/components/ui/ghost-button"
 import { GhostCard } from "@/components/ui/ghost-card"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { useLatestTest } from "@/hooks/use-latest-test"
+import { readFirstNDJSONLine } from "@/lib/utils/ndjson-reader"
 
 type ToggleCard = {
   id: "analyzeTheme" | "analyzeCheckout" | "analyzeSpeed"
@@ -94,11 +95,11 @@ export default function ScannerPage() {
         body: JSON.stringify({ config: scanConfig }),
       })
 
-      const data = await response
-        .json()
-        .catch(() => ({ error: "Unexpected response from analyze API" }))
-
       if (!response.ok) {
+        const data = await response
+          .json()
+          .catch(() => ({ error: "Unexpected response from analyze API" }))
+
         if (response.status === 402) {
           const message =
             data.message ||
@@ -122,6 +123,9 @@ export default function ScannerPage() {
 
         throw new Error(data.error || "Failed to start scan")
       }
+
+      // Read first NDJSON line for jobId (server stream continues independently)
+      const data = await readFirstNDJSONLine<{ jobId?: string }>(response)
 
       if (!data.jobId) {
         throw new Error("No job ID returned")

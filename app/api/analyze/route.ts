@@ -623,31 +623,77 @@ export async function POST(request: Request) {
       .update({ status: "running" })
       .eq("id", jobId)
 
-    // Use after() so Vercel keeps the function alive after the response is sent
-    after(async () => {
-      try {
-        await processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig)
-      } catch (error) {
-        console.error(`Analysis job ${jobId} failed:`, error)
-        const { error: updateError } = await supabaseAdmin
-          .from("tests")
-          .update({
-            status: "failed",
-            results: { error: error instanceof Error ? error.message : "Unknown error" },
-          })
-          .eq("id", jobId)
-
-        if (updateError) {
-          console.error("Failed to update job status to failed:", updateError)
+    // Cron path: use after() + JSON (cron caller only checks response.ok)
+    if (isCronRequest) {
+      after(async () => {
+        try {
+          await processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig)
+        } catch (error) {
+          console.error(`Analysis job ${jobId} failed:`, error)
+          await supabaseAdmin
+            .from("tests")
+            .update({
+              status: "failed",
+              results: { error: error instanceof Error ? error.message : "Unknown error" },
+            })
+            .eq("id", jobId)
         }
-      }
+      })
+
+      return NextResponse.json({
+        jobId,
+        status: "pending",
+        message: "Analysis job created. Poll /api/analyze/[id]/status for results.",
+      })
+    }
+
+    // Browser path: streaming NDJSON keeps the function alive for the full maxDuration
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        // Send jobId as first line immediately so the client can redirect
+        controller.enqueue(
+          encoder.encode(JSON.stringify({ jobId, status: "pending" }) + "\n")
+        )
+
+        try {
+          await processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig)
+          try {
+            controller.enqueue(
+              encoder.encode(JSON.stringify({ jobId, status: "completed" }) + "\n")
+            )
+          } catch {
+            // Client may have disconnected — that's fine
+          }
+        } catch (error) {
+          console.error(`Analysis job ${jobId} failed:`, error)
+          await supabaseAdmin
+            .from("tests")
+            .update({
+              status: "failed",
+              results: { error: error instanceof Error ? error.message : "Unknown error" },
+            })
+            .eq("id", jobId)
+          try {
+            controller.enqueue(
+              encoder.encode(JSON.stringify({ jobId, status: "failed", error: error instanceof Error ? error.message : "Unknown error" }) + "\n")
+            )
+          } catch {
+            // Client may have disconnected — that's fine
+          }
+        } finally {
+          controller.close()
+        }
+      },
     })
 
-    // Return job ID immediately
-    return NextResponse.json({
-      jobId,
-      status: "pending",
-      message: "Analysis job created. Poll /api/analyze/[id]/status for results.",
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-cache, no-transform",
+        "X-Accel-Buffering": "no",
+      },
     })
   } catch (error) {
     console.error("Analysis error:", error)

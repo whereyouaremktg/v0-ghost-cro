@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react"
 import { GhostLogo } from "@/components/ghost-logo"
 import { ScanChecklist } from "@/components/onboarding/scan-checklist"
 import { GhostButton } from "@/components/ui/ghost-button"
+import { readFirstNDJSONLine } from "@/lib/utils/ndjson-reader"
 
 const SCAN_TIMEOUT_SECONDS = 90
 
@@ -128,10 +129,16 @@ function ScanningPageContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       })
-      const data = await response.json()
 
-      if (!response.ok || !data.jobId) {
-        throw new Error(data.error || "Failed to restart scan")
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ error: "Failed to restart scan" }))
+        throw new Error(errData.error || "Failed to restart scan")
+      }
+
+      const data = await readFirstNDJSONLine<{ jobId?: string }>(response)
+
+      if (!data.jobId) {
+        throw new Error("No job ID returned")
       }
 
       window.location.href = `/onboarding/scanning?testId=${data.jobId}`
