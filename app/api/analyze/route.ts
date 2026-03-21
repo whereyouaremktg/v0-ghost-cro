@@ -164,6 +164,40 @@ function extractJSON(text: string): string {
     return jsonMatch[0]
   }
   
+  // Attempt to repair truncated JSON (e.g. from max_tokens cutoff)
+  // Find the last valid closing brace and try to close all open structures
+  if (startIndex !== -1 && endIndex === -1) {
+    let truncated = cleaned.substring(startIndex)
+    // Remove any trailing incomplete string (unterminated quote)
+    truncated = truncated.replace(/"[^"]*$/, '""')
+    // Close any open structures
+    let opens = 0
+    let inString = false
+    let escape = false
+    for (let i = 0; i < truncated.length; i++) {
+      const ch = truncated[i]
+      if (escape) { escape = false; continue }
+      if (ch === '\\') { escape = true; continue }
+      if (ch === '"') { inString = !inString; continue }
+      if (inString) continue
+      if (ch === '{' || ch === '[') opens++
+      if (ch === '}' || ch === ']') opens--
+    }
+    // Trim trailing commas/colons and close open structures
+    truncated = truncated.replace(/[,:\s]+$/, '')
+    for (let i = 0; i < opens; i++) {
+      // Guess whether we need } or ] based on what's open
+      truncated += '}'
+    }
+    try {
+      const repaired = JSON.parse(truncated)
+      console.warn('⚠ JSON was truncated but successfully repaired')
+      return truncated
+    } catch {
+      // Repair failed, fall through
+    }
+  }
+
   // Last resort: return cleaned text
   return cleaned
 }
@@ -694,7 +728,7 @@ ${buildStoreAnalysisPrompt(url, scrapedData, category)}`
     // First, get the detailed structured analysis
     const storeAnalysisMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 8192, // Increased to handle longer JSON responses
+      max_tokens: 16384,
       messages: [
         {
           role: "user",
@@ -702,6 +736,10 @@ ${buildStoreAnalysisPrompt(url, scrapedData, category)}`
         },
       ],
     })
+
+    if (storeAnalysisMessage.stop_reason === 'max_tokens') {
+      console.warn('⚠ Store analysis response was truncated (hit max_tokens limit)')
+    }
 
     const storeAnalysisText =
       storeAnalysisMessage.content[0].type === "text" ? storeAnalysisMessage.content[0].text : ""
@@ -867,7 +905,7 @@ IMPORTANT:
     // Get persona-based analysis
     const personaMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 8192, // Increased to handle longer JSON responses
+      max_tokens: 16384,
       messages: [
         {
           role: "user",
@@ -877,6 +915,10 @@ IMPORTANT:
     })
 
     // Extract the text content from Claude's response
+    if (personaMessage.stop_reason === 'max_tokens') {
+      console.warn('⚠ Persona analysis response was truncated (hit max_tokens limit)')
+    }
+
     const responseText = personaMessage.content[0].type === "text" ? personaMessage.content[0].text : ""
 
     // Parse the JSON response
@@ -1156,7 +1198,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.`
 
     const validationMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 8192, // Increased to handle longer JSON responses
+      max_tokens: 16384,
       messages: [
         {
           role: "user",
