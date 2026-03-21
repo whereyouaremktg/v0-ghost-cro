@@ -32,7 +32,8 @@ export async function GET(request: Request) {
     })
 
     // Build OAuth URL
-    const redirectUri = `${process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'}/api/auth/shopify/callback`
+    const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const redirectUri = `${baseUrl}/api/auth/shopify/callback`
     const scopes = SHOPIFY_SCOPES.join(",")
     const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`
 

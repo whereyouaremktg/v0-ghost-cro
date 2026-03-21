@@ -497,6 +497,8 @@ export async function POST(request: Request) {
       store = userStore
     }
 
+    const bypassBilling = process.env.BYPASS_BILLING === "true"
+
     if (!store || !store.access_token || !store.shop) {
       console.warn(`No active store found for user ${actorUserId}`)
       return NextResponse.json(
@@ -505,28 +507,29 @@ export async function POST(request: Request) {
       )
     }
 
-    // Use provided URL or derive from connected store
-    const url = urlFromBody || (store.shop ? `https://${store.shop}` : null)
-    if (!url) {
-      return NextResponse.json({ error: "URL is required or connect a store in Settings." }, { status: 400 })
-    }
+    // Derive URL from connected store
+    const url = `https://${store.shop}`
 
     console.log('=== ANALYZE API START ===')
     console.log('Input:', { url, personaMix, validationMode, originalTestId, isCronRequest, actorUserId })
 
     // BILLING HARD GATE: Verify active subscription before allowing expensive AI analysis
-    const storeAccessToken = decryptToken(store.access_token)
-    const hasActiveSubscription = await verifyActiveSubscription(store.shop, storeAccessToken)
+    if (bypassBilling) {
+      console.warn(`[BYPASS_BILLING] Skipping subscription check`)
+    } else {
+      const storeAccessToken = decryptToken(store!.access_token!)
+      const hasActiveSubscription = await verifyActiveSubscription(store!.shop!, storeAccessToken)
 
-    if (!hasActiveSubscription) {
-      console.warn(`No active subscription found for shop ${store.shop}`)
-      return NextResponse.json(
-        { error: "Payment Required", message: "An active subscription is required to run AI analysis." },
-        { status: 402 }
-      )
+      if (!hasActiveSubscription) {
+        console.warn(`No active subscription found for shop ${store!.shop}`)
+        return NextResponse.json(
+          { error: "Payment Required", message: "An active subscription is required to run AI analysis." },
+          { status: 402 }
+        )
+      }
     }
 
-    console.log(`✓ Billing gate passed for shop ${store.shop}`)
+    console.log(`✓ Billing gate passed`)
 
     const category = categoryFromBody
       ? normalizeStoreCategory(categoryFromBody)

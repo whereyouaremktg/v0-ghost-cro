@@ -5,6 +5,12 @@ import { supabaseAdmin } from "@/lib/supabase/admin"
 import { encryptToken } from "@/lib/security/encryption"
 import { validateOAuthState } from "@/lib/security/oauth-state"
 
+function getBaseUrl(): string {
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return "http://localhost:3000"
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -14,7 +20,7 @@ export async function GET(request: Request) {
 
     // Verify required parameters
     if (!code || !shop || !state) {
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       return NextResponse.redirect(
         `${nextAuthUrl}/dashboard/settings?error=missing_parameters`,
       )
@@ -25,7 +31,7 @@ export async function GET(request: Request) {
     const savedState = cookieStore.get("shopify_oauth_state")?.value
 
     if (!savedState || !validateOAuthState(savedState, state)) {
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       return NextResponse.redirect(`${nextAuthUrl}/dashboard/settings?error=invalid_state`)
     }
     cookieStore.delete("shopify_oauth_state")
@@ -35,7 +41,7 @@ export async function GET(request: Request) {
     const clientSecret = process.env.SHOPIFY_CLIENT_SECRET
 
     if (!clientId || !clientSecret) {
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       return NextResponse.redirect(
         `${nextAuthUrl}/dashboard/settings?error=oauth_not_configured&message=Shopify OAuth credentials are missing.`
       )
@@ -49,7 +55,7 @@ export async function GET(request: Request) {
 
     if (!accessTokenResponse.ok) {
       const errorText = await accessTokenResponse.text()
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       return NextResponse.redirect(
         `${nextAuthUrl}/dashboard/settings?error=token_exchange_failed&message=${encodeURIComponent(errorText)}`,
       )
@@ -60,7 +66,7 @@ export async function GET(request: Request) {
     const scopes = tokenData.scope ? tokenData.scope.split(',') : []
 
     if (!accessToken) {
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       return NextResponse.redirect(
         `${nextAuthUrl}/dashboard/settings?error=token_exchange_failed&message=${encodeURIComponent("No access token received")}`,
       )
@@ -74,7 +80,7 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       return NextResponse.redirect(
         `${nextAuthUrl}/login?error=not_authenticated&message=${encodeURIComponent("Please sign in to connect your store")}`,
       )
@@ -97,7 +103,7 @@ export async function GET(request: Request) {
 
     if (dbError) {
       console.error("SECURITY ERROR: Failed to save store to database:", dbError)
-      const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+      const nextAuthUrl = getBaseUrl()
       // Hard-fail: redirect to login with install_failed - NO localStorage fallback allowed
       return NextResponse.redirect(
         `${nextAuthUrl}/login?error=install_failed`
@@ -106,7 +112,7 @@ export async function GET(request: Request) {
 
     // Trigger CRM sync after successful store connection (non-critical)
     try {
-      await fetch(`${process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'}/api/crm/sync`, {
+      await fetch(`${getBaseUrl()}/api/crm/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
@@ -116,7 +122,7 @@ export async function GET(request: Request) {
     }
 
     // Register App Uninstalled Webhook (non-critical)
-    const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+    const nextAuthUrl = getBaseUrl()
     try {
       const webhookResponse = await fetch(`https://${shop}/admin/api/2023-10/webhooks.json`, {
         method: "POST",
@@ -150,7 +156,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Shopify OAuth callback error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
-    const nextAuthUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000"
+    const nextAuthUrl = getBaseUrl()
     return NextResponse.redirect(
       `${nextAuthUrl}/dashboard/settings?error=callback_failed&message=${encodeURIComponent(errorMessage)}`
     )
