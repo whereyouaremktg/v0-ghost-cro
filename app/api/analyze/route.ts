@@ -623,31 +623,44 @@ export async function POST(request: Request) {
       .update({ status: "running" })
       .eq("id", jobId)
 
-    // Use after() so Vercel keeps the function alive after the response is sent
-    after(async () => {
-      try {
-        await processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig)
-      } catch (error) {
-        console.error(`Analysis job ${jobId} failed:`, error)
-        const { error: updateError } = await supabaseAdmin
-          .from("tests")
-          .update({
-            status: "failed",
-            results: { error: error instanceof Error ? error.message : "Unknown error" },
-          })
-          .eq("id", jobId)
+    // Stream the response so the client gets the jobId immediately while the
+    // function stays alive for the full maxDuration to complete the analysis.
+    const stream = new ReadableStream({
+      async start(controller) {
+        // Send the jobId as the first chunk so the client can start polling
+        controller.enqueue(
+          new TextEncoder().encode(JSON.stringify({ jobId, status: "running" }) + "\n")
+        )
 
-        if (updateError) {
-          console.error("Failed to update job status to failed:", updateError)
+        try {
+          await processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig)
+          controller.enqueue(
+            new TextEncoder().encode(JSON.stringify({ jobId, status: "completed" }) + "\n")
+          )
+        } catch (error) {
+          console.error(`Analysis job ${jobId} failed:`, error)
+          await supabaseAdmin
+            .from("tests")
+            .update({
+              status: "failed",
+              results: { error: error instanceof Error ? error.message : "Unknown error" },
+            })
+            .eq("id", jobId)
+          controller.enqueue(
+            new TextEncoder().encode(JSON.stringify({ jobId, status: "failed" }) + "\n")
+          )
+        } finally {
+          controller.close()
         }
-      }
+      },
     })
 
-    // Return job ID immediately
-    return NextResponse.json({
-      jobId,
-      status: "pending",
-      message: "Analysis job created. Poll /api/analyze/[id]/status for results.",
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+      },
     })
   } catch (error) {
     console.error("Analysis error:", error)
