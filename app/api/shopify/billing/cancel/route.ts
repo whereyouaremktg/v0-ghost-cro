@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@/lib/supabase/admin"
 import { cancelSubscription } from "@/lib/shopify/billing"
 import { decryptToken } from "@/lib/security/encryption"
 
@@ -37,8 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Auto-fetch missing data from database
+    // Use admin client to bypass RLS (POST routes can have cookie session issues)
     if (!shop || !accessToken) {
-      const { data: store, error: storeError } = await supabase
+      const { data: store, error: storeError } = await supabaseAdmin
         .from("stores")
         .select("shop, access_token")
         .eq("user_id", user.id)

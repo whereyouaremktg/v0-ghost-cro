@@ -61,7 +61,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
   }
 
   const handleConnectShopify = () => {
-    window.location.href = "/api/auth/shopify/initiate"
+    window.location.href = "/onboarding/connect"
   }
 
   const handleDisconnectGA4 = async () => {

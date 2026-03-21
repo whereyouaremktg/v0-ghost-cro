@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@/lib/supabase/admin"
 import { createSubscription, SHOPIFY_PLANS, getAppBaseUrl } from "@/lib/shopify/billing"
 import { BillingRequestSchema } from "@/lib/types/subscription"
 import { decryptToken } from "@/lib/security/encryption"
@@ -47,10 +48,10 @@ export async function POST(request: NextRequest) {
         ? body.accessToken.trim()
         : undefined
 
-    // Backwards compatibility for existing clients that only send { plan }.
     // Pull active store credentials from DB when request body omits shop/token.
+    // Use admin client to bypass RLS (POST routes can have cookie session issues).
     if (!shop || !accessToken) {
-      const { data: store, error: storeError } = await supabase
+      const { data: store, error: storeError } = await supabaseAdmin
         .from("stores")
         .select("shop, access_token")
         .eq("user_id", user.id)

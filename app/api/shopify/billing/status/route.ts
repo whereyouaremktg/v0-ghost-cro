@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { supabaseAdmin } from "@/lib/supabase/admin"
 import { getCurrentSubscription } from "@/lib/shopify/billing"
 import { decryptToken } from "@/lib/security/encryption"
 
@@ -23,11 +24,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // 2. Get Shopify credentials from request
-    const { shop, accessToken } = await request.json()
+    // 2. Get Shopify credentials from request body or fall back to DB
+    let body: { shop?: string; accessToken?: string } = {}
+    try {
+      body = await request.json()
+    } catch {
+      // Empty body is fine - we'll auto-fetch
+    }
+
+    let { shop, accessToken } = body
+
+    // Auto-fetch store credentials if not provided in request
+    if (!shop || !accessToken) {
+      const { data: store } = await supabaseAdmin
+        .from("stores")
+        .select("shop, access_token")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle()
+
+      shop = shop || store?.shop || undefined
+      accessToken = accessToken || store?.access_token || undefined
+    }
 
     // 3. Get local subscription from database
-    const { data: localSub, error: dbError } = await supabase
+    const { data: localSub, error: dbError } = await supabaseAdmin
       .from("subscriptions")
       .select("*")
       .eq("user_id", user.id)
@@ -38,7 +59,7 @@ export async function POST(request: NextRequest) {
       console.error("Error fetching local subscription:", dbError)
     }
 
-    // 4. If Shopify credentials provided, fetch from Shopify too
+    // 4. If Shopify credentials available, fetch from Shopify too
     let shopifySubscription = null
 
     if (shop && accessToken) {

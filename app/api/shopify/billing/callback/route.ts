@@ -41,20 +41,20 @@ export async function GET(request: Request) {
     // If no charge_id, user declined the charge
     if (!chargeId) {
       console.log("User declined the charge")
-      return NextResponse.redirect(`${baseUrl}/pricing?canceled=true`)
+      return NextResponse.redirect(`${baseUrl}/dashboard/settings?tab=billing&canceled=true`)
     }
 
     // Validate required parameters
     if (!plan || !userId) {
       console.error("Missing required parameters:", { plan, userId })
-      return NextResponse.redirect(`${baseUrl}/pricing?error=invalid_params`)
+      return NextResponse.redirect(`${baseUrl}/dashboard/settings?tab=billing&error=invalid_params`)
     }
 
     // Validate plan
     const planConfig = SHOPIFY_PLANS[plan]
     if (!planConfig) {
       console.error("Invalid plan:", plan)
-      return NextResponse.redirect(`${baseUrl}/pricing?error=invalid_plan`)
+      return NextResponse.redirect(`${baseUrl}/dashboard/settings?tab=billing&error=invalid_plan`)
     }
 
     // Calculate dates
