@@ -500,21 +500,15 @@ export async function POST(request: Request) {
     const bypassBilling = process.env.BYPASS_BILLING === "true"
 
     if (!store || !store.access_token || !store.shop) {
-      if (!bypassBilling) {
-        console.warn(`No active store found for user ${actorUserId}`)
-        return NextResponse.json(
-          { error: "Payment Required", message: "Please connect your Shopify store first in Settings." },
-          { status: 402 }
-        )
-      }
-      console.warn(`[BYPASS_BILLING] Skipping store requirement for user ${actorUserId}`)
+      console.warn(`No active store found for user ${actorUserId}`)
+      return NextResponse.json(
+        { error: "Payment Required", message: "Please connect your Shopify store first in Settings." },
+        { status: 402 }
+      )
     }
 
-    // Use provided URL or derive from connected store
-    const url = urlFromBody || (store?.shop ? `https://${store.shop}` : null)
-    if (!url) {
-      return NextResponse.json({ error: "URL is required or connect a store in Settings." }, { status: 400 })
-    }
+    // Derive URL from connected store
+    const url = `https://${store.shop}`
 
     console.log('=== ANALYZE API START ===')
     console.log('Input:', { url, personaMix, validationMode, originalTestId, isCronRequest, actorUserId })

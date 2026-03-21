@@ -55,7 +55,6 @@ export default function ScannerPage() {
 
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [storeUrl, setStoreUrl] = useState("")
   const [scanConfig, setScanConfig] = useState({
     analyzeTheme: true,
     analyzeCheckout: true,
@@ -92,7 +91,7 @@ export default function ScannerPage() {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: scanConfig, ...(storeUrl.trim() ? { url: storeUrl.trim() } : {}) }),
+        body: JSON.stringify({ config: scanConfig }),
       })
 
       const data = await response
@@ -144,14 +143,6 @@ export default function ScannerPage() {
             <p className="mt-1 text-sm text-[#71717A]">
               AI-powered analysis of your storefront conversion funnel.
             </p>
-
-            <input
-              type="url"
-              placeholder="Store URL (e.g. https://your-store.myshopify.com)"
-              value={storeUrl}
-              onChange={(e) => setStoreUrl(e.target.value)}
-              className="mt-3 w-full max-w-md rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-sm text-white placeholder-[#555] focus:border-[#FBBF24] focus:outline-none"
-            />
 
             {error && (
               <>
