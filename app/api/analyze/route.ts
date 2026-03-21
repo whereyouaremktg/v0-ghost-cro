@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import * as cheerio from "cheerio"
 import type { TestResult, PersonaResult, ScanConfig } from "@/lib/types"
 import type { StoreAnalysis } from "@/lib/analysis/schema"
@@ -22,6 +22,8 @@ import {
   type GA4Metrics 
 } from "@/lib/analytics/ga4-client"
 import { verifyActiveSubscription } from "@/lib/shopify/billing"
+
+export const maxDuration = 60
 
 /**
  * Raw analysis data structure from Claude's JSON response
@@ -620,20 +622,23 @@ export async function POST(request: Request) {
       .update({ status: "running" })
       .eq("id", jobId)
 
-    // Process analysis asynchronously (don't await - let it run in background)
-    processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig).catch(async (error) => {
-      console.error(`Analysis job ${jobId} failed:`, error)
-      // Update job status to failed
-      const { error: updateError } = await supabaseAdmin
-        .from("tests")
-        .update({
-          status: "failed",
-          results: { error: error instanceof Error ? error.message : "Unknown error" },
-        })
-        .eq("id", jobId)
+    // Use after() so Vercel keeps the function alive after the response is sent
+    after(async () => {
+      try {
+        await processAnalysisJob(jobId, url, personaMix, actorUserId, category, scanConfig)
+      } catch (error) {
+        console.error(`Analysis job ${jobId} failed:`, error)
+        const { error: updateError } = await supabaseAdmin
+          .from("tests")
+          .update({
+            status: "failed",
+            results: { error: error instanceof Error ? error.message : "Unknown error" },
+          })
+          .eq("id", jobId)
 
-      if (updateError) {
-        console.error("Failed to update job status to failed:", updateError)
+        if (updateError) {
+          console.error("Failed to update job status to failed:", updateError)
+        }
       }
     })
 
