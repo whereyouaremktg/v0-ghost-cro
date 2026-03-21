@@ -23,7 +23,7 @@ import {
 } from "@/lib/analytics/ga4-client"
 import { verifyActiveSubscription } from "@/lib/shopify/billing"
 
-export const maxDuration = 60
+export const maxDuration = 300
 
 /**
  * Raw analysis data structure from Claude's JSON response
@@ -212,6 +212,7 @@ function getAnthropicClient() {
   }
   return new Anthropic({
     apiKey,
+    timeout: 120_000, // 2 minute timeout per API call
   })
 }
 
@@ -407,7 +408,7 @@ function getPersonas(personaMix: string): string[] {
 
 const DEFAULT_SCAN_CONFIG: ScanConfig = {
   analyzeTheme: true,
-  analyzeCheckout: true,
+  analyzeCheckout: false,
   analyzeSpeed: true,
 }
 
@@ -423,7 +424,7 @@ function buildScanConfigInstruction(scanConfig: ScanConfig): string {
   return `
 SCAN CONFIG:
 - Theme analysis: ${scanConfig.analyzeTheme ? "enabled" : "disabled"}
-- Checkout analysis: ${scanConfig.analyzeCheckout ? "enabled" : "disabled"}
+- Checkout analysis: ${scanConfig.analyzeCheckout ? "enabled (Shopify Plus only)" : "disabled (standard Shopify checkout)"}
 - Speed analysis: ${scanConfig.analyzeSpeed ? "enabled" : "disabled"}
 
 Apply this scope strictly:
@@ -750,7 +751,7 @@ ${buildStoreAnalysisPrompt(url, scrapedData, category)}`
     // First, get the detailed structured analysis
     const storeAnalysisMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 16384,
+      max_tokens: 8192,
       messages: [
         {
           role: "user",
@@ -814,7 +815,7 @@ Note: Using Expert CRO default personas (GA4 demographics not available or not c
 
 `
 
-    const personaPrompt = `You are an expert Shopify conversion optimization analyst specializing in cart-to-checkout flow analysis.
+    const personaPrompt = `You are an expert Shopify conversion optimization analyst specializing in product page and cart experience analysis.
 
 URL PROVIDED: ${url}
 
@@ -828,23 +829,22 @@ ${scanConfigInstruction}
 STORE CATEGORY: ${category}
 
 ANALYSIS SCOPE:
-Analyze the ENTIRE cart-to-checkout experience for this Shopify store. This includes:
-1. **Product Page** → Add to Cart experience
+Analyze the product page and cart experience for this Shopify store. This includes:
+1. **Product Page** → First impression, product info, trust signals, Add to Cart experience
 2. **Cart Page** → Where customers see their items, shipping costs preview, and proceed to checkout
-3. **Checkout Flow** → Account/guest checkout, shipping, payment, and final purchase
 
-Focus heavily on the CART PAGE as this is where most friction and abandonment happens in Shopify stores.
+NOTE: Do NOT analyze the checkout flow itself — standard Shopify stores use Shopify's managed checkout which merchants cannot customize (only Shopify Plus stores can). Focus on what the merchant CAN control: the product page and cart page.
 
-Evaluate this cart-to-checkout journey from the perspective of these 5 different shopper personas:
+Evaluate this product-to-cart journey from the perspective of these 5 different shopper personas:
 ${personas.map((p, i) => `${i + 1}. ${p}`).join("\n")}
 
 For each persona, determine:
-1. Would they complete the purchase or abandon? (purchase/abandon)
-2. Their reasoning in first-person as they go through the cart → checkout flow (a direct quote from them)
-3. If they abandon, at what specific point in the journey? (e.g., "Cart page - saw shipping costs", "Checkout - no Apple Pay", "Checkout - forced account creation")
+1. Would they add to cart and proceed to checkout, or abandon? (purchase/abandon)
+2. Their reasoning in first-person as they browse the product page and cart (a direct quote from them)
+3. If they abandon, at what specific point? (e.g., "Product page - no reviews visible", "Product page - unclear pricing", "Cart page - saw shipping costs", "Cart page - no trust signals")
 
 Then, provide a comprehensive analysis including:
-- Overall score (0-100) based on Shopify cart-to-checkout best practices
+- Overall score (0-100) based on Shopify product page and cart best practices
 - Critical friction points (high impact issues causing abandonment)
 - High priority issues (significant but not critical)
 - Medium priority issues (minor improvements)
@@ -869,7 +869,7 @@ Return your analysis as a JSON object with this EXACT structure:
     "critical": [
       {
         "title": "<issue title>",
-        "location": "<where in checkout>",
+        "location": "<where on the page, e.g. product page, cart page>",
         "impact": "<% abandonment or impact metric>",
         "affected": "<which shopper types>",
         "fix": "<specific actionable fix>",
@@ -927,7 +927,7 @@ IMPORTANT:
     // Get persona-based analysis
     const personaMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 16384,
+      max_tokens: 8192,
       messages: [
         {
           role: "user",
@@ -1220,7 +1220,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting, no code blocks.`
 
     const validationMessage = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 16384,
+      max_tokens: 8192,
       messages: [
         {
           role: "user",

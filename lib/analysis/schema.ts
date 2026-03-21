@@ -57,15 +57,6 @@ export interface StoreAnalysis {
     }
   }
 
-  checkout: {
-    guestCheckoutAvailable: boolean
-    formFieldCount: number
-    hasProgressIndicator: boolean
-    paymentOptionsVisible: string[]
-    trustBadgesPresent: boolean
-    shippingRevealPoint: "product_page" | "cart" | "checkout"
-  }
-
   technical: {
     pageLoadTime: number
     mobileResponsive: boolean
@@ -137,14 +128,6 @@ export function createEmptyStoreAnalysis(): StoreAnalysis {
         hasUrgency: false,
         hasScarcity: false,
       },
-    },
-    checkout: {
-      guestCheckoutAvailable: false,
-      formFieldCount: 0,
-      hasProgressIndicator: false,
-      paymentOptionsVisible: [],
-      trustBadgesPresent: false,
-      shippingRevealPoint: "checkout",
     },
     technical: {
       pageLoadTime: 0,

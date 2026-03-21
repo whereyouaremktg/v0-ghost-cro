@@ -9,7 +9,7 @@ export const AnalyzeRequestSchema = z.object({
   config: z
     .object({
       analyzeTheme: z.boolean().default(true),
-      analyzeCheckout: z.boolean().default(true),
+      analyzeCheckout: z.boolean().default(false),
       analyzeSpeed: z.boolean().default(true),
     })
     .optional(),

@@ -71,27 +71,6 @@ For each element, note:
 - Is there urgency (limited time, stock countdown)?
 - Is there scarcity (only X left, low stock)?
 
-### Checkout Flow (if visible)
-
-**Guest Checkout:**
-- Is guest checkout available (not forced account creation)?
-
-**Form Fields:**
-- Count the number of required fields
-- Are fields optimized (autocomplete, validation)?
-
-**Progress Indicator:**
-- Is there a progress bar or step indicator?
-
-**Payment Options:**
-- Which payment methods are visible? (Apple Pay, Shop Pay, PayPal, credit cards, etc.)
-
-**Trust Badges:**
-- Are security/trust badges present during checkout?
-
-**Shipping Reveal:**
-- When are shipping costs first shown? (product_page, cart, or checkout)
-
 ### Technical
 
 **Performance:**
@@ -175,14 +154,6 @@ Return a JSON object matching this EXACT structure:
       "hasScarcity": <boolean>
     }
   },
-  "checkout": {
-    "guestCheckoutAvailable": <boolean>,
-    "formFieldCount": <number>,
-    "hasProgressIndicator": <boolean>,
-    "paymentOptionsVisible": ["<option1>", "<option2>", ...],
-    "trustBadgesPresent": <boolean>,
-    "shippingRevealPoint": "<product_page|cart|checkout>"
-  },
   "technical": {
     "pageLoadTime": <number in seconds, estimate if needed>,
     "mobileResponsive": <boolean>,
@@ -191,7 +162,7 @@ Return a JSON object matching this EXACT structure:
   },
   "overallIssues": [
     {
-      "category": "<product_page|checkout|technical|trust|shipping|pricing|images|cta>",
+      "category": "<product_page|technical|trust|shipping|pricing|images|cta>",
       "element": "<specific element name>",
       "issue": "<specific problem description>",
       "severity": "<critical|high|medium|low>",
@@ -218,9 +189,9 @@ Return a JSON object matching this EXACT structure:
 
 For each issue found, estimate the conversion rate impact based on established CRO research:
 
-- **Critical issues** (missing description, no trust signals, forced account creation): 0.3-0.8% CR impact
+- **Critical issues** (missing description, no trust signals, poor mobile UX): 0.3-0.8% CR impact
 - **High issues** (poor images, hidden shipping, no reviews): 0.2-0.4% CR impact
-- **Medium issues** (weak CTA copy, no urgency, too many form fields): 0.1-0.2% CR impact
+- **Medium issues** (weak CTA copy, no urgency, poor layout): 0.1-0.2% CR impact
 - **Low issues** (minor UX friction, color choices, spacing): 0.05-0.1% CR impact
 
 Base these on:
