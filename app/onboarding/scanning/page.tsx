@@ -8,7 +8,7 @@ import { GhostLogo } from "@/components/ghost-logo"
 import { ScanChecklist } from "@/components/onboarding/scan-checklist"
 import { GhostButton } from "@/components/ui/ghost-button"
 
-const SCAN_TIMEOUT_SECONDS = 5 * 60
+const SCAN_TIMEOUT_SECONDS = 90
 
 const steps = [
   "Connecting to your store...",
@@ -21,9 +21,9 @@ const steps = [
 
 type ScanStatus = "pending" | "running" | "completed" | "failed"
 
-const statusProgress: Record<ScanStatus, number> = {
-  pending: 15,
-  running: 70,
+const statusBaseProgress: Record<ScanStatus, number> = {
+  pending: 10,
+  running: 20,
   completed: 100,
   failed: 100,
 }
@@ -56,7 +56,7 @@ function ScanningPageContent() {
   }, [testId])
 
   useEffect(() => {
-    if (!testId || timedOut) {
+    if (!testId || timedOut || status === "completed" || status === "failed") {
       return
     }
 
@@ -67,6 +67,7 @@ function ScanningPageContent() {
         setStatus(data.status)
 
         if (data.status === "completed") {
+          clearInterval(interval)
           window.location.href = `/onboarding/results?testId=${testId}`
         }
       } catch (error) {
@@ -76,7 +77,7 @@ function ScanningPageContent() {
     }, 2000)
 
     return () => clearInterval(interval)
-  }, [testId, timedOut])
+  }, [testId, timedOut, status])
 
   useEffect(() => {
     if (!testId || timedOut || status === "completed" || status === "failed") {
@@ -144,7 +145,27 @@ function ScanningPageContent() {
     router.push("/dashboard")
   }
 
-  const progress = statusProgress[status]
+  const [smoothProgress, setSmoothProgress] = useState(0)
+
+  useEffect(() => {
+    if (status === "completed" || status === "failed") {
+      setSmoothProgress(statusBaseProgress[status])
+      return
+    }
+    // Smoothly increment progress while running, approaching but never reaching 95
+    const interval = setInterval(() => {
+      setSmoothProgress((prev) => {
+        const base = statusBaseProgress[status]
+        const target = 92
+        if (prev < base) return base
+        // Slow logarithmic approach to target
+        return prev + (target - prev) * 0.04
+      })
+    }, 800)
+    return () => clearInterval(interval)
+  }, [status])
+
+  const progress = Math.round(smoothProgress)
   const checklistItems = useMemo(
     () => [
       { label: "Theme structure", done: progress > 20 },
@@ -200,7 +221,7 @@ function ScanningPageContent() {
         <ScanChecklist items={checklistItems} />
       </div>
 
-      {timedOut && (
+      {(timedOut || status === "failed") && (
         <div className="mt-6 flex flex-col gap-3">
           <GhostButton onClick={handleTryAgain} disabled={isRestarting}>
             {isRestarting ? "Restarting..." : "Try Again"}
@@ -209,6 +230,14 @@ function ScanningPageContent() {
             Go to Dashboard
           </GhostButton>
           {actionError && <p className="text-sm text-red-400">{actionError}</p>}
+        </div>
+      )}
+
+      {!timedOut && status !== "failed" && status !== "completed" && (
+        <div className="mt-6">
+          <GhostButton variant="outline" onClick={handleGoDashboard}>
+            Cancel
+          </GhostButton>
         </div>
       )}
     </div>

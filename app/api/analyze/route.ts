@@ -228,10 +228,27 @@ export interface ScrapedData {
   cartInfo: string
 }
 
+async function fetchWithRetry(url: string, options: RequestInit & { signal?: AbortSignal } = {}, retries = 2): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15000) // 15s timeout
+      const response = await fetch(url, { ...options, signal: controller.signal })
+      clearTimeout(timeout)
+      return response
+    } catch (error) {
+      if (attempt === retries) throw error
+      console.warn(`Fetch attempt ${attempt + 1} failed for ${url}, retrying...`, error instanceof Error ? error.message : error)
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1))) // 1s, 2s backoff
+    }
+  }
+  throw new Error(`Failed to fetch ${url} after ${retries + 1} attempts`)
+}
+
 async function scrapeURL(url: string): Promise<ScrapedData> {
   try {
     // Fetch the page with a user agent to avoid blocking
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
