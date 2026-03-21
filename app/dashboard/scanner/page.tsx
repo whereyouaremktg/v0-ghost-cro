@@ -37,8 +37,8 @@ const toggleCards: ToggleCard[] = [
   {
     id: "analyzeCheckout",
     icon: ShoppingCart,
-    label: "Analyze Checkout",
-    description: "Evaluate checkout path with AI buyer personas.",
+    label: "Analyze Cart",
+    description: "Evaluate cart experience with AI buyer personas.",
   },
   {
     id: "analyzeSpeed",
@@ -57,7 +57,7 @@ export default function ScannerPage() {
   const [error, setError] = useState<string | null>(null)
   const [scanConfig, setScanConfig] = useState({
     analyzeTheme: true,
-    analyzeCheckout: true,
+    analyzeCheckout: false,
     analyzeSpeed: true,
   })
 

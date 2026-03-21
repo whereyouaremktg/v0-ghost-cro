@@ -15,7 +15,7 @@ const steps = [
   "Reviewing theme structure...",
   "Pulling speed metrics...",
   "Evaluating mobile experience...",
-  "Scanning checkout flow...",
+  "Analyzing cart experience...",
   "Assessing trust signals...",
 ]
 
@@ -171,7 +171,7 @@ function ScanningPageContent() {
       { label: "Theme structure", done: progress > 20 },
       { label: "Page speed metrics", done: progress > 40 },
       { label: "Mobile experience", done: progress > 55 },
-      { label: "Checkout flow", done: progress > 75 },
+      { label: "Cart experience", done: progress > 75 },
       { label: "Trust signals", done: progress > 90 },
     ],
     [progress],
