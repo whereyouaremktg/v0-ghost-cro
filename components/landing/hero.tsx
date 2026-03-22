@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { GhostButton } from '@/components/ui/ghost-button'
 import { GhostInsightCard } from '@/components/ui/ghost-insight-card'
 
@@ -25,12 +26,12 @@ export function Hero() {
           >
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--landing-accent)]/10 border border-[var(--landing-accent)]/20 text-[var(--landing-accent)] text-xs font-medium mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--landing-accent)] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--landing-accent)]" />
               SILENT OPTIMIZATION AGENT v2.0
             </div>
 
             {/* Headline - 3 lines */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--landing-text-primary)] leading-[1.1] mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--landing-text-primary)] leading-[1.1] mb-6">
               Your silent
               <br />
               <span className="amber-underline">CRO engine</span>
@@ -61,12 +62,22 @@ export function Hero() {
             <div className="flex items-center gap-4">
               {/* Avatar stack */}
               <div className="flex -space-x-3">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {[
+                  { char: "A", from: "from-[#2A2520]", to: "to-[#1A1510]" },
+                  { char: "B", from: "from-[#1A2520]", to: "to-[#102015]" },
+                  { char: "C", from: "from-[#201A25]", to: "to-[#15101A]" },
+                  { char: "D", from: "from-[#252020]", to: "to-[#1A1515]" },
+                  { char: "E", from: "from-[#20251A]", to: "to-[#151A10]" },
+                ].map((avatar, i) => (
                   <div
                     key={i}
-                    className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--landing-surface-hover)] to-[var(--landing-surface)] border-2 border-[var(--landing-bg)] flex items-center justify-center text-xs text-[var(--landing-text-muted)]"
+                    className={cn(
+                      "w-9 h-9 rounded-full bg-gradient-to-br border-2 border-[var(--landing-bg)] flex items-center justify-center text-xs text-[var(--landing-text-muted)]",
+                      avatar.from,
+                      avatar.to,
+                    )}
                   >
-                    {String.fromCharCode(64 + i)}
+                    {avatar.char}
                   </div>
                 ))}
               </div>
@@ -102,12 +113,26 @@ export function Hero() {
               {/* Browser content - Product grid placeholder */}
               <div className="aspect-[4/3] p-6 bg-[var(--landing-surface)]">
                 <div className="grid grid-cols-2 gap-4 h-full">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[
+                    { h: "h-full", from: "from-[#1A1A1A]", to: "to-[#141414]" },
+                    { h: "h-full", from: "from-[#161616]", to: "to-[#111111]" },
+                    { h: "h-full", from: "from-[#141414]", to: "to-[#1A1A1A]" },
+                    { h: "h-full", from: "from-[#111111]", to: "to-[#161616]" },
+                  ].map((block, i) => (
                     <div
                       key={i}
-                      className="bg-[var(--landing-bg)] rounded-lg border border-[var(--landing-border)] flex items-center justify-center"
+                      className={cn(
+                        "rounded-lg border border-[var(--landing-border)] bg-gradient-to-br",
+                        block.from,
+                        block.to,
+                        block.h,
+                      )}
                     >
-                      <div className="text-[var(--landing-text-muted)] text-sm">Product {i}</div>
+                      <div className="p-3 space-y-2">
+                        <div className="h-2/3 rounded bg-white/[0.02]" />
+                        <div className="h-2 w-3/4 rounded bg-white/[0.04]" />
+                        <div className="h-2 w-1/2 rounded bg-white/[0.03]" />
+                      </div>
                     </div>
                   ))}
                 </div>

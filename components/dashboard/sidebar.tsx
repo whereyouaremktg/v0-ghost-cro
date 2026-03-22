@@ -42,7 +42,7 @@ type NavItem = {
   badgeColor?: "amber"
 }
 
-const navItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/dashboard/scanner", label: "Scanner", icon: Scan },
   { href: "/dashboard/issues", label: "Issues", icon: AlertCircle },
@@ -55,6 +55,9 @@ const navItems: NavItem[] = [
     badgeColor: "amber",
   },
   { href: "/dashboard/insights", label: "Insights", icon: Lightbulb },
+]
+
+const bottomNavItems: NavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
@@ -85,6 +88,51 @@ function isItemActive(pathname: string, href: string): boolean {
   }
 
   return false
+}
+
+function NavLink({
+  item,
+  active,
+  badge,
+}: {
+  item: NavItem
+  active: boolean
+  badge?: string | number
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link
+          href={item.href}
+          aria-label={item.label}
+          className={cn(
+            "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-200",
+            active
+              ? "bg-[#FBBF24]/10 text-[#FBBF24]"
+              : "text-[#71717A] hover:bg-white/[0.04] hover:text-white",
+          )}
+        >
+          {active && (
+            <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-[#FBBF24]" />
+          )}
+          <item.icon className="h-5 w-5" />
+          {badge !== undefined && badge !== null && badge !== 0 && (
+            <span
+              className={cn(
+                "absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border px-1 text-[10px] font-semibold leading-none tabular-nums",
+                item.badgeColor === "amber"
+                  ? "border-[#FBBF24]/40 bg-[#FBBF24]/15 text-[#FBBF24]"
+                  : "border-[#1F1F1F] bg-[#111111] text-[#9CA3AF]",
+              )}
+            >
+              {badge}
+            </span>
+          )}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent side="right">{item.label}</TooltipContent>
+    </Tooltip>
+  )
 }
 
 export function Sidebar() {
@@ -129,7 +177,7 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <Link
               href="/dashboard"
-              className="mb-8 flex h-9 w-9 items-center justify-center rounded-lg bg-[#FBBF24] transition-opacity hover:opacity-90"
+              className="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-[#FBBF24] transition-opacity hover:opacity-90"
               aria-label="Go to dashboard"
             >
               <GhostLogo size={20} className="text-[#0A0A0A]" />
@@ -138,43 +186,26 @@ export function Sidebar() {
           <TooltipContent side="right">Dashboard</TooltipContent>
         </Tooltip>
 
+        <div className="mx-auto mb-4 h-px w-6 bg-white/[0.06]" />
+
         <nav className="flex flex-1 flex-col items-center gap-1">
-          {navItems.map((item) => {
+          {mainNavItems.map((item) => {
             const active = isItemActive(pathname, item.href)
             const badge = item.href === "/dashboard/issues" ? issuesCount : item.badge
 
             return (
-              <Tooltip key={item.href}>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={item.href}
-                    aria-label={item.label}
-                    className={cn(
-                      "relative flex h-10 w-10 items-center justify-center rounded-lg transition-all",
-                      active
-                        ? "bg-[#FBBF24]/10 text-[#FBBF24] shadow-[0_0_12px_rgba(251,191,36,0.08)]"
-                        : "text-[#71717A] hover:bg-white/5 hover:text-white",
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {badge !== undefined && badge !== null && badge !== 0 && (
-                      <span
-                        className={cn(
-                          "absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border px-1 text-[10px] font-semibold leading-none",
-                          item.badgeColor === "amber"
-                            ? "border-[#FBBF24]/40 bg-[#FBBF24]/15 text-[#FBBF24]"
-                            : "border-[#1F1F1F] bg-[#111111] text-[#9CA3AF]",
-                        )}
-                      >
-                        {badge}
-                      </span>
-                    )}
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right">{item.label}</TooltipContent>
-              </Tooltip>
+              <NavLink key={item.href} item={item} active={active} badge={badge} />
             )
           })}
+
+          <div className="mt-auto">
+            {bottomNavItems.map((item) => {
+              const active = isItemActive(pathname, item.href)
+              return (
+                <NavLink key={item.href} item={item} active={active} />
+              )
+            })}
+          </div>
         </nav>
       </TooltipProvider>
     </aside>

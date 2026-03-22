@@ -321,7 +321,7 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
     <header className="sticky top-0 z-30 border-b border-[#1A1A1A] bg-[#0A0A0A]/95 px-4 py-3 backdrop-blur md:px-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4">
-          <h1 className="truncate text-lg font-semibold text-white">{pageTitle}</h1>
+          <h1 className="truncate text-lg font-semibold tracking-tight text-white">{pageTitle}</h1>
 
           <div className="hidden items-center gap-2 text-xs text-[#9CA3AF] lg:flex">
             <div className={`h-2 w-2 rounded-full ${statusColor}`} />
@@ -348,8 +348,9 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
 
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-2 rounded-lg border border-[#1F1F1F] bg-[#111111] px-3 py-1.5 text-xs lg:flex">
-            <span className="font-medium text-white">{formatPlanName(subscription?.plan)} Plan</span>
-            <span className="text-[#6B7280]">{scansRemaining} left</span>
+            <span className="font-medium text-white">{formatPlanName(subscription?.plan)}</span>
+            <span className="h-1 w-1 rounded-full bg-[#333]" />
+            <span className="text-[#6B7280] tabular-nums">{scansRemaining} left</span>
           </div>
 
           <GhostButton
@@ -379,12 +380,12 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
               >
                 <Search className="h-4 w-4" />
                 <span>Search...</span>
-                <kbd className="rounded bg-[#0A0A0A] px-1.5 py-0.5 text-xs">⌘K</kbd>
+                <kbd className="rounded bg-[#0A0A0A] px-1.5 py-0.5 font-mono text-[10px] text-[#6B7280]">⌘K</kbd>
               </button>
             )}
 
             {isSearchOpen && (
-              <div className="absolute right-0 top-12 z-50 max-h-80 w-[420px] overflow-auto rounded-lg border border-[#1F1F1F] bg-[#111111] shadow-xl">
+              <div className="absolute right-0 top-12 z-50 max-h-80 w-[420px] overflow-auto rounded-lg border border-[#1F1F1F] bg-[#111111] shadow-xl ring-1 ring-white/[0.05]">
                 {filteredSearchResults.length === 0 ? (
                   <p className="px-4 py-3 text-sm text-[#6B7280]">No matching scans found.</p>
                 ) : (
@@ -408,14 +409,14 @@ export function DashboardHeader({ lastScan: lastScanProp }: { lastScan?: string 
             )}
           </div>
 
-          <button className="relative rounded-lg p-2 text-[#9CA3AF] hover:bg-[#111111] hover:text-white">
+          <button className="relative rounded-lg p-2 text-[#9CA3AF] hover:bg-[#111111] hover:text-white transition-colors duration-200">
             <Bell className="h-5 w-5" />
-            <div className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#FBBF24]" />
+            <div className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#FBBF24] ring-2 ring-[#0A0A0A]" />
           </button>
 
           <Link
             href="/dashboard/settings"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111111] text-sm font-semibold text-white hover:bg-[#1A1A1A]"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111111] text-sm font-semibold text-white ring-1 ring-white/[0.06] hover:ring-[#FBBF24]/30 transition-all duration-200"
           >
             {userInitials}
           </Link>
