@@ -303,9 +303,9 @@ export default function IssuesPage() {
           <button
             onClick={() => toggleFilter("severity", "critical")}
             className={cn(
-              "rounded-full border px-3 py-1 transition-colors",
+              "rounded-full border px-3 py-1 font-medium transition-all duration-200",
               severityFilter === "critical"
-                ? "border-red-500/30 bg-red-500/10 text-red-300"
+                ? "border-red-500/30 bg-red-500/10 text-red-300 shadow-[inset_0_1px_4px_rgba(239,68,68,0.1)]"
                 : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]",
             )}
           >
@@ -314,9 +314,9 @@ export default function IssuesPage() {
           <button
             onClick={() => toggleFilter("severity", "warning")}
             className={cn(
-              "rounded-full border px-3 py-1 transition-colors",
+              "rounded-full border px-3 py-1 font-medium transition-all duration-200",
               severityFilter === "warning"
-                ? "border-[#FBBF24]/30 bg-[#FBBF24]/10 text-[#FBBF24]"
+                ? "border-[#FBBF24]/30 bg-[#FBBF24]/10 text-[#FBBF24] shadow-[inset_0_1px_4px_rgba(251,191,36,0.1)]"
                 : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]",
             )}
           >
@@ -325,9 +325,9 @@ export default function IssuesPage() {
           <button
             onClick={() => toggleFilter("severity", "suggestion")}
             className={cn(
-              "rounded-full border px-3 py-1 transition-colors",
+              "rounded-full border px-3 py-1 font-medium transition-all duration-200",
               severityFilter === "suggestion"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-[inset_0_1px_4px_rgba(16,185,129,0.1)]"
                 : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]",
             )}
           >
@@ -337,9 +337,9 @@ export default function IssuesPage() {
           <button
             onClick={() => toggleFilter("status", "open")}
             className={cn(
-              "rounded-full border px-3 py-1 transition-colors",
+              "rounded-full border px-3 py-1 font-medium transition-all duration-200",
               statusFilter === "open"
-                ? "border-blue-500/30 bg-blue-500/10 text-blue-300"
+                ? "border-blue-500/30 bg-blue-500/10 text-blue-300 shadow-[inset_0_1px_4px_rgba(59,130,246,0.1)]"
                 : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]",
             )}
           >
@@ -348,9 +348,9 @@ export default function IssuesPage() {
           <button
             onClick={() => toggleFilter("status", "resolved")}
             className={cn(
-              "rounded-full border px-3 py-1 transition-colors",
+              "rounded-full border px-3 py-1 font-medium transition-all duration-200",
               statusFilter === "resolved"
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-[inset_0_1px_4px_rgba(16,185,129,0.1)]"
                 : "border-[#1F1F1F] text-[#9CA3AF] hover:border-[#2A2A2A]",
             )}
           >
@@ -388,10 +388,10 @@ export default function IssuesPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-[#1A1A1A] bg-[#0F0F0F]">
-        <div className="flex items-center justify-between border-b border-[#1A1A1A] px-4 py-3 text-xs uppercase tracking-wide text-[#71717A]">
+        <div className="flex items-center justify-between border-b border-[#1A1A1A] px-4 py-3">
           <button
             type="button"
-            className="rounded border border-[#1F1F1F] px-2 py-1 text-[10px] text-[#9CA3AF] hover:border-[#2A2A2A]"
+            className="rounded border border-[#1F1F1F] px-2 py-1 text-[10px] text-[#9CA3AF] hover:border-[#2A2A2A] transition-colors"
             onClick={() => {
               if (isAllVisibleSelected) {
                 setSelected([])
@@ -402,55 +402,74 @@ export default function IssuesPage() {
           >
             {isAllVisibleSelected ? "Clear" : "Select all"}
           </button>
-          <p>
+          <p className="text-[11px] uppercase tracking-widest font-medium text-[#71717A]">
             Showing {issues.length} of {allIssues.length}
           </p>
         </div>
 
-        <div className="divide-y divide-[#1A1A1A]">
-          {issues.map((issue) => (
-            <div
-              key={issue.id}
-              className="flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-[#111111] md:flex-row md:items-center md:justify-between"
-            >
-              <div className="flex min-w-0 items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(issue.id)}
-                  onChange={(event) =>
-                    setSelected((prev) =>
-                      event.target.checked
-                        ? [...prev, issue.id]
-                        : prev.filter((id) => id !== issue.id),
-                    )
-                  }
-                  className="mt-1 h-4 w-4 rounded border-[#1F1F1F] bg-[#0A0A0A]"
+        <div className="divide-y divide-[#141414]">
+          {issues.map((issue) => {
+            const severityColor =
+              issue.severity === "critical"
+                ? "bg-red-500"
+                : issue.severity === "warning"
+                  ? "bg-[#FBBF24]"
+                  : "bg-emerald-500"
+
+            return (
+              <div
+                key={issue.id}
+                className="group relative flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-[#111111] md:flex-row md:items-center md:justify-between"
+              >
+                <div
+                  className={cn(
+                    "absolute left-0 top-0 bottom-0 w-[2px] rounded-r-full",
+                    severityColor,
+                  )}
                 />
 
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-white">{issue.title}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-full border border-[#1F1F1F] bg-[#111111] px-2.5 py-1 text-[#9CA3AF]">
-                      {issue.category}
-                    </span>
-                    <span className={cn("rounded-full border px-2.5 py-1", severityChipClass(issue.severity))}>
-                      {issue.severity}
-                    </span>
-                    <span className={cn("rounded-full border px-2.5 py-1", statusChipClass(issue.status))}>
-                      {issue.status}
-                    </span>
+                <div className="flex min-w-0 items-start gap-3 pl-2">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(issue.id)}
+                    onChange={(event) =>
+                      setSelected((prev) =>
+                        event.target.checked
+                          ? [...prev, issue.id]
+                          : prev.filter((id) => id !== issue.id),
+                      )
+                    }
+                    className="mt-1 h-4 w-4 rounded border-[#1F1F1F] bg-[#0A0A0A] accent-[#FBBF24]"
+                  />
+
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-white">{issue.title}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-full border border-[#1F1F1F] bg-[#111111] px-2.5 py-1 text-[#9CA3AF]">
+                        {issue.category}
+                      </span>
+                      <span className={cn("rounded-full border px-2.5 py-1 font-medium", severityChipClass(issue.severity))}>
+                        {issue.severity}
+                      </span>
+                      <span className={cn("rounded-full border px-2.5 py-1 font-medium", statusChipClass(issue.status))}>
+                        {issue.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-[#FBBF24]">{issue.impact}</span>
-                <GhostButton asChild size="sm" variant="outline">
-                  <Link href={`/dashboard/issues/${issue.id}`}>View Details</Link>
-                </GhostButton>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-[#FBBF24] text-mono-data">{issue.impact}</span>
+                  <GhostButton asChild size="sm" variant="ghost">
+                    <Link href={`/dashboard/issues/${issue.id}`} className="group/link flex items-center gap-1">
+                      Details
+                      <span className="transition-transform duration-200 group-hover/link:translate-x-0.5">→</span>
+                    </Link>
+                  </GhostButton>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

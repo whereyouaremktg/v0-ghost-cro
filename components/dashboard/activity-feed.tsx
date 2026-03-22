@@ -10,23 +10,24 @@ type Activity = {
 
 export function ActivityFeed({ activities }: { activities: Activity[] }) {
   return (
-    <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl">
+    <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] card-shine">
       <div className="flex items-center justify-between p-5 border-b border-[#1F1F1F]">
         <h2 className="font-semibold text-white">Recent Activity</h2>
         <Link
           href="/dashboard/history"
-          className="text-sm text-[#9CA3AF] hover:text-[#E5E7EB]"
+          className="group flex items-center gap-1 text-sm text-[#9CA3AF] hover:text-[#E5E7EB] transition-colors duration-200"
         >
-          View log →
+          View log
+          <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
         </Link>
       </div>
       <div className="p-4">
-        <div className="space-y-4">
+        <div className="space-y-0">
           {activities.map((activity, index) => (
             <div key={activity.id} className="flex gap-3">
-              <div className="relative">
+              <div className="relative flex flex-col items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-full ring-1 ring-white/[0.06] ${
                     activity.type === "scan"
                       ? "bg-[#FBBF24]/10"
                       : activity.type === "fix"
@@ -45,12 +46,12 @@ export function ActivityFeed({ activities }: { activities: Activity[] }) {
                   )}
                 </div>
                 {index < activities.length - 1 && (
-                  <div className="absolute top-8 left-1/2 w-px h-4 bg-[#1F1F1F] -translate-x-1/2" />
+                  <div className="w-px flex-1 min-h-4 bg-white/[0.04]" />
                 )}
               </div>
               <div className="flex-1 pb-4">
                 <p className="text-sm text-white">{activity.title}</p>
-                <p className="text-xs text-[#6B7280] mt-0.5">
+                <p className="font-mono text-[11px] text-[#6B7280] mt-0.5">
                   {activity.timestamp}
                 </p>
               </div>

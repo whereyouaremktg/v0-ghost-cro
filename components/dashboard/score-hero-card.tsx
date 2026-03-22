@@ -28,18 +28,25 @@ export function ScoreHeroCard({
   const trendPositive = trend >= 0
 
   return (
-    <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl p-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+    <div className="relative overflow-hidden rounded-2xl border border-[#1F1F1F] bg-[#111111] p-8 card-shine">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at 80% 50%, rgba(251,191,36,0.03) 0%, transparent 60%)",
+        }}
+      />
+      <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
         <div>
-          <p className="text-[#9CA3AF] text-sm mb-1">Store Health Score</p>
+          <p className="label-uppercase mb-1">Store Health Score</p>
           <div className="flex items-baseline gap-3">
-            <span className="text-7xl font-bold text-white">{score}</span>
-            <span className="text-3xl text-[#6B7280]">/100</span>
+            <span className="text-7xl font-bold text-white text-mono-data">{score}</span>
+            <span className="text-3xl text-[#6B7280] text-mono-data">/100</span>
           </div>
           <div className="flex items-center gap-2 mt-3">
             <span
               className={cn(
-                "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-xs",
                 trendPositive
                   ? "bg-green-500/10 text-green-400"
                   : "bg-red-500/10 text-red-400",
@@ -51,13 +58,13 @@ export function ScoreHeroCard({
                 <TrendingDown className="w-3 h-3" />
               )}
               {trendPositive ? "+" : ""}
-              {trend} points
+              {trend} pts
             </span>
             <span className="text-[#6B7280] text-sm">from last scan</span>
           </div>
           <p className="text-[#6B7280] text-sm mt-4">
             Your store converts{" "}
-            <span className="text-[#FBBF24]">{100 - score}% below</span> top
+            <span className="font-semibold text-[#FBBF24]">{100 - score}% below</span> top
             performers.
           </p>
           <p className="text-xs text-[#4B5563] mt-2">

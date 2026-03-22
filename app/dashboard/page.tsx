@@ -198,7 +198,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <ScoreHeroCard
         score={test.score}
         previousScore={previousScore}
@@ -247,41 +247,41 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6">
+      <div className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-6 card-shine">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-white">Industry Benchmarks</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-white">Industry Benchmarks</h2>
             <p className="text-sm text-[#9CA3AF]">
               Compare your store against top {industryBenchmarks.categoryName} performers.
             </p>
           </div>
-          <span className="text-xs text-[#6B7280]">Live data</span>
+          <span className="label-uppercase">Live data</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4">
-            <p className="text-sm text-[#9CA3AF]">Conversion Rate</p>
-            <p className="text-2xl font-semibold text-white">
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4 hover:border-[#2A2A2A] transition-colors duration-200">
+            <p className="label-uppercase mb-1">Conversion Rate</p>
+            <p className="text-2xl font-semibold text-white text-mono-data">
               {formatStoreMetric(conversionRate, { suffix: "%" })}
             </p>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-[#6B7280] mt-1">
               Benchmark: {(industryBenchmarks.avgConversionRate * 100).toFixed(1)}%
             </p>
           </div>
-          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4">
-            <p className="text-sm text-[#9CA3AF]">Average Order Value</p>
-            <p className="text-2xl font-semibold text-white">
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4 hover:border-[#2A2A2A] transition-colors duration-200">
+            <p className="label-uppercase mb-1">Average Order Value</p>
+            <p className="text-2xl font-semibold text-white text-mono-data">
               {formatStoreMetric(null, { prefix: "$", decimals: 2 })}
             </p>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-[#6B7280] mt-1">
               Benchmark: ${industryBenchmarks.avgAOV.toFixed(0)}
             </p>
           </div>
-          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4">
-            <p className="text-sm text-[#9CA3AF]">Revenue per Visitor</p>
-            <p className="text-2xl font-semibold text-white">
+          <div className="rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] p-4 hover:border-[#2A2A2A] transition-colors duration-200">
+            <p className="label-uppercase mb-1">Revenue per Visitor</p>
+            <p className="text-2xl font-semibold text-white text-mono-data">
               {formatStoreMetric(revenuePerVisitor, { prefix: "$", decimals: 2 })}
             </p>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-[#6B7280] mt-1">
               Benchmark: $
               {industryBenchmarks.avgAOV > 0
                 ? (industryBenchmarks.avgAOV * industryBenchmarks.avgConversionRate).toFixed(2)
