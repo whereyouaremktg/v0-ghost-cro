@@ -143,26 +143,26 @@ export default function IssueDetailPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs text-[#6B7280]">Issue ID: {issue.id}</p>
+        <p className="text-xs text-[var(--ghost-text-subtle)]">Issue ID: {issue.id}</p>
         <h2 className="text-2xl font-semibold text-white mt-2">
           {issue.title}
         </h2>
         {description && (
-          <p className="text-[#9CA3AF] mt-2 max-w-2xl">{description}</p>
+          <p className="text-[var(--ghost-text-muted)] mt-2 max-w-2xl">{description}</p>
         )}
       </div>
 
       <GhostCard className="p-6 space-y-3">
         <h3 className="text-lg font-semibold text-white">Fix summary</h3>
-        <p className="text-[#9CA3AF]">{issue.fix}</p>
+        <p className="text-[var(--ghost-text-muted)]">{issue.fix}</p>
         {issue.location && (
-          <p className="text-xs text-[#6B7280]">Location: {issue.location}</p>
+          <p className="text-xs text-[var(--ghost-text-subtle)]">Location: {issue.location}</p>
         )}
       </GhostCard>
 
       <GhostCard className="p-6 space-y-4">
         <h3 className="text-lg font-semibold text-white">Step-by-step fix</h3>
-        <ol className="list-decimal list-inside text-[#9CA3AF] space-y-2">
+        <ol className="list-decimal list-inside text-[var(--ghost-text-muted)] space-y-2">
           <li>Open your Shopify theme editor for the affected page.</li>
           <li>Locate {issue.location || "the relevant section"}.</li>
           <li>Apply the optimized snippet below.</li>
@@ -197,11 +197,11 @@ export default function IssueDetailPage() {
         {deployError && (
           <p className="text-sm text-red-400">{deployError}</p>
         )}
-        <pre className="rounded-lg bg-[#0A0A0A] border border-[#1F1F1F] p-4 text-sm text-[#9CA3AF] overflow-auto whitespace-pre-wrap">
+        <pre className="rounded-lg bg-[var(--ghost-bg-primary)] border border-[var(--ghost-border)] p-4 text-sm text-[var(--ghost-text-muted)] overflow-auto whitespace-pre-wrap">
           {codeSnippet}
         </pre>
         {canPreviewFix && (
-          <p className="text-xs text-[#6B7280]">Preview Fix opens the sandbox theme in a new tab.</p>
+          <p className="text-xs text-[var(--ghost-text-subtle)]">Preview Fix opens the sandbox theme in a new tab.</p>
         )}
       </GhostCard>
 

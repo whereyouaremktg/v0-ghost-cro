@@ -76,23 +76,23 @@ export function BillingTab({ subscription }: { subscription: any }) {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-white">Billing</h2>
-        <p className="text-sm text-[#71717A]">Manage subscription and scan usage limits.</p>
+        <p className="text-sm text-[var(--ghost-text-dim)]">Manage subscription and scan usage limits.</p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[#1A1A1A] bg-[#111111]">
-        <div className="flex items-center justify-between border-b border-[#1A1A1A] bg-[#0F0F0F] p-5">
+      <div className="overflow-hidden rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)]">
+        <div className="flex items-center justify-between border-b border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-primary)] p-5">
           <div>
-            <p className="mb-1 text-xs uppercase tracking-wider text-[#71717A]">Current Plan</p>
+            <p className="mb-1 text-xs uppercase tracking-wider text-[var(--ghost-text-dim)]">Current Plan</p>
             <p className="flex items-center gap-2 text-2xl font-semibold capitalize text-white">
               {normalizedPlan} Plan
               {isPaid && (
-                <span className="rounded-full bg-[#FBBF24]/15 px-2 py-0.5 text-xs text-[#FBBF24]">
+                <span className="rounded-full bg-[var(--ghost-accent-primary)]/15 px-2 py-0.5 text-xs text-[var(--ghost-accent-primary)]">
                   Active
                 </span>
               )}
             </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FBBF24]/15 text-[#FBBF24]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ghost-accent-primary)]/15 text-[var(--ghost-accent-primary)]">
             <CreditCard className="h-5 w-5" />
           </div>
         </div>
@@ -100,33 +100,33 @@ export function BillingTab({ subscription }: { subscription: any }) {
         <div className="p-5">
           <div className="mb-6">
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-[#9CA3AF]">Monthly Analysis Usage</span>
-              <span className="text-[#71717A]">
+              <span className="text-[var(--ghost-text-muted)]">Monthly Analysis Usage</span>
+              <span className="text-[var(--ghost-text-dim)]">
                 {used} / {limit} runs
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[#1A1A1A]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--ghost-bg-elevated)]">
               <div
-                className="h-full rounded-full bg-[#FBBF24] transition-all duration-500"
+                className="h-full rounded-full bg-[var(--ghost-accent-primary)] transition-all duration-500"
                 style={{ width: `${usagePercent}%` }}
               />
             </div>
           </div>
 
           {!isPaid && (
-            <div className="flex items-start gap-4 rounded-lg border border-[#FBBF24]/20 bg-[#FBBF24]/10 p-4">
-              <div className="rounded-md bg-[#FBBF24]/15 p-2">
-                <Zap className="h-5 w-5 text-[#FBBF24]" />
+            <div className="flex items-start gap-4 rounded-lg border border-[var(--ghost-accent-primary)]/20 bg-[var(--ghost-accent-primary)]/10 p-4">
+              <div className="rounded-md bg-[var(--ghost-accent-primary)]/15 p-2">
+                <Zap className="h-5 w-5 text-[var(--ghost-accent-primary)]" />
               </div>
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-white">Upgrade to Growth</h4>
-                <p className="mb-3 mt-1 text-xs text-[#9CA3AF]">
+                <p className="mb-3 mt-1 text-xs text-[var(--ghost-text-muted)]">
                   Unlock higher scan volume, deeper analysis, and priority support.
                 </p>
                 {error && <p className="mb-2 text-xs text-red-400">{error}</p>}
                 <Button
                   size="sm"
-                  className="w-full bg-[#FBBF24] text-[#0A0A0A] hover:bg-[#F59E0B] md:w-auto"
+                  className="w-full bg-[var(--ghost-accent-primary)] text-[var(--ghost-bg-primary)] hover:bg-[var(--ghost-accent-secondary)] md:w-auto"
                   onClick={handleUpgrade}
                   disabled={isUpgrading}
                 >
@@ -146,9 +146,9 @@ export function BillingTab({ subscription }: { subscription: any }) {
       </div>
 
       {isPaid && (
-        <div className="rounded-xl border border-[#1A1A1A] bg-[#111111] p-5">
+        <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-5">
           <h3 className="mb-2 text-sm font-semibold text-white">Cancel Subscription</h3>
-          <p className="mb-4 text-sm text-[#71717A]">
+          <p className="mb-4 text-sm text-[var(--ghost-text-dim)]">
             Cancel your subscription and return to the free tier at the end of your billing cycle.
           </p>
 
@@ -186,7 +186,7 @@ export function BillingTab({ subscription }: { subscription: any }) {
                       variant="outline"
                       onClick={() => setShowCancelConfirm(false)}
                       disabled={isCanceling}
-                      className="border-[#2A2A2A] bg-transparent text-white hover:bg-[#1A1A1A]"
+                      className="border-[var(--ghost-border-hover)] bg-transparent text-white hover:bg-[var(--ghost-bg-elevated)]"
                     >
                       Keep Subscription
                     </Button>

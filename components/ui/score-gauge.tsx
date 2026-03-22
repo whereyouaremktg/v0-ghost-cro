@@ -17,8 +17,8 @@ export function ScoreGauge({ score, size = 160 }: ScoreGaugeProps) {
     <svg width={size} height={size} className="-rotate-90">
       <defs>
         <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#FBBF24" />
-          <stop offset="100%" stopColor="#F59E0B" />
+          <stop offset="0%" stopColor="var(--ghost-accent-primary)" />
+          <stop offset="100%" stopColor="var(--ghost-accent-secondary)" />
         </linearGradient>
       </defs>
       <circle
@@ -26,7 +26,7 @@ export function ScoreGauge({ score, size = 160 }: ScoreGaugeProps) {
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="#1F1F1F"
+        stroke="var(--ghost-border)"
         strokeWidth={strokeWidth}
       />
       <motion.circle

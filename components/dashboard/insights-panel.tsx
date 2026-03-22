@@ -34,28 +34,28 @@ export function InsightsPanel({ issues }: { issues: Issue[] }) {
   const suggestions = issues.filter((issue) => issue.severity === "suggestion")
 
   return (
-    <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl">
-      <div className="flex items-center justify-between p-5 border-b border-[#1F1F1F]">
+    <div className="bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-border)] rounded-xl">
+      <div className="flex items-center justify-between p-5 border-b border-[var(--ghost-border)]">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-[#FBBF24]" />
+          <Sparkles className="w-5 h-5 text-[var(--ghost-accent-primary)]" />
           <h2 className="font-semibold text-white">AI Insights</h2>
         </div>
         <Link
           href="/dashboard/issues"
-          className="text-sm text-[#FBBF24] hover:text-[#F59E0B]"
+          className="text-sm text-[var(--ghost-accent-primary)] hover:text-[var(--ghost-accent-secondary)]"
         >
           View all {issues.length} →
         </Link>
       </div>
 
-      <div className="flex gap-2 p-4 border-b border-[#1F1F1F] text-xs">
-        <span className="px-3 py-1 rounded-full border border-[#2A2A2A] text-white">
+      <div className="flex gap-2 p-4 border-b border-[var(--ghost-border)] text-xs">
+        <span className="px-3 py-1 rounded-full border border-[var(--ghost-border-hover)] text-white">
           All ({issues.length})
         </span>
         <span className="px-3 py-1 rounded-full border border-red-500/30 text-red-400">
           Critical ({critical.length})
         </span>
-        <span className="px-3 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]">
+        <span className="px-3 py-1 rounded-full border border-[var(--ghost-accent-primary)]/30 text-[var(--ghost-accent-primary)]">
           Warnings ({warnings.length})
         </span>
         <span className="px-3 py-1 rounded-full border border-green-500/30 text-green-400">
@@ -67,7 +67,7 @@ export function InsightsPanel({ issues }: { issues: Issue[] }) {
         variants={container}
         initial="hidden"
         animate="show"
-        className="divide-y divide-[#1F1F1F]"
+        className="divide-y divide-[var(--ghost-border)]"
       >
         {issues.slice(0, 5).map((issue) => (
           <motion.div
@@ -81,17 +81,17 @@ export function InsightsPanel({ issues }: { issues: Issue[] }) {
                   issue.severity === "critical"
                     ? "bg-red-500"
                     : issue.severity === "warning"
-                      ? "bg-[#FBBF24]"
+                      ? "bg-[var(--ghost-accent-primary)]"
                       : "bg-green-500"
                 }`}
               />
               <div className="flex-1">
                 <p className="text-white font-medium">{issue.title}</p>
-                <p className="text-sm text-[#9CA3AF] mt-1">
+                <p className="text-sm text-[var(--ghost-text-muted)] mt-1">
                   {issue.description}
                 </p>
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="px-2 py-0.5 rounded-full bg-[#1A1A1A] text-[#9CA3AF]">
+                  <span className="px-2 py-0.5 rounded-full bg-[var(--ghost-bg-elevated)] text-[var(--ghost-text-muted)]">
                     {issue.category}
                   </span>
                   <span className="text-green-400">

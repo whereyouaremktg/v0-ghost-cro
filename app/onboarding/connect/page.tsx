@@ -24,7 +24,7 @@ export default function ConnectPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-[#FBBF24]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--ghost-accent-primary)]" />
         </div>
       }
     >
@@ -62,10 +62,10 @@ function ConnectPageContent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-[460px] rounded-2xl border border-[#1A1A1A] bg-[#111111] p-8 shadow-[0_0_60px_rgba(0,0,0,0.35)]">
+      <div className="w-full max-w-[460px] rounded-2xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-8 shadow-[0_0_60px_rgba(0,0,0,0.35)]">
         <div className="mb-7 flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FBBF24]">
-            <Ghost size={24} color="#0A0A0A" strokeWidth={2.5} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ghost-accent-primary)]">
+            <Ghost size={24} color="var(--ghost-bg-primary)" strokeWidth={2.5} />
           </div>
         </div>
 
@@ -80,27 +80,27 @@ function ConnectPageContent() {
                 <div
                   className="h-2.5 w-2.5 rounded-full"
                   style={{
-                    backgroundColor: step.active ? "#FBBF24" : "#333333",
+                    backgroundColor: step.active ? "var(--ghost-accent-primary)" : "var(--ghost-border-hover)",
                     boxShadow: step.active ? "0 0 8px rgba(251,191,36,0.4)" : "none",
                   }}
                 />
                 <span
                   className="text-[11px]"
                   style={{
-                    color: step.active ? "#FBBF24" : "#71717A",
+                    color: step.active ? "var(--ghost-accent-primary)" : "var(--ghost-text-dim)",
                     fontWeight: step.active ? 600 : 400,
                   }}
                 >
                   {step.label}
                 </span>
               </div>
-              {index < 2 && <div className="mb-4 h-px w-12 bg-[#333333]" />}
+              {index < 2 && <div className="mb-4 h-px w-12 bg-[var(--ghost-border-hover)]" />}
             </div>
           ))}
         </div>
 
         <h2 className="mb-2 text-center text-2xl font-semibold text-white">Connect your Shopify store</h2>
-        <p className="mb-6 text-center text-sm text-[#71717A]">
+        <p className="mb-6 text-center text-sm text-[var(--ghost-text-dim)]">
           Enter your store URL to start scanning for conversion leaks.
         </p>
 
@@ -111,20 +111,20 @@ function ConnectPageContent() {
         )}
 
         <div
-          className="mb-4 flex items-center gap-2 rounded-lg border border-[#1A1A1A] bg-[#0A0A0A] px-4 py-3"
+          className="mb-4 flex items-center gap-2 rounded-lg border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-primary)] px-4 py-3"
           role="group"
           aria-label="Store URL input"
         >
-          <ShoppingBag size={18} color="#71717A" />
+          <ShoppingBag size={18} color="var(--ghost-text-dim)" />
           <input
             type="text"
             placeholder="yourstore"
             value={storeInput}
             onChange={(event) => setStoreInput(event.target.value)}
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[#6B7280]"
+            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[var(--ghost-text-subtle)]"
             onKeyDown={(event) => event.key === "Enter" && handleConnect()}
           />
-          <span className="text-xs text-[#6B7280]">.myshopify.com</span>
+          <span className="text-xs text-[var(--ghost-text-subtle)]">.myshopify.com</span>
         </div>
 
         {validationError && <p className="mb-3 text-xs text-red-400">{validationError}</p>}
@@ -133,9 +133,9 @@ function ConnectPageContent() {
           type="button"
           onClick={handleConnect}
           disabled={!normalizedShop}
-          className="w-full rounded-lg py-3 text-sm font-semibold text-[#0A0A0A] transition-all disabled:cursor-not-allowed"
+          className="w-full rounded-lg py-3 text-sm font-semibold text-[var(--ghost-bg-primary)] transition-all disabled:cursor-not-allowed"
           style={{
-            backgroundColor: normalizedShop ? "#FBBF24" : "#333333",
+            backgroundColor: normalizedShop ? "var(--ghost-accent-primary)" : "var(--ghost-border-hover)",
             opacity: normalizedShop ? 1 : 0.6,
             boxShadow: normalizedShop ? "0 0 20px rgba(251,191,36,0.18)" : "none",
           }}
@@ -143,7 +143,7 @@ function ConnectPageContent() {
           Connect Store
         </button>
 
-        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-[#71717A]">
+        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-[var(--ghost-text-dim)]">
           <Lock className="h-3.5 w-3.5" />
           Read-only access. We never modify your store.
         </div>

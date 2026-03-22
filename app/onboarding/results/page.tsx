@@ -104,7 +104,7 @@ function ResultsPageContent() {
     return (
       <div className="max-w-4xl mx-auto space-y-4 text-center">
         <h1 className="text-2xl font-bold text-white">Results pending</h1>
-        <p className="text-[#9CA3AF]">
+        <p className="text-[var(--ghost-text-muted)]">
           We couldn't load your results yet. Please refresh or rerun the scan.
         </p>
       </div>
@@ -127,7 +127,7 @@ function ResultsPageContent() {
           We found ${potentialRevenue.toLocaleString()} in hidden revenue
         </h1>
 
-        <p className="text-[#9CA3AF]">
+        <p className="text-[var(--ghost-text-muted)]">
           Ghost identified {issueCount} optimization opportunities for your
           store.
         </p>
@@ -136,12 +136,12 @@ function ResultsPageContent() {
       <GhostCard className="p-8 mb-8">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div>
-            <p className="text-[#9CA3AF] mb-2">Your Store Health Score</p>
+            <p className="text-[var(--ghost-text-muted)] mb-2">Your Store Health Score</p>
             <div className="flex items-baseline gap-2">
               <span className="text-6xl font-bold text-white">{score}</span>
-              <span className="text-2xl text-[#6B7280]">/100</span>
+              <span className="text-2xl text-[var(--ghost-text-subtle)]">/100</span>
             </div>
-            <p className="text-[#FBBF24] mt-2">Good, with room to grow</p>
+            <p className="text-[var(--ghost-accent-primary)] mt-2">Good, with room to grow</p>
           </div>
           <ScoreGauge score={score} size={160} />
         </div>
@@ -152,18 +152,18 @@ function ResultsPageContent() {
           Top Opportunities
         </h2>
         <ResultsPreview issues={topIssues} />
-        <div className="mt-4 text-center text-[#6B7280]">
+        <div className="mt-4 text-center text-[var(--ghost-text-subtle)]">
           + {Math.max(issueCount - 3, 0)} more opportunities
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-[#FBBF24]/10 to-transparent border border-[#FBBF24]/20 rounded-xl p-6">
+      <div className="bg-gradient-to-r from-[var(--ghost-accent-primary)]/10 to-transparent border border-[var(--ghost-accent-primary)]/20 rounded-xl p-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <h3 className="text-xl font-semibold text-white mb-1">
               Unlock all {issueCount} opportunities
             </h3>
-            <p className="text-[#9CA3AF]">
+            <p className="text-[var(--ghost-text-muted)]">
               Get detailed fixes, code snippets, and ongoing monitoring
             </p>
           </div>
@@ -186,7 +186,7 @@ function ResultsPageContent() {
 
       <div className="text-center mt-4">
         <button
-          className="text-[#6B7280] hover:text-[#9CA3AF] text-sm"
+          className="text-[var(--ghost-text-subtle)] hover:text-[var(--ghost-text-muted)] text-sm"
           onClick={handleContinueFree}
         >
           Continue with limited access →

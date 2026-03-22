@@ -26,10 +26,10 @@ export function GhostCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#1F1F1F] bg-[var(--ghost-bg-secondary,#111111)] text-white shadow-sm card-shine",
-        variant === "elevated" && "bg-[#131313] border-[#242424]",
+        "rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] text-white shadow-sm card-shine",
+        variant === "elevated" && "bg-[var(--ghost-bg-elevated)] border-[var(--ghost-border-hover)]",
         variant === "interactive" &&
-          "transition-colors duration-200 hover:border-[#FBBF24]/20 hover:bg-[#131313]",
+          "transition-colors duration-200 hover:border-[var(--ghost-accent-primary)]/20 hover:bg-[var(--ghost-bg-elevated)]",
         paddingMap[padding],
         className,
       )}

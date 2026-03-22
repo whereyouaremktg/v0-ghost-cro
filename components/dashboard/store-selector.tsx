@@ -20,7 +20,7 @@ export function StoreSelector({ currentStore, stores, onStoreChange }: StoreSele
 
   if (!currentStore) {
     return (
-      <div className="w-full flex items-center gap-2 rounded-lg border border-[#1F1F1F] bg-[#111111] px-3 py-2 text-sm text-[#6B7280]">
+      <div className="w-full flex items-center gap-2 rounded-lg border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] px-3 py-2 text-sm text-[var(--ghost-text-subtle)]">
         <Store className="h-4 w-4" />
         <span>No store connected</span>
       </div>
@@ -39,31 +39,31 @@ export function StoreSelector({ currentStore, stores, onStoreChange }: StoreSele
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between rounded-lg border border-[#1F1F1F] bg-[#111111] px-3 py-2 text-left text-sm text-white hover:border-[#2A2A2A] transition-colors"
+        className="w-full flex items-center justify-between rounded-lg border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] px-3 py-2 text-left text-sm text-white hover:border-[var(--ghost-border-hover)] transition-colors"
       >
         <span>
           <span className="block font-medium truncate">{currentStore.name || currentStore.domain}</span>
-          <span className="block text-xs text-[#6B7280] truncate">
+          <span className="block text-xs text-[var(--ghost-text-subtle)] truncate">
             {currentStore.domain}
           </span>
         </span>
-        <ChevronsUpDown className="h-4 w-4 text-[#6B7280] flex-shrink-0" />
+        <ChevronsUpDown className="h-4 w-4 text-[var(--ghost-text-subtle)] flex-shrink-0" />
       </button>
 
       {isOpen && stores.length > 1 && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[#1F1F1F] bg-[#111111] shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] shadow-lg">
           {stores.map((store) => (
             <button
               key={store.id}
               onClick={() => handleStoreSelect(store)}
-              className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-[#1A1A1A] transition-colors first:rounded-t-lg last:rounded-b-lg"
+              className="w-full flex items-center justify-between px-3 py-2 text-left text-sm hover:bg-[var(--ghost-bg-elevated)] transition-colors first:rounded-t-lg last:rounded-b-lg"
             >
               <span>
                 <span className="block font-medium text-white">{store.name || store.domain}</span>
-                <span className="block text-xs text-[#6B7280]">{store.domain}</span>
+                <span className="block text-xs text-[var(--ghost-text-subtle)]">{store.domain}</span>
               </span>
               {store.id === currentStore.id && (
-                <Check className="h-4 w-4 text-[#FBBF24]" />
+                <Check className="h-4 w-4 text-[var(--ghost-accent-primary)]" />
               )}
             </button>
           ))}
@@ -71,7 +71,7 @@ export function StoreSelector({ currentStore, stores, onStoreChange }: StoreSele
       )}
 
       {isOpen && stores.length <= 1 && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[#1F1F1F] bg-[#111111] shadow-lg p-3 text-xs text-[#6B7280]">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] shadow-lg p-3 text-xs text-[var(--ghost-text-subtle)]">
           Multi-store support coming soon
         </div>
       )}

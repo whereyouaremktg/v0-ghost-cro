@@ -46,11 +46,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--ghost-bg)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#FBBF24]/10 border border-[#FBBF24]/20 mb-4">
-            <Ghost className="w-6 h-6 text-[#FBBF24]" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ghost-accent-primary)]/10 border border-[var(--ghost-accent-primary)]/20 mb-4">
+            <Ghost className="w-6 h-6 text-[var(--ghost-accent-primary)]" />
           </div>
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
           <p className="text-zinc-400 mt-2">Start analyzing your checkout with Ghost CRO</p>
@@ -69,7 +69,7 @@ export default function SignupPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[#FBBF24]"
+              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--ghost-accent-primary)]"
               placeholder="you@example.com"
               required
             />
@@ -81,7 +81,7 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[#FBBF24]"
+              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--ghost-accent-primary)]"
               placeholder="••••••••"
               required
               minLength={6}
@@ -91,7 +91,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-[#FBBF24] text-[#0A0A0A] font-medium hover:bg-[#F59E0B] transition-colors disabled:opacity-50"
+            className="w-full py-3 rounded-lg bg-[var(--ghost-accent-primary)] text-[var(--ghost-bg-primary)] font-medium hover:bg-[var(--ghost-accent-secondary)] transition-colors disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>
@@ -99,7 +99,7 @@ export default function SignupPage() {
 
         <p className="text-center text-zinc-500 text-sm mt-6">
           Already have an account?{" "}
-          <Link href="/login" className="text-[#FBBF24] hover:underline">
+          <Link href="/login" className="text-[var(--ghost-accent-primary)] hover:underline">
             Sign in
           </Link>
         </p>

@@ -140,11 +140,11 @@ export default function ScannerPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
-      <GhostCard className="overflow-hidden border-[#1A1A1A] bg-[#0F0F0F]">
+      <GhostCard className="overflow-hidden border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)]">
         <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-white">Run Ghost Scan</h2>
-            <p className="mt-1 text-sm text-[#71717A]">
+            <p className="mt-1 text-sm text-[var(--ghost-text-dim)]">
               AI-powered analysis of your storefront conversion funnel.
             </p>
 
@@ -155,11 +155,11 @@ export default function ScannerPage() {
                   <span>{error}</span>
                 </div>
                 {shouldShowSettingsLink && (
-                  <p className="mt-1 text-xs text-[#9CA3AF]">
+                  <p className="mt-1 text-xs text-[var(--ghost-text-muted)]">
                     Open{" "}
                     <Link
                       href="/dashboard/settings"
-                      className="text-[#FBBF24] underline hover:text-[#F59E0B]"
+                      className="text-[var(--ghost-accent-primary)] underline hover:text-[var(--ghost-accent-secondary)]"
                     >
                       Settings
                     </Link>{" "}
@@ -181,7 +181,7 @@ export default function ScannerPage() {
         </div>
       </GhostCard>
 
-      <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-6">
+      <div className="rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)] p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">Scan Configuration</h3>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -201,22 +201,22 @@ export default function ScannerPage() {
                 }
                 className="rounded-xl border p-4 text-left transition-all"
                 style={{
-                  backgroundColor: enabled ? "rgba(251, 191, 36, 0.06)" : "#111111",
-                  borderColor: enabled ? "rgba(251, 191, 36, 0.3)" : "#1A1A1A",
+                  backgroundColor: enabled ? "rgba(251, 191, 36, 0.06)" : "var(--ghost-bg-secondary)",
+                  borderColor: enabled ? "rgba(251, 191, 36, 0.3)" : "var(--ghost-border)",
                 }}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <div
                     className="flex h-9 w-9 items-center justify-center rounded-lg"
                     style={{
-                      backgroundColor: enabled ? "rgba(251, 191, 36, 0.15)" : "#1A1A1A",
+                      backgroundColor: enabled ? "rgba(251, 191, 36, 0.15)" : "var(--ghost-bg-elevated)",
                     }}
                   >
-                    <Icon className="h-4 w-4" color={enabled ? "#FBBF24" : "#71717A"} />
+                    <Icon className="h-4 w-4" color={enabled ? "var(--ghost-accent-primary)" : "var(--ghost-text-dim)"} />
                   </div>
                   <span
                     className="inline-flex h-5 w-10 items-center rounded-full transition-colors"
-                    style={{ backgroundColor: enabled ? "#FBBF24" : "#333333" }}
+                    style={{ backgroundColor: enabled ? "var(--ghost-accent-primary)" : "var(--ghost-border-hover)" }}
                   >
                     <span
                       className="h-4 w-4 rounded-full bg-white transition-all"
@@ -225,23 +225,23 @@ export default function ScannerPage() {
                   </span>
                 </div>
                 <p className="text-sm font-semibold text-white">{card.label}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#71717A]">{card.description}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--ghost-text-dim)]">{card.description}</p>
               </button>
             )
           })}
         </div>
 
-        <div className="mt-5 flex items-center gap-2 text-xs text-[#71717A]">
+        <div className="mt-5 flex items-center gap-2 text-xs text-[var(--ghost-text-dim)]">
           <Clock className="h-3.5 w-3.5" />
           Manual only
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-6">
+      <div className="rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)] p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">Scan History</h3>
 
         {history.length === 0 ? (
-          <p className="py-6 text-center text-sm text-[#6B7280]">
+          <p className="py-6 text-center text-sm text-[var(--ghost-text-subtle)]">
             No scans yet. Run your first scan to see history.
           </p>
         ) : (
@@ -249,21 +249,21 @@ export default function ScannerPage() {
             {history.map((scan) => (
               <div
                 key={scan.id}
-                className="flex flex-col gap-3 rounded-xl border border-[#1A1A1A] bg-[#111111] p-4 md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-3 rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] p-4 md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-[#FBBF24]/10 p-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#FBBF24]" />
+                  <div className="rounded-lg bg-[var(--ghost-accent-primary)]/10 p-2">
+                    <CheckCircle2 className="h-4 w-4 text-[var(--ghost-accent-primary)]" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-white">{scan.date}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-[var(--ghost-text-subtle)]">
                       {scan.status} • {scan.duration}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-sm font-semibold text-[#FBBF24]">Score {scan.score}</div>
+                <div className="text-sm font-semibold font-mono tabular-nums text-[var(--ghost-accent-primary)]">Score {scan.score}</div>
               </div>
             ))}
           </div>
