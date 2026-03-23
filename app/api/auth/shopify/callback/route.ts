@@ -149,10 +149,12 @@ export async function GET(request: Request) {
       console.error("Webhook registration network error:", webhookError)
     }
 
-    // Clean redirect - NO tokens in URL or cookies
-    // Always redirect to onboarding - the onboarding page will check if setup is already complete
-    // and redirect to dashboard if needed. store_connected=1 triggers sidebar to revalidate stores.
-    return NextResponse.redirect(`${nextAuthUrl}/dashboard/onboarding?store_connected=1`)
+    // Redirect to onboarding connect page with success flag.
+    // We redirect to /onboarding/connect (NOT /dashboard/*) because the dashboard layout
+    // gates on having an active store — the freshly-written record may not be visible yet
+    // due to route caching or DB replication lag, causing a redirect loop.
+    // The connect page detects store_connected=1 and auto-triggers the first scan.
+    return NextResponse.redirect(`${nextAuthUrl}/onboarding/connect?store_connected=1`)
   } catch (error) {
     console.error("Shopify OAuth callback error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
