@@ -1,10 +1,8 @@
 "use client"
 
-import { Suspense, useState, useEffect, useRef } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
-import { Lock, Loader2, ShoppingBag, Ghost, CheckCircle2 } from "lucide-react"
-
-import { readFirstNDJSONLine } from "@/lib/utils/ndjson-reader"
+import { Lock, Loader2, ShoppingBag, Ghost } from "lucide-react"
 
 /** Normalize input to shop domain: store.myshopify.com */
 function normalizeShopInput(input: string): string | null {
@@ -40,9 +38,6 @@ function ConnectPageContent() {
   const [storeInput, setStoreInput] = useState("")
   const [validationError, setValidationError] = useState<string | null>(null)
   const [configError, setConfigError] = useState<string | null>(null)
-  const [storeConnected, setStoreConnected] = useState(false)
-  const [connectError, setConnectError] = useState<string | null>(null)
-  const hasTriggeredScan = useRef(false)
 
   useEffect(() => {
     if (searchParams.get("error") === "shopify_not_configured") {
@@ -50,44 +45,6 @@ function ConnectPageContent() {
         "Shopify OAuth is not configured. Add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET to your environment variables.",
       )
     }
-  }, [searchParams])
-
-  // After OAuth callback, auto-trigger the first scan
-  useEffect(() => {
-    if (searchParams.get("store_connected") !== "1") return
-    if (hasTriggeredScan.current) return
-    hasTriggeredScan.current = true
-
-    setStoreConnected(true)
-
-    const triggerFirstScan = async () => {
-      try {
-        const response = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        })
-
-        if (!response.ok) {
-          // Scan trigger failed (billing, auth, etc.) — go to dashboard instead
-          window.location.href = "/dashboard"
-          return
-        }
-
-        const data = await readFirstNDJSONLine<{ jobId?: string }>(response)
-
-        if (data.jobId) {
-          window.location.href = `/onboarding/scanning?testId=${data.jobId}`
-        } else {
-          window.location.href = "/dashboard"
-        }
-      } catch {
-        // If anything fails, fall back to dashboard
-        window.location.href = "/dashboard"
-      }
-    }
-
-    triggerFirstScan()
   }, [searchParams])
 
   const normalizedShop = normalizeShopInput(storeInput)
@@ -101,27 +58,6 @@ function ConnectPageContent() {
     }
 
     window.location.href = `/api/auth/shopify/initiate?shop=${encodeURIComponent(normalizedShop)}`
-  }
-
-  // Show a transitional state after store is connected
-  if (storeConnected) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-[460px] rounded-2xl border border-[#1A1A1A] bg-[#111111] p-8 shadow-[0_0_60px_rgba(0,0,0,0.35)] text-center">
-          <div className="mb-6 flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20">
-              <CheckCircle2 size={24} className="text-emerald-400" />
-            </div>
-          </div>
-          <h2 className="mb-2 text-2xl font-semibold text-white">Store connected!</h2>
-          <p className="mb-6 text-sm text-[#71717A]">Starting your first scan...</p>
-          <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#FBBF24]" />
-          {connectError && (
-            <p className="mt-4 text-sm text-red-400">{connectError}</p>
-          )}
-        </div>
-      </div>
-    )
   }
 
   return (

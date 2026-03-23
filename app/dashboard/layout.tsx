@@ -1,5 +1,6 @@
 import type React from "react"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
@@ -31,8 +32,19 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
-  // If user is authenticated, require a connected store before showing dashboard
-  if (user && supabaseUrl && supabaseKey) {
+  // If user is authenticated, require a connected store before showing dashboard.
+  // Exception: if the store_just_connected cookie is set, skip this check — the
+  // OAuth callback just wrote the store to the DB but it may not be visible yet
+  // due to replication lag or caching. The cookie is short-lived (120s) and
+  // one-time use, so by the next navigation the store will be queryable.
+  const cookieStore = await cookies()
+  const justConnected = cookieStore.get("store_just_connected")?.value === "1"
+
+  if (justConnected) {
+    cookieStore.delete("store_just_connected")
+  }
+
+  if (!justConnected && user && supabaseUrl && supabaseKey) {
     const supabase = await createClient()
     const { data: store } = await supabase
       .from("stores")
