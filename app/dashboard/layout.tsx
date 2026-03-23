@@ -39,9 +39,9 @@ export default async function DashboardLayout({
   const cookieStore = await cookies()
   const justConnected = cookieStore.get("store_just_connected")?.value === "1"
 
-  if (justConnected) {
-    cookieStore.delete("store_just_connected")
-  }
+  // Don't delete the cookie here — let it expire naturally (maxAge: 120s).
+  // Deleting it on first read causes a race condition: the store may not be
+  // visible in the DB yet, and subsequent navigations lose the bypass.
 
   if (!justConnected && user && supabaseUrl && supabaseKey) {
     const supabase = await createClient()

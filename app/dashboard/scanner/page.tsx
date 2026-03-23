@@ -80,14 +80,32 @@ export default function ScannerPage() {
       })
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error || "Failed to start scan")
+        const err = await res.text().catch(() => "")
+        try {
+          const errJson = JSON.parse(err)
+          toast.error(errJson.error || "Failed to start scan")
+        } catch {
+          toast.error("Failed to start scan")
+        }
         return
       }
 
-      const data = await res.json()
-      if (data.testId) {
-        router.push(`/onboarding/scanning?testId=${data.testId}`)
+      // The API returns streaming NDJSON. Read the first line to get the jobId.
+      const reader = res.body?.getReader()
+      if (!reader) {
+        toast.error("Unexpected response from scan")
+        return
+      }
+
+      const decoder = new TextDecoder()
+      const { value } = await reader.read()
+      reader.cancel() // We only need the first line
+
+      const firstLine = decoder.decode(value).split("\n")[0]
+      const data = JSON.parse(firstLine)
+
+      if (data.jobId) {
+        router.push(`/onboarding/scanning?testId=${data.jobId}`)
       } else {
         toast.error("Unexpected response from scan")
       }
