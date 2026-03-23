@@ -9,7 +9,7 @@ import { ScanChecklist } from "@/components/onboarding/scan-checklist"
 import { GhostButton } from "@/components/ui/ghost-button"
 import { readFirstNDJSONLine } from "@/lib/utils/ndjson-reader"
 
-const SCAN_TIMEOUT_SECONDS = 90
+const SCAN_TIMEOUT_SECONDS = 240
 
 const steps = [
   "Connecting to your store...",
@@ -56,28 +56,71 @@ function ScanningPageContent() {
     setActionError(null)
   }, [testId])
 
+  const [pollFailures, setPollFailures] = useState(0)
+
   useEffect(() => {
     if (!testId || timedOut || status === "completed" || status === "failed") {
       return
     }
 
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/analyze/${testId}/status`)
-        const data = await res.json()
-        setStatus(data.status)
+    // Small initial delay to avoid race condition where job isn't in DB yet
+    const initialDelay = setTimeout(() => {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/analyze/${testId}/status`)
 
-        if (data.status === "completed") {
-          clearInterval(interval)
-          window.location.href = `/onboarding/results?testId=${testId}`
+          if (!res.ok) {
+            // Transient errors (404 during creation, 500, etc.) — tolerate a few
+            setPollFailures((prev) => {
+              const next = prev + 1
+              if (next >= 5) {
+                console.error(`Status polling failed ${next} times, giving up`)
+                setStatus("failed")
+                clearInterval(interval)
+              }
+              return next
+            })
+            return
+          }
+
+          const data = await res.json()
+          const jobStatus = data.status as ScanStatus | undefined
+
+          if (!jobStatus) return // Ignore malformed responses
+
+          setPollFailures(0) // Reset on success
+          setStatus(jobStatus)
+
+          if (jobStatus === "completed") {
+            clearInterval(interval)
+            window.location.href = `/onboarding/results?testId=${testId}`
+          }
+
+          if (jobStatus === "failed") {
+            clearInterval(interval)
+          }
+        } catch (error) {
+          console.error("Failed to poll scan status", error)
+          setPollFailures((prev) => {
+            const next = prev + 1
+            if (next >= 5) {
+              setStatus("failed")
+              clearInterval(interval)
+            }
+            return next
+          })
         }
-      } catch (error) {
-        console.error("Failed to poll scan status", error)
-        setStatus("failed")
-      }
-    }, 2000)
+      }, 2000)
 
-    return () => clearInterval(interval)
+      cleanupRef.current = () => clearInterval(interval)
+    }, 1500) // Wait 1.5s before first poll
+
+    const cleanupRef = { current: () => {} }
+
+    return () => {
+      clearTimeout(initialDelay)
+      cleanupRef.current()
+    }
   }, [testId, timedOut, status])
 
   useEffect(() => {
