@@ -35,14 +35,14 @@ export function GhostLogo({ className, size = 'md', animated = false }: GhostLog
           cx="20"
           cy="17"
           r="6"
-          className="fill-[#FBBF24] opacity-20"
+          className="fill-[var(--ghost-accent-primary)] opacity-20"
         />
         {/* Amber eye (inner) */}
         <circle
           cx="20"
           cy="17"
           r="4"
-          className="fill-[#FBBF24]"
+          className="fill-[var(--ghost-accent-primary)]"
         />
       </svg>
     )
@@ -67,14 +67,14 @@ export function GhostLogo({ className, size = 'md', animated = false }: GhostLog
         cx="20"
         cy="17"
         r="6"
-        className="fill-[#FBBF24] opacity-20"
+        className="fill-[var(--ghost-accent-primary)] opacity-20"
       />
       {/* Amber eye (inner) */}
       <circle
         cx="20"
         cy="17"
         r="4"
-        className="fill-[#FBBF24]"
+        className="fill-[var(--ghost-accent-primary)]"
       />
     </svg>
   )

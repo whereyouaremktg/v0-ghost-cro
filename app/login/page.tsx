@@ -34,11 +34,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--ghost-bg)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#FBBF24]/10 border border-[#FBBF24]/20 mb-4">
-            <Ghost className="w-6 h-6 text-[#FBBF24]" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ghost-accent-primary)]/10 border border-[var(--ghost-accent-primary)]/20 mb-4">
+            <Ghost className="w-6 h-6 text-[var(--ghost-accent-primary)]" />
           </div>
           <h1 className="text-2xl font-bold text-white">Welcome back</h1>
           <p className="text-zinc-400 mt-2">Sign in to your Ghost CRO account</p>
@@ -57,7 +57,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[#FBBF24]"
+              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--ghost-accent-primary)]"
               placeholder="you@example.com"
               required
             />
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-sm font-medium text-zinc-400">Password</label>
-              <Link href="/reset-password" className="text-xs text-[#FBBF24] hover:underline">
+              <Link href="/reset-password" className="text-xs text-[var(--ghost-accent-primary)] hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[#FBBF24]"
+              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--ghost-accent-primary)]"
               placeholder="••••••••"
               required
             />
@@ -83,7 +83,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-[#FBBF24] text-[#0A0A0A] font-medium hover:bg-[#F59E0B] transition-colors disabled:opacity-50"
+            className="w-full py-3 rounded-lg bg-[var(--ghost-accent-primary)] text-[var(--ghost-bg-primary)] font-medium hover:bg-[var(--ghost-accent-secondary)] transition-colors disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
@@ -91,7 +91,7 @@ export default function LoginPage() {
 
         <p className="text-center text-zinc-500 text-sm mt-6">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-[#FBBF24] hover:underline">
+          <Link href="/signup" className="text-[var(--ghost-accent-primary)] hover:underline">
             Sign up
           </Link>
         </p>

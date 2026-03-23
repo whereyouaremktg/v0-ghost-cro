@@ -99,17 +99,17 @@ export function Ga4PropertyModal({ open, onOpenChange, onSaved }: Ga4PropertyMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-zinc-200 bg-white text-zinc-900 sm:max-w-md">
+      <DialogContent className="border-[var(--ghost-text-secondary)] bg-white text-[var(--ghost-bg-secondary)] sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-zinc-900">Select GA4 property</DialogTitle>
-          <DialogDescription className="text-zinc-500">
+          <DialogTitle className="text-[var(--ghost-bg-secondary)]">Select GA4 property</DialogTitle>
+          <DialogDescription className="text-[var(--ghost-text-dim)]">
             Choose which Google Analytics 4 property to use for demographics data.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--ghost-text-muted)]" />
           </div>
         ) : error ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
@@ -121,13 +121,13 @@ export function Ga4PropertyModal({ open, onOpenChange, onSaved }: Ga4PropertyMod
             )}
           </div>
         ) : properties.length === 0 ? (
-          <p className="text-sm text-zinc-500">No GA4 properties found in your account.</p>
+          <p className="text-sm text-[var(--ghost-text-dim)]">No GA4 properties found in your account.</p>
         ) : (
-          <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-zinc-200 p-2">
+          <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-[var(--ghost-text-secondary)] p-2">
             {properties.map((prop) => (
               <label
                 key={prop.id}
-                className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 has-[:checked]:border-zinc-400 has-[:checked]:bg-zinc-50"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--ghost-text-secondary)] p-3 transition-colors hover:bg-white/5 has-[:checked]:border-[var(--ghost-text-muted)] has-[:checked]:bg-white/5"
               >
                 <input
                   type="radio"
@@ -135,12 +135,12 @@ export function Ga4PropertyModal({ open, onOpenChange, onSaved }: Ga4PropertyMod
                   value={prop.id}
                   checked={selectedId === prop.id}
                   onChange={() => setSelectedId(prop.id)}
-                  className="mt-1 h-4 w-4 border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+                  className="mt-1 h-4 w-4 border-[var(--ghost-text-muted)] text-[var(--ghost-bg-secondary)] focus:ring-[var(--ghost-text-dim)]"
                 />
                 <div className="min-w-0 flex-1">
-                  <span className="font-medium text-zinc-900">{prop.displayName}</span>
+                  <span className="font-medium text-[var(--ghost-bg-secondary)]">{prop.displayName}</span>
                   {prop.accountName && (
-                    <p className="text-xs text-zinc-500">{prop.accountName}</p>
+                    <p className="text-xs text-[var(--ghost-text-dim)]">{prop.accountName}</p>
                   )}
                 </div>
               </label>

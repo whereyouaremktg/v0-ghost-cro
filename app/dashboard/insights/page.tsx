@@ -72,12 +72,12 @@ export default function InsightsPage() {
     <div className="space-y-6">
       <GhostCard className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-full bg-[#FBBF24]/10 flex items-center justify-center">
-            <Lightbulb className="h-6 w-6 text-[#FBBF24]" />
+          <div className="h-12 w-12 rounded-full bg-[var(--ghost-accent-primary)]/10 flex items-center justify-center">
+            <Lightbulb className="h-6 w-6 text-[var(--ghost-accent-primary)]" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-white">AI Insights</h2>
-            <p className="text-sm text-[#9CA3AF]">
+            <p className="text-sm text-[var(--ghost-text-muted)]">
               {insights.length} strategic recommendations from your latest scan
             </p>
           </div>
@@ -89,7 +89,7 @@ export default function InsightsPage() {
 
       {insights.length === 0 ? (
         <GhostCard className="p-8 text-center">
-          <p className="text-[#6B7280]">
+          <p className="text-[var(--ghost-text-subtle)]">
             No recommendations found in your latest scan. Your store is performing well!
           </p>
         </GhostCard>

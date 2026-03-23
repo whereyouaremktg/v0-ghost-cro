@@ -45,7 +45,7 @@ export function SettingsContent({ connections, subscription }: SettingsContentPr
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-[#1A1A1A]">
+      <div className="border-b border-[var(--ghost-bg-elevated)]">
         <div className="flex flex-wrap gap-1 pb-2">
           {tabs.map((tab) => (
             <button
@@ -55,8 +55,8 @@ export function SettingsContent({ connections, subscription }: SettingsContentPr
               className={cn(
                 "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
                 activeTab === tab.id
-                  ? "bg-[#FBBF24]/10 text-[#FBBF24]"
-                  : "text-[#71717A] hover:bg-[#111111] hover:text-white",
+                  ? "bg-[var(--ghost-accent-primary)]/10 text-[var(--ghost-accent-primary)]"
+                  : "text-[var(--ghost-text-dim)] hover:bg-[var(--ghost-bg-secondary)] hover:text-white",
               )}
             >
               {tab.label}

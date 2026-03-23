@@ -194,7 +194,7 @@ function ScanningPageContent() {
     <div className="max-w-lg mx-auto text-center">
       <div className="relative mb-8 flex items-center justify-center">
         <GhostLogo size={80} className="animate-pulse" />
-        <div className="absolute inset-0 bg-[#FBBF24]/10 rounded-full animate-ping" />
+        <div className="absolute inset-0 bg-[var(--ghost-accent-primary)]/10 rounded-full animate-ping" />
       </div>
 
       <h1 className="text-2xl font-bold text-white mb-2">
@@ -205,18 +205,18 @@ function ScanningPageContent() {
             : "Analyzing your store..."}
       </h1>
 
-      <div className="w-full bg-[#111111] rounded-full h-2 mb-4">
+      <div className="w-full bg-[var(--ghost-bg-secondary)] rounded-full h-2 mb-4">
         <div
-          className="bg-[#FBBF24] h-2 rounded-full transition-all duration-500"
+          className="bg-[var(--ghost-accent-primary)] h-2 rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       {!timedOut && status !== "failed" && (
-        <p className="text-xs text-[#9CA3AF] mb-2">Timeout in {countdownLabel}</p>
+        <p className="text-xs text-[var(--ghost-text-muted)] mb-2">Timeout in {countdownLabel}</p>
       )}
 
-      <p className="text-[#9CA3AF] mb-8">
+      <p className="text-[var(--ghost-text-muted)] mb-8">
         {timedOut
           ? "You can retry now or continue to dashboard while we keep things stable."
           : status === "failed"
@@ -224,7 +224,7 @@ function ScanningPageContent() {
             : steps[stepIndex]}
       </p>
 
-      <div className="text-left bg-[#111111] rounded-lg p-4 border border-[#1F1F1F]">
+      <div className="text-left bg-[var(--ghost-bg-secondary)] rounded-lg p-4 border border-[var(--ghost-border)]">
         <ScanChecklist items={checklistItems} />
       </div>
 

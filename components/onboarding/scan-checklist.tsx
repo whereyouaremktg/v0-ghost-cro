@@ -19,9 +19,9 @@ export function ScanChecklist({ items }: ScanChecklistProps) {
           {item.done ? (
             <CheckCircle className="h-5 w-5 text-green-500" />
           ) : (
-            <div className="h-5 w-5 rounded-full border-2 border-[#4B5563] border-t-[#FBBF24] animate-spin" />
+            <div className="h-5 w-5 rounded-full border-2 border-[var(--ghost-border-hover)] border-t-[var(--ghost-accent-primary)] animate-spin" />
           )}
-          <span className={item.done ? "text-white" : "text-[#6B7280]"}>
+          <span className={item.done ? "text-white" : "text-[var(--ghost-text-subtle)]"}>
             {item.label}
           </span>
         </div>

@@ -33,7 +33,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
         <h1 className="text-2xl font-bold text-white mb-2">
           Welcome back, {user.name}
         </h1>
-        <p className="text-zinc-400">
+        <p className="text-[var(--ghost-text-muted)]">
           {stats.plan === "free"
             ? "Upgrade to unlock more scans"
             : `${stats.testsRemaining} scans remaining this month`}
@@ -42,28 +42,28 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800">
-          <div className="text-sm text-zinc-400 mb-1">Current Score</div>
+        <div className="p-6 rounded-xl bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-bg-elevated)]">
+          <div className="text-sm text-[var(--ghost-text-muted)] mb-1">Current Score</div>
           <div className="text-3xl font-bold text-white">{stats.currentScore || "—"}</div>
         </div>
-        <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800">
-          <div className="text-sm text-zinc-400 mb-1">Tests This Month</div>
+        <div className="p-6 rounded-xl bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-bg-elevated)]">
+          <div className="text-sm text-[var(--ghost-text-muted)] mb-1">Tests This Month</div>
           <div className="text-3xl font-bold text-white">{stats.testsThisMonth}</div>
         </div>
-        <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800">
-          <div className="text-sm text-zinc-400 mb-1">Plan</div>
+        <div className="p-6 rounded-xl bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-bg-elevated)]">
+          <div className="text-sm text-[var(--ghost-text-muted)] mb-1">Plan</div>
           <div className="text-3xl font-bold text-white capitalize">{stats.plan}</div>
         </div>
       </div>
 
       {/* Latest Test Result */}
       {hasTests && latestTest ? (
-        <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800">
+        <div className="p-6 rounded-xl bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-bg-elevated)]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white">Latest Scan</h2>
             <Link
               href={`/dashboard/test/${latestTest.id}`}
-              className="text-sm text-[#FBBF24] hover:text-[#FCD34D] flex items-center gap-1"
+              className="text-sm text-[var(--ghost-accent-primary)] hover:text-[#FCD34D] flex items-center gap-1"
             >
               View Details <ExternalLink className="w-4 h-4" />
             </Link>
@@ -85,14 +85,14 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
               <div className="text-white font-medium truncate">
                 {latestTest.url || "Unknown URL"}
               </div>
-              <div className="text-sm text-zinc-400">
+              <div className="text-sm text-[var(--ghost-text-muted)]">
                 {new Date(latestTest.created_at).toLocaleDateString()}
               </div>
             </div>
           </div>
 
           {latestTestResult?.frictionPoints && (
-            <div className="mt-4 pt-4 border-t border-zinc-800">
+            <div className="mt-4 pt-4 border-t border-[var(--ghost-bg-elevated)]">
               <div className="flex items-center gap-4 text-sm">
                 {latestTestResult.frictionPoints.critical?.length > 0 && (
                   <div className="flex items-center gap-1 text-red-400">
@@ -117,15 +117,15 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
           )}
         </div>
       ) : (
-        <div className="p-12 rounded-xl bg-zinc-900 border border-zinc-800 border-dashed text-center">
-          <Ghost className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+        <div className="p-12 rounded-xl bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-bg-elevated)] border-dashed text-center">
+          <Ghost className="w-12 h-12 text-[var(--ghost-text-dim)] mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-white mb-2">No scans yet</h3>
-          <p className="text-zinc-400 mb-4">
+          <p className="text-[var(--ghost-text-muted)] mb-4">
             Connect your Shopify store to start analyzing your checkout flow
           </p>
           <Link
             href="/dashboard/settings"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#FBBF24] text-[#0A0A0A] rounded-lg hover:bg-[#F59E0B] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--ghost-accent-primary)] text-[var(--ghost-bg-primary)] rounded-lg hover:bg-[var(--ghost-accent-secondary)] transition-colors"
           >
             Connect Store
           </Link>
@@ -134,7 +134,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
 
       {/* Recent Tests */}
       {tests.length > 1 && (
-        <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800">
+        <div className="p-6 rounded-xl bg-[var(--ghost-bg-secondary)] border border-[var(--ghost-bg-elevated)]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white">Recent Scans</h2>
             <Link
@@ -150,7 +150,7 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
               <Link
                 key={test.id}
                 href={`/dashboard/test/${test.id}`}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-800 transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--ghost-bg-elevated)] transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -162,11 +162,11 @@ export function GhostOS({ user, stats, tests, latestTestResult }: GhostOSProps) 
                   }`}>
                     {test.overall_score || 0}
                   </div>
-                  <span className="text-sm text-zinc-300 truncate max-w-[200px]">
+                  <span className="text-sm text-[var(--ghost-text-muted)] truncate max-w-[200px]">
                     {test.url || "Unknown"}
                   </span>
                 </div>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-[var(--ghost-text-dim)]">
                   {new Date(test.created_at).toLocaleDateString()}
                 </span>
               </Link>

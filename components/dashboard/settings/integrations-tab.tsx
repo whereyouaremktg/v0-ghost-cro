@@ -95,11 +95,11 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
     <div className="space-y-5">
       <div>
         <h2 className="text-lg font-semibold text-white">Integrations</h2>
-        <p className="text-sm text-[#71717A]">Connect data sources used by Ghost analysis.</p>
+        <p className="text-sm text-[var(--ghost-text-dim)]">Connect data sources used by Ghost analysis.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="rounded-xl border border-[#1A1A1A] bg-[#111111] p-5">
+        <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-[#95BF47]/15 p-2">
@@ -107,7 +107,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Shopify</p>
-                <p className="text-xs text-[#71717A]">
+                <p className="text-xs text-[var(--ghost-text-dim)]">
                   {connections.shopify ? connections.shopifyShop : "Not connected"}
                 </p>
               </div>
@@ -124,7 +124,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-[#2A2A2A] bg-transparent text-white hover:bg-[#1A1A1A]"
+              className="w-full border-[var(--ghost-border-hover)] bg-transparent text-white hover:bg-[var(--ghost-bg-elevated)]"
               onClick={() => window.open(`https://${connections.shopifyShop}/admin`, "_blank")}
             >
               Manage Store
@@ -142,7 +142,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
           )}
         </div>
 
-        <div className="rounded-xl border border-[#1A1A1A] bg-[#111111] p-5">
+        <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-[#3B82F6]/15 p-2">
@@ -150,7 +150,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Google Analytics 4</p>
-                <p className="text-xs text-[#71717A]">
+                <p className="text-xs text-[var(--ghost-text-dim)]">
                   {connections.ga4
                     ? connections.ga4Property
                       ? `Property: ${connections.ga4Property}`
@@ -172,7 +172,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 border-[#2A2A2A] bg-transparent text-white hover:bg-[#1A1A1A]"
+                className="flex-1 border-[var(--ghost-border-hover)] bg-transparent text-white hover:bg-[var(--ghost-bg-elevated)]"
                 onClick={() => router.push("/api/auth/google-analytics")}
               >
                 Re-connect
@@ -195,7 +195,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-[#2A2A2A] bg-transparent text-white hover:bg-[#1A1A1A]"
+              className="w-full border-[var(--ghost-border-hover)] bg-transparent text-white hover:bg-[var(--ghost-bg-elevated)]"
               onClick={() => router.push("/api/auth/google-analytics")}
             >
               Connect GA4
@@ -203,7 +203,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
           )}
         </div>
 
-        <div className="rounded-xl border border-[#1A1A1A] bg-[#111111] p-5 opacity-80">
+        <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-5 opacity-80">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-[#8B5CF6]/15 p-2">
@@ -211,7 +211,7 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Slack</p>
-                <p className="text-xs text-[#71717A]">Send leak alerts to your ops channel.</p>
+                <p className="text-xs text-[var(--ghost-text-dim)]">Send leak alerts to your ops channel.</p>
               </div>
             </div>
             <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-300">
@@ -221,32 +221,32 @@ export function IntegrationsTab({ connections }: IntegrationsTabProps) {
           <Button
             variant="outline"
             size="sm"
-            className="w-full border-[#2A2A2A] bg-transparent text-[#71717A]"
+            className="w-full border-[var(--ghost-border-hover)] bg-transparent text-[var(--ghost-text-dim)]"
             disabled
           >
             Coming Soon
           </Button>
         </div>
 
-        <div className="rounded-xl border border-[#1A1A1A] bg-[#111111] p-5 opacity-80">
+        <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-5 opacity-80">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-[#FBBF24]/15 p-2">
-                <Zap className="h-5 w-5 text-[#FBBF24]" />
+              <div className="rounded-lg bg-[var(--ghost-accent-primary)]/15 p-2">
+                <Zap className="h-5 w-5 text-[var(--ghost-accent-primary)]" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Shopify Flow</p>
-                <p className="text-xs text-[#71717A]">Trigger automations for high-impact leaks.</p>
+                <p className="text-xs text-[var(--ghost-text-dim)]">Trigger automations for high-impact leaks.</p>
               </div>
             </div>
-            <span className="rounded-full border border-[#FBBF24]/30 bg-[#FBBF24]/10 px-2 py-0.5 text-[10px] font-semibold text-[#FBBF24]">
+            <span className="rounded-full border border-[var(--ghost-accent-primary)]/30 bg-[var(--ghost-accent-primary)]/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--ghost-accent-primary)]">
               Enterprise
             </span>
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="w-full border-[#2A2A2A] bg-transparent text-[#71717A]"
+            className="w-full border-[var(--ghost-border-hover)] bg-transparent text-[var(--ghost-text-dim)]"
             disabled
           >
             Contact Sales

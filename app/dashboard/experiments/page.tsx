@@ -38,11 +38,11 @@ export default function ExperimentsPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-xl font-semibold text-white">Experiments</h2>
-            <span className="px-2 py-0.5 text-xs rounded-full border border-[#FBBF24]/40 text-[#FBBF24]">
+            <span className="px-2 py-0.5 text-xs rounded-full border border-[var(--ghost-accent-primary)]/40 text-[var(--ghost-accent-primary)]">
               Beta
             </span>
           </div>
-          <p className="text-sm text-[#9CA3AF]">
+          <p className="text-sm text-[var(--ghost-text-muted)]">
             Launch guided A/B tests powered by AI.
           </p>
         </div>
@@ -61,13 +61,13 @@ export default function ExperimentsPage() {
 
       <GhostCard className="p-8 text-center">
         <div className="max-w-md mx-auto">
-          <div className="h-16 w-16 rounded-full bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-4">
-            <FlaskConical className="h-8 w-8 text-[#FBBF24]" />
+          <div className="h-16 w-16 rounded-full bg-[var(--ghost-accent-primary)]/10 flex items-center justify-center mx-auto mb-4">
+            <FlaskConical className="h-8 w-8 text-[var(--ghost-accent-primary)]" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">
             Coming Soon
           </h3>
-          <p className="text-[#9CA3AF] mb-6">
+          <p className="text-[var(--ghost-text-muted)] mb-6">
             We're building a powerful experimentation platform that will help you
             test changes and measure their impact on conversions.
           </p>
@@ -75,19 +75,19 @@ export default function ExperimentsPage() {
       </GhostCard>
 
       <div>
-        <h3 className="text-sm font-medium text-[#9CA3AF] mb-4 uppercase tracking-wider">
+        <h3 className="text-sm font-medium text-[var(--ghost-text-muted)] mb-4 uppercase tracking-wider">
           What to expect
         </h3>
         <div className="grid gap-4 md:grid-cols-3">
           {upcomingFeatures.map((feature) => (
             <GhostCard key={feature.title} className="p-5">
               <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-[#1A1A1A] flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="h-5 w-5 text-[#FBBF24]" />
+                <div className="h-10 w-10 rounded-lg bg-[var(--ghost-bg-elevated)] flex items-center justify-center flex-shrink-0">
+                  <feature.icon className="h-5 w-5 text-[var(--ghost-accent-primary)]" />
                 </div>
                 <div>
                   <p className="text-white font-medium">{feature.title}</p>
-                  <p className="text-xs text-[#6B7280] mt-1">
+                  <p className="text-xs text-[var(--ghost-text-subtle)] mt-1">
                     {feature.description}
                   </p>
                 </div>

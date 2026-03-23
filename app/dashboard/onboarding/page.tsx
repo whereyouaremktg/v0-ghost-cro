@@ -134,13 +134,13 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-xl">
-        <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-8">
+        <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-primary)] p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-2xl font-bold tracking-tight text-white">
               Welcome to Ghost CRO
             </h1>
-            <p className="text-sm text-[#71717A]">
+            <p className="text-sm text-[var(--ghost-text-dim)]">
               Let&apos;s configure your revenue intelligence system
             </p>
           </div>
@@ -175,27 +175,27 @@ export default function OnboardingPage() {
                   Monthly Revenue Goal
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A]">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ghost-text-dim)]">$</span>
                   <Input
                     id="revenue-goal"
                     type="text"
                     value={revenueGoal}
                     onChange={(e) => setRevenueGoal(e.target.value)}
                     placeholder="100,000"
-                    className="border-[#1A1A1A] bg-[#111111] pl-7 font-mono text-white placeholder:text-[#6B7280]"
+                    className="border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] pl-7 font-mono text-white placeholder:text-[var(--ghost-text-subtle)]"
                   />
                 </div>
-                <p className="mt-1 text-xs text-[#71717A]">
+                <p className="mt-1 text-xs text-[var(--ghost-text-dim)]">
                   We&apos;ll track progress toward this goal
                 </p>
               </div>
 
-              <div className="flex items-start justify-between rounded-lg border border-[#1A1A1A] p-4">
+              <div className="flex items-start justify-between rounded-lg border border-[var(--ghost-bg-elevated)] p-4">
                 <div className="flex-1">
                   <Label htmlFor="slack-alerts" className="mb-1 block text-sm font-medium text-white">
                     Enable Slack Alerts
                   </Label>
-                  <p className="text-xs text-[#71717A]">
+                  <p className="text-xs text-[var(--ghost-text-dim)]">
                     Get notified in Slack when high-impact leaks are detected
                   </p>
                 </div>
@@ -215,16 +215,16 @@ export default function OnboardingPage() {
                   value={techEmail}
                   onChange={(e) => setTechEmail(e.target.value)}
                   placeholder="dev@yourcompany.com"
-                  className="border-[#1A1A1A] bg-[#111111] text-white placeholder:text-[#6B7280]"
+                  className="border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] text-white placeholder:text-[var(--ghost-text-subtle)]"
                 />
-                <p className="mt-1 text-xs text-[#71717A]">
+                <p className="mt-1 text-xs text-[var(--ghost-text-dim)]">
                   For technical notifications and system updates
                 </p>
               </div>
 
               <div>
                 <Label htmlFor="phone" className="mb-2 block text-sm font-medium text-white">
-                  Phone Number <span className="font-normal text-[#71717A]">(Optional)</span>
+                  Phone Number <span className="font-normal text-[var(--ghost-text-dim)]">(Optional)</span>
                 </Label>
                 <Input
                   id="phone"
@@ -232,9 +232,9 @@ export default function OnboardingPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 (555) 123-4567"
-                  className="border-[#1A1A1A] bg-[#111111] text-white placeholder:text-[#6B7280]"
+                  className="border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] text-white placeholder:text-[var(--ghost-text-subtle)]"
                 />
-                <p className="mt-1 text-xs text-[#71717A]">
+                <p className="mt-1 text-xs text-[var(--ghost-text-dim)]">
                   For account verification and important updates
                 </p>
               </div>
@@ -242,11 +242,11 @@ export default function OnboardingPage() {
           )}
 
           {/* Action Button */}
-          <div className="mt-8 border-t border-[#1A1A1A] pt-6">
+          <div className="mt-8 border-t border-[var(--ghost-bg-elevated)] pt-6">
             <Button
               onClick={handleLaunch}
               disabled={isSaving}
-              className="w-full gap-2 bg-[#FBBF24] font-medium text-[#0A0A0A] hover:bg-[#F59E0B]"
+              className="w-full gap-2 bg-[var(--ghost-accent-primary)] font-medium text-[var(--ghost-bg-primary)] hover:bg-[var(--ghost-accent-secondary)]"
               size="lg"
             >
               {isSaving ? "Saving..." : "Launch Mission Control"}

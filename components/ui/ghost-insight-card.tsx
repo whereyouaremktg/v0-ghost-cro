@@ -22,7 +22,7 @@ const severityStyles: Record<
   { dot: string; text: string }
 > = {
   critical: { dot: "bg-red-500", text: "text-red-400" },
-  warning: { dot: "bg-[#FBBF24]", text: "text-[#FBBF24]" },
+  warning: { dot: "bg-[var(--ghost-accent-primary)]", text: "text-[var(--ghost-accent-primary)]" },
   suggestion: { dot: "bg-green-500", text: "text-green-400" },
 }
 
@@ -51,7 +51,7 @@ export function GhostInsightCard({
         ease: [0.4, 0, 0.2, 1],
       }}
       className={cn(
-        "bg-[#111111]/90 backdrop-blur-sm border border-[#1F1F1F] rounded-lg p-4 shadow-xl",
+        "bg-[var(--ghost-bg-secondary)]/90 backdrop-blur-sm border border-[var(--ghost-border)] rounded-lg p-4 shadow-xl",
         blurred && "blur-[1px] opacity-80",
         className,
       )}
@@ -71,18 +71,18 @@ export function GhostInsightCard({
       <div className="text-sm text-white mb-1">{title}</div>
 
       {description && (
-        <p className="text-xs text-[#9CA3AF] mb-2">{description}</p>
+        <p className="text-xs text-[var(--ghost-text-muted)] mb-2">{description}</p>
       )}
 
       {suggestion && (
         <div className="flex items-center gap-2 text-sm">
           <span className="text-gray-500">→</span>
-          <span className="text-[#FBBF24]">{suggestion}</span>
+          <span className="text-[var(--ghost-accent-primary)]">{suggestion}</span>
         </div>
       )}
 
       {impact && (
-        <div className={cn("text-xs", severityStyle?.text ?? "text-[#9CA3AF]")}> 
+        <div className={cn("text-xs", severityStyle?.text ?? "text-[var(--ghost-text-muted)]")}>
           {impact}
         </div>
       )}

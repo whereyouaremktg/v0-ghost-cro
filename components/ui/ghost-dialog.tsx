@@ -27,11 +27,11 @@ export function GhostDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="border border-[#1F1F1F] bg-[#111111] text-white">
+      <DialogContent className="border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] text-white">
         <DialogHeader>
           <DialogTitle className="text-white">{title}</DialogTitle>
           {description && (
-            <DialogDescription className="text-[#9CA3AF]">
+            <DialogDescription className="text-[var(--ghost-text-muted)]">
               {description}
             </DialogDescription>
           )}

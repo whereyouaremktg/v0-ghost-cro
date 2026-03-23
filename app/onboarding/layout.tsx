@@ -14,11 +14,11 @@ export default function OnboardingLayout({
   const isConnectScreen = pathname === "/onboarding/connect"
 
   if (isConnectScreen) {
-    return <div className="min-h-screen bg-[#0A0A0A] text-white">{children}</div>
+    return <div className="min-h-screen bg-[var(--ghost-bg-primary)] text-white">{children}</div>
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-[var(--ghost-bg-primary)] text-white">
       <div className="px-6 pt-8">
         <ProgressIndicator />
       </div>

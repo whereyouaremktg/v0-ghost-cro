@@ -13,18 +13,18 @@ export function ProgressIndicator() {
   const currentIndex = steps.findIndex((step) => pathname?.startsWith(step.path))
 
   return (
-    <div className="flex items-center gap-3 text-sm text-[#9CA3AF]">
+    <div className="flex items-center gap-3 text-sm text-[var(--ghost-text-muted)]">
       {steps.map((step, index) => (
         <div key={step.label} className="flex items-center gap-3">
           <div
             className={`h-2.5 w-2.5 rounded-full ${
-              index <= currentIndex ? "bg-[#FBBF24]" : "bg-[#1F1F1F]"
+              index <= currentIndex ? "bg-[var(--ghost-accent-primary)]" : "bg-[var(--ghost-border)]"
             }`}
           />
           <span className={index <= currentIndex ? "text-white" : undefined}>
             {step.label}
           </span>
-          {index < steps.length - 1 && <div className="h-px w-8 bg-[#1F1F1F]" />}
+          {index < steps.length - 1 && <div className="h-px w-8 bg-[var(--ghost-border)]" />}
         </div>
       ))}
     </div>

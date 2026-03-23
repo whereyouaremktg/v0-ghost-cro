@@ -44,10 +44,10 @@ export default async function SettingsPage() {
     <div className="mx-auto w-full max-w-6xl space-y-4">
       <div>
         <h1 className="text-2xl font-semibold text-white">Settings</h1>
-        <p className="text-sm text-[#71717A]">Manage integrations, billing, and alerts.</p>
+        <p className="text-sm text-[var(--ghost-text-dim)]">Manage integrations, billing, and alerts.</p>
       </div>
 
-      <div className="rounded-xl border border-[#1A1A1A] bg-[#0F0F0F] p-4 md:p-6">
+      <div className="rounded-xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-primary)] p-4 md:p-6">
         <SettingsContent connections={connections} subscription={subscription} />
       </div>
     </div>

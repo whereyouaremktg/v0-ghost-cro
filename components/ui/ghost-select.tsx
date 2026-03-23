@@ -8,7 +8,7 @@ export function GhostSelect({ className, children, ...props }: GhostSelectProps)
   return (
     <select
       className={cn(
-        "h-11 w-full rounded-lg border border-[#1F1F1F] bg-[#0A0A0A] px-3 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FBBF24]/40",
+        "h-11 w-full rounded-lg border border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)] px-3 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ghost-accent-primary)]/40",
         className,
       )}
       {...props}
