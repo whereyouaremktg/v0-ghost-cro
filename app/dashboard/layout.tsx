@@ -2,9 +2,8 @@ import type React from "react"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { DashboardHeader } from "@/components/dashboard/header"
-import { ErrorBoundary } from "@/components/error-boundary"
+import { Sidebar } from "@/components/layout/sidebar"
+import { DashboardHeader } from "@/components/layout/header"
 
 export default async function DashboardLayout({
   children,
@@ -59,12 +58,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--ghost-bg-primary)] text-white">
+    <div className="min-h-screen bg-[hsl(var(--surface-0))] text-[hsl(var(--text-primary))]">
       <Sidebar />
       <div className="min-h-screen pl-14">
         <DashboardHeader />
-        <main className="min-h-[calc(100vh-72px)] p-4 md:p-6">
-          <ErrorBoundary>{children}</ErrorBoundary>
+        <main className="p-6">
+          {children}
         </main>
       </div>
     </div>

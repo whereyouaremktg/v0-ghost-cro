@@ -1,8 +1,89 @@
-/* Ghost OS Animation Tokens
- * Keyframes and animation utility classes extracted from globals.css
- */
+/* ============================================
+   GHOST OS 3.0 — Animation Tokens
+   ============================================ */
 
-/* ── Scanline Effect ────────────────────────────────── */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ── Fade In ─────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s var(--ease-out-expo);
+}
+
+/* ── Fade In Up ──────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s var(--ease-out-expo) forwards;
+}
+
+/* ── Slide In Right ──────────────────────────── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s var(--ease-out-expo);
+}
+
+/* ── Ghost Pulse ─────────────────────────────── */
+@keyframes ghostPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 20px hsl(var(--accent) / 0.2); }
+  50% { opacity: 0.7; box-shadow: 0 0 40px hsl(var(--accent) / 0.3); }
+}
+
+.ghost-pulse {
+  animation: ghostPulse 2s ease-in-out infinite;
+}
+
+/* ── Ghost Breathe ───────────────────────────── */
+@keyframes ghostBreathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.ghost-breathe {
+  animation: ghostBreathe 3s ease-in-out infinite;
+}
+
+/* ── Shimmer (loading skeletons) ─────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--surface-3) / 0.5) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ── Score Ring Fill ─────────────────────────── */
+@keyframes scoreRingFill {
+  from { stroke-dashoffset: var(--ring-circumference); }
+  to { stroke-dashoffset: var(--ring-offset); }
+}
+
+/* ── Scan Progress ───────────────────────────── */
 @keyframes scanline {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }
@@ -12,273 +93,18 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(251, 191, 36, 0.03) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom, transparent, hsl(var(--accent) / 0.03), transparent);
   height: 200%;
   animation: scanline 8s linear infinite;
   pointer-events: none;
-  z-index: 1;
 }
 
-/* ── Pulse Animation ────────────────────────────────── */
-@keyframes ghost-pulse {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 20px var(--ghost-blue-glow);
-  }
-  50% {
-    opacity: 0.7;
-    box-shadow: 0 0 40px var(--ghost-blue-glow);
-  }
-}
-
-.ghost-pulse {
-  animation: ghost-pulse 2s ease-in-out infinite;
-}
-
-/* ── Breathing Animation ────────────────────────────── */
-@keyframes ghost-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
-
-.ghost-breathe {
-  animation: ghost-breathe 3s ease-in-out infinite;
-}
-
-/* ── Log Entry Animation ────────────────────────────── */
-@keyframes ghost-log-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.ghost-log-enter {
-  animation: ghost-log-enter 0.3s ease-out;
-}
-
-/* ── Typing Cursor ──────────────────────────────────── */
-@keyframes ghost-cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.ghost-cursor {
-  animation: ghost-cursor-blink 1s step-end infinite;
-}
-
-/* ── Revenue Counter ────────────────────────────────── */
-@keyframes ghost-count-up {
-  from { opacity: 0; transform: translateY(10px); }
+/* ── Count Up ────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.ghost-counter {
-  animation: ghost-count-up 0.5s ease-out;
-}
-
-/* ── Floating Particle ──────────────────────────────── */
-@keyframes ghost-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(5deg); }
-}
-
-.ghost-float {
-  animation: ghost-float 4s ease-in-out infinite;
-}
-
-/* ── Fade In ────────────────────────────────────────── */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* ── Blink ──────────────────────────────────────────── */
-@keyframes blink {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0;
-  }
-}
-
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
-
-/* ── Pulse ──────────────────────────────────────────── */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-soft {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-/* ── Slide In Right ─────────────────────────────────── */
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out;
-}
-
-/* ── Pulse Ring ─────────────────────────────────────── */
-@keyframes pulseRing {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.2);
-    opacity: 0;
-  }
-}
-
-.animate-pulse-ring {
-  animation: pulseRing 0.6s ease-out;
-}
-
-/* ── Highlight Flash ────────────────────────────────── */
-@keyframes highlightFlash {
-  0%, 100% {
-    background-color: transparent;
-  }
-  50% {
-    background-color: rgba(251, 191, 36, 0.15);
-  }
-}
-
-.animate-highlight-flash {
-  animation: highlightFlash 1s ease-out;
-}
-
-/* ── Slide In Up ────────────────────────────────────── */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-in-up {
-  animation: slideInUp 0.5s ease-out;
-}
-
-/* ── Fade In Up ─────────────────────────────────────── */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
-}
-
-/* ── Fade In Right ──────────────────────────────────── */
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-fade-in-right {
-  animation: fadeInRight 0.6s ease-out forwards;
-}
-
-/* ── Landing Scanline ───────────────────────────────── */
-@keyframes landing-scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
-.landing-scanline {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(251, 191, 36, 0.03) 50%,
-    transparent 100%
-  );
-  height: 200%;
-  animation: landing-scan 8s linear infinite;
-  pointer-events: none;
-}
-
-/* ── Count Up ───────────────────────────────────────── */
-@keyframes count-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .animate-count-up {
-  animation: count-up 0.5s ease-out forwards;
-}
-
-/* ── Spring Bounce ──────────────────────────────────── */
-@keyframes spring-bounce {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-.spring-bounce:hover {
-  animation: spring-bounce 0.3s ease-in-out;
+  animation: countUp 0.4s var(--ease-out-expo) forwards;
 }

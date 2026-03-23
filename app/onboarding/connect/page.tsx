@@ -1,153 +1,124 @@
 "use client"
 
-import { Suspense, useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { Lock, Loader2, ShoppingBag, Ghost } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Shield, Store, Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
-/** Normalize input to shop domain: store.myshopify.com */
-function normalizeShopInput(input: string): string | null {
-  const trimmed = input.trim().toLowerCase()
-  if (!trimmed) return null
+export default function ConnectStorePage() {
+  const router = useRouter()
+  const [shop, setShop] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const host =
-    trimmed.replace(/^https?:\/\//, "").replace(/\/.*$/, "").split("/")[0] || ""
-  if (!host) return null
-
-  if (host.endsWith(".myshopify.com")) return host
-  if (host.includes(".")) return null
-
-  return `${host}.myshopify.com`
-}
-
-export default function ConnectPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-[var(--ghost-accent-primary)]" />
-        </div>
-      }
-    >
-      <ConnectPageContent />
-    </Suspense>
-  )
-}
-
-function ConnectPageContent() {
-  const searchParams = useSearchParams()
-  const [storeInput, setStoreInput] = useState("")
-  const [validationError, setValidationError] = useState<string | null>(null)
-  const [configError, setConfigError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (searchParams.get("error") === "shopify_not_configured") {
-      setConfigError(
-        "Shopify OAuth is not configured. Add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET to your environment variables.",
-      )
+  const normalizeShop = (input: string): string => {
+    let cleaned = input.trim().toLowerCase()
+    cleaned = cleaned.replace(/^https?:\/\//, "")
+    cleaned = cleaned.replace(/\/$/, "")
+    if (!cleaned.includes(".myshopify.com")) {
+      cleaned = cleaned.replace(/\.myshopify\.com.*/, "") + ".myshopify.com"
     }
-  }, [searchParams])
+    return cleaned
+  }
 
-  const normalizedShop = normalizeShopInput(storeInput)
-
-  const handleConnect = () => {
-    setValidationError(null)
-
-    if (!normalizedShop) {
-      setValidationError("Enter your store name or a valid .myshopify.com URL")
+  const handleConnect = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!shop.trim()) {
+      toast.error("Please enter your store URL")
       return
     }
 
-    window.location.href = `/api/auth/shopify/initiate?shop=${encodeURIComponent(normalizedShop)}`
+    setLoading(true)
+    const normalized = normalizeShop(shop)
+
+    try {
+      // Redirect to Shopify OAuth initiation
+      window.location.href = `/api/auth/shopify/initiate?shop=${encodeURIComponent(normalized)}`
+    } catch {
+      toast.error("Failed to connect. Please try again.")
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-[460px] rounded-2xl border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-secondary)] p-8 shadow-[0_0_60px_rgba(0,0,0,0.35)]">
-        <div className="mb-7 flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ghost-accent-primary)]">
-            <Ghost size={24} color="var(--ghost-bg-primary)" strokeWidth={2.5} />
-          </div>
-        </div>
-
-        <div className="mb-8 flex items-center justify-center gap-3">
-          {[
-            { label: "Connect", active: true },
-            { label: "Scan", active: false },
-            { label: "Results", active: false },
-          ].map((step, index) => (
-            <div key={step.label} className="flex items-center gap-3">
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{
-                    backgroundColor: step.active ? "var(--ghost-accent-primary)" : "var(--ghost-border-hover)",
-                    boxShadow: step.active ? "0 0 8px rgba(251,191,36,0.4)" : "none",
-                  }}
-                />
-                <span
-                  className="text-[11px]"
-                  style={{
-                    color: step.active ? "var(--ghost-accent-primary)" : "var(--ghost-text-dim)",
-                    fontWeight: step.active ? 600 : 400,
-                  }}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {index < 2 && <div className="mb-4 h-px w-12 bg-[var(--ghost-border-hover)]" />}
-            </div>
-          ))}
-        </div>
-
-        <h2 className="mb-2 text-center text-2xl font-semibold text-white">Connect your Shopify store</h2>
-        <p className="mb-6 text-center text-sm text-[var(--ghost-text-dim)]">
-          Enter your store URL to start scanning for conversion leaks.
-        </p>
-
-        {configError && (
-          <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 p-3 text-sm text-amber-200">
-            {configError}
-          </div>
-        )}
-
-        <div
-          className="mb-4 flex items-center gap-2 rounded-lg border border-[var(--ghost-bg-elevated)] bg-[var(--ghost-bg-primary)] px-4 py-3"
-          role="group"
-          aria-label="Store URL input"
-        >
-          <ShoppingBag size={18} color="var(--ghost-text-dim)" />
-          <input
-            type="text"
-            placeholder="yourstore"
-            value={storeInput}
-            onChange={(event) => setStoreInput(event.target.value)}
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[var(--ghost-text-subtle)]"
-            onKeyDown={(event) => event.key === "Enter" && handleConnect()}
-          />
-          <span className="text-xs text-[var(--ghost-text-subtle)]">.myshopify.com</span>
-        </div>
-
-        {validationError && <p className="mb-3 text-xs text-red-400">{validationError}</p>}
-
-        <button
-          type="button"
-          onClick={handleConnect}
-          disabled={!normalizedShop}
-          className="w-full rounded-lg py-3 text-sm font-semibold text-[var(--ghost-bg-primary)] transition-all disabled:cursor-not-allowed"
-          style={{
-            backgroundColor: normalizedShop ? "var(--ghost-accent-primary)" : "var(--ghost-border-hover)",
-            opacity: normalizedShop ? 1 : 0.6,
-            boxShadow: normalizedShop ? "0 0 20px rgba(251,191,36,0.18)" : "none",
-          }}
-        >
-          Connect Store
-        </button>
-
-        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-[var(--ghost-text-dim)]">
-          <Lock className="h-3.5 w-3.5" />
-          Read-only access. We never modify your store.
-        </div>
+    <div className="text-center">
+      {/* Step indicator */}
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <StepDot active label="1" />
+        <StepLine />
+        <StepDot label="2" />
+        <StepLine />
+        <StepDot label="3" />
       </div>
+
+      <h1 className="text-2xl font-bold text-[hsl(var(--text-primary))] mb-2">
+        Connect your Shopify store
+      </h1>
+      <p className="text-[hsl(var(--text-muted))] mb-8">
+        Ghost needs read-only access to analyze your theme and find revenue opportunities.
+      </p>
+
+      <Card className="max-w-md mx-auto">
+        <CardContent className="pt-6">
+          <form onSubmit={handleConnect} className="space-y-4">
+            <div className="relative">
+              <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--text-dim))]" />
+              <Input
+                placeholder="yourstore"
+                value={shop}
+                onChange={(e) => setShop(e.target.value)}
+                className="pl-10 pr-32"
+                autoFocus
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[hsl(var(--text-dim))]">
+                .myshopify.com
+              </span>
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                "Connect Store"
+              )}
+            </Button>
+          </form>
+
+          {/* Trust badges */}
+          <div className="flex items-center justify-center gap-4 mt-6 pt-6 border-t border-[hsl(var(--border-default))]">
+            <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--text-muted))]">
+              <Shield className="h-3.5 w-3.5 text-[hsl(var(--success))]" />
+              Read-only access
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-[hsl(var(--text-muted))]">
+              <Shield className="h-3.5 w-3.5 text-[hsl(var(--success))]" />
+              256-bit encryption
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
+}
+
+function StepDot({ active, label }: { active?: boolean; label: string }) {
+  return (
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+        active
+          ? "bg-[hsl(var(--accent))] text-[hsl(var(--primary-foreground))]"
+          : "bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]"
+      }`}
+    >
+      {label}
+    </div>
+  )
+}
+
+function StepLine() {
+  return <div className="w-12 h-px bg-[hsl(var(--border-default))]" />
 }

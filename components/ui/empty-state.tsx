@@ -1,54 +1,29 @@
-import { type LucideIcon } from "lucide-react"
-
+import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "./button"
 
-type EmptyStateProps = {
+interface EmptyStateProps {
   icon: LucideIcon
   title: string
   description: string
-  action?: React.ReactNode
-  variant?: "default" | "success"
+  action?: {
+    label: string
+    onClick: () => void
+  }
+  className?: string
 }
 
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-  variant = "default",
-}: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
-    <div className="relative rounded-xl border border-[#1F1F1F] bg-[#111111] p-10 text-center ghost-dots overflow-hidden">
-      <div className="relative">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center">
-          <div
-            className={cn(
-              "absolute h-16 w-16 rounded-full border border-dashed",
-              variant === "success"
-                ? "border-[#10B981]/15"
-                : "border-[#FBBF24]/15",
-            )}
-          />
-          <div
-            className={cn(
-              "flex h-11 w-11 items-center justify-center rounded-full",
-              variant === "success" ? "bg-[#10B981]/10" : "bg-[#FBBF24]/10",
-            )}
-          >
-            <Icon
-              className={cn(
-                "h-5 w-5",
-                variant === "success" ? "text-[#10B981]" : "text-[#FBBF24]",
-              )}
-            />
-          </div>
-        </div>
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[#9CA3AF]">
-          {description}
-        </p>
-        {action && <div className="mt-6 flex justify-center">{action}</div>}
+    <div className={cn("flex flex-col items-center justify-center py-16 px-4 text-center", className)}>
+      <div className="w-12 h-12 rounded-xl bg-[hsl(var(--surface-2))] flex items-center justify-center mb-4">
+        <Icon className="w-6 h-6 text-[hsl(var(--text-muted))]" />
       </div>
+      <h3 className="text-lg font-semibold text-[hsl(var(--text-primary))] mb-1">{title}</h3>
+      <p className="text-sm text-[hsl(var(--text-muted))] max-w-sm mb-6">{description}</p>
+      {action && (
+        <Button onClick={action.onClick}>{action.label}</Button>
+      )}
     </div>
   )
 }

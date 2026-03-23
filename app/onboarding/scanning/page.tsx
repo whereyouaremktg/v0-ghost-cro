@@ -1,295 +1,190 @@
 "use client"
 
-import { Suspense, useEffect, useMemo, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Ghost, CheckCircle, Circle, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Card, CardContent } from "@/components/ui/card"
 
-import { GhostLogo } from "@/components/ghost-logo"
-import { ScanChecklist } from "@/components/onboarding/scan-checklist"
-import { GhostButton } from "@/components/ui/ghost-button"
-import { readFirstNDJSONLine } from "@/lib/utils/ndjson-reader"
-
-const SCAN_TIMEOUT_SECONDS = 240
-
-const steps = [
-  "Connecting to your store...",
-  "Reviewing theme structure...",
-  "Pulling speed metrics...",
-  "Evaluating mobile experience...",
-  "Analyzing cart experience...",
-  "Assessing trust signals...",
+const SCAN_STEPS = [
+  { label: "Analyzing theme structure", threshold: 15 },
+  { label: "Evaluating page speed", threshold: 35 },
+  { label: "Checking mobile experience", threshold: 55 },
+  { label: "Simulating buyer personas", threshold: 75 },
+  { label: "Generating recommendations", threshold: 90 },
 ]
-
-type ScanStatus = "pending" | "running" | "completed" | "failed"
-
-const statusBaseProgress: Record<ScanStatus, number> = {
-  pending: 10,
-  running: 20,
-  completed: 100,
-  failed: 100,
-}
 
 export default function ScanningPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-amber-400" /></div>}>
-      <ScanningPageContent />
+    <Suspense fallback={<ScanningFallback />}>
+      <ScanningContent />
     </Suspense>
   )
 }
 
-function ScanningPageContent() {
+function ScanningFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-6 w-6 animate-spin text-[hsl(var(--accent))]" />
+    </div>
+  )
+}
+
+function ScanningContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const testId = searchParams.get("testId") ?? ""
-  const [status, setStatus] = useState<ScanStatus>("pending")
-  const [stepIndex, setStepIndex] = useState(0)
-  const [timedOut, setTimedOut] = useState(false)
-  const [timeRemaining, setTimeRemaining] = useState(SCAN_TIMEOUT_SECONDS)
-  const [isRestarting, setIsRestarting] = useState(false)
-  const [actionError, setActionError] = useState<string | null>(null)
+  const testId = searchParams.get("testId")
+  const [progress, setProgress] = useState(0)
+  const [status, setStatus] = useState<"running" | "completed" | "failed">("running")
 
   useEffect(() => {
-    setStatus("pending")
-    setStepIndex(0)
-    setTimedOut(false)
-    setTimeRemaining(SCAN_TIMEOUT_SECONDS)
-    setActionError(null)
-  }, [testId])
+    if (!testId) return
 
-  const [pollFailures, setPollFailures] = useState(0)
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/analyze/${testId}/status`)
+        if (!res.ok) return
 
-  useEffect(() => {
-    if (!testId || timedOut || status === "completed" || status === "failed") {
-      return
-    }
+        const data = await res.json()
 
-    // Small initial delay to avoid race condition where job isn't in DB yet
-    const initialDelay = setTimeout(() => {
-      const interval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/analyze/${testId}/status`)
-
-          if (!res.ok) {
-            // Transient errors (404 during creation, 500, etc.) — tolerate a few
-            setPollFailures((prev) => {
-              const next = prev + 1
-              if (next >= 5) {
-                console.error(`Status polling failed ${next} times, giving up`)
-                setStatus("failed")
-                clearInterval(interval)
-              }
-              return next
-            })
-            return
-          }
-
-          const data = await res.json()
-          const jobStatus = data.status as ScanStatus | undefined
-
-          if (!jobStatus) return // Ignore malformed responses
-
-          setPollFailures(0) // Reset on success
-          setStatus(jobStatus)
-
-          if (jobStatus === "completed") {
-            clearInterval(interval)
-            window.location.href = `/onboarding/results?testId=${testId}`
-          }
-
-          if (jobStatus === "failed") {
-            clearInterval(interval)
-          }
-        } catch (error) {
-          console.error("Failed to poll scan status", error)
-          setPollFailures((prev) => {
-            const next = prev + 1
-            if (next >= 5) {
-              setStatus("failed")
-              clearInterval(interval)
-            }
-            return next
-          })
+        if (data.status === "completed") {
+          setProgress(100)
+          setStatus("completed")
+          clearInterval(interval)
+          // Brief delay so user sees 100%, then navigate
+          setTimeout(() => {
+            router.push(`/onboarding/results?testId=${testId}`)
+          }, 1000)
+        } else if (data.status === "failed") {
+          setStatus("failed")
+          clearInterval(interval)
+        } else {
+          // Simulate incremental progress
+          setProgress((prev) => Math.min(prev + 3, 92))
         }
-      }, 2000)
+      } catch {
+        // Network error, keep polling
+      }
+    }, 3000)
 
-      cleanupRef.current = () => clearInterval(interval)
-    }, 1500) // Wait 1.5s before first poll
-
-    const cleanupRef = { current: () => {} }
+    // Initial progress tick
+    const progressTick = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 92) return prev
+        return prev + 1
+      })
+    }, 2000)
 
     return () => {
-      clearTimeout(initialDelay)
-      cleanupRef.current()
+      clearInterval(interval)
+      clearInterval(progressTick)
     }
-  }, [testId, timedOut, status])
-
-  useEffect(() => {
-    if (!testId || timedOut || status === "completed" || status === "failed") {
-      return
-    }
-
-    const interval = setInterval(() => {
-      setTimeRemaining((previous) => {
-        if (previous <= 1) {
-          setTimedOut(true)
-          return 0
-        }
-        return previous - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [testId, timedOut, status])
-
-  useEffect(() => {
-    if (status === "pending") {
-      setStepIndex(0)
-      return
-    }
-    if (status === "failed" || timedOut) {
-      setStepIndex(steps.length - 1)
-      return
-    }
-
-    const interval = setInterval(() => {
-      setStepIndex((prev) => Math.min(prev + 1, steps.length - 1))
-    }, 1200)
-
-    return () => clearInterval(interval)
-  }, [status, timedOut])
-
-  const handleTryAgain = async () => {
-    setActionError(null)
-    setIsRestarting(true)
-
-    try {
-      if (testId) {
-        await fetch(`/api/analyze/${testId}/cancel`, { method: "POST" }).catch(() => null)
-      }
-
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({ error: "Failed to restart scan" }))
-        throw new Error(errData.error || "Failed to restart scan")
-      }
-
-      const data = await readFirstNDJSONLine<{ jobId?: string }>(response)
-
-      if (!data.jobId) {
-        throw new Error("No job ID returned")
-      }
-
-      window.location.href = `/onboarding/scanning?testId=${data.jobId}`
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Failed to restart scan")
-      setIsRestarting(false)
-    }
-  }
-
-  const handleGoDashboard = () => {
-    router.push("/dashboard")
-  }
-
-  const [smoothProgress, setSmoothProgress] = useState(0)
-
-  useEffect(() => {
-    if (status === "completed" || status === "failed") {
-      setSmoothProgress(statusBaseProgress[status])
-      return
-    }
-    // Smoothly increment progress while running, approaching but never reaching 95
-    const interval = setInterval(() => {
-      setSmoothProgress((prev) => {
-        const base = statusBaseProgress[status]
-        const target = 92
-        if (prev < base) return base
-        // Slow logarithmic approach to target
-        return prev + (target - prev) * 0.04
-      })
-    }, 800)
-    return () => clearInterval(interval)
-  }, [status])
-
-  const progress = Math.round(smoothProgress)
-  const checklistItems = useMemo(
-    () => [
-      { label: "Theme structure", done: progress > 20 },
-      { label: "Page speed metrics", done: progress > 40 },
-      { label: "Mobile experience", done: progress > 55 },
-      { label: "Cart experience", done: progress > 75 },
-      { label: "Trust signals", done: progress > 90 },
-    ],
-    [progress],
-  )
-
-  const countdownLabel = useMemo(() => {
-    const minutes = Math.floor(timeRemaining / 60)
-    const seconds = timeRemaining % 60
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`
-  }, [timeRemaining])
+  }, [testId, router])
 
   return (
-    <div className="max-w-lg mx-auto text-center">
-      <div className="relative mb-8 flex items-center justify-center">
-        <GhostLogo size={80} className="animate-pulse" />
-        <div className="absolute inset-0 bg-[var(--ghost-accent-primary)]/10 rounded-full animate-ping" />
+    <div className="text-center">
+      {/* Step indicator */}
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <StepDot completed label="1" />
+        <StepLine active />
+        <StepDot active label="2" />
+        <StepLine />
+        <StepDot label="3" />
       </div>
 
-      <h1 className="text-2xl font-bold text-white mb-2">
-        {timedOut
-          ? "Analysis is taking longer than expected"
-          : status === "failed"
-            ? "Scan failed"
-            : "Analyzing your store..."}
+      {/* Ghost animation */}
+      <div className="mb-8">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-[hsl(var(--accent)/0.1)] ghost-pulse">
+          <Ghost className="h-10 w-10 text-[hsl(var(--accent))]" />
+        </div>
+      </div>
+
+      <h1 className="text-2xl font-bold text-[hsl(var(--text-primary))] mb-2">
+        {status === "failed" ? "Scan failed" : "Scanning your store..."}
       </h1>
-
-      <div className="w-full bg-[var(--ghost-bg-secondary)] rounded-full h-2 mb-4">
-        <div
-          className="bg-[var(--ghost-accent-primary)] h-2 rounded-full transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      {!timedOut && status !== "failed" && (
-        <p className="text-xs text-[var(--ghost-text-muted)] mb-2">Timeout in {countdownLabel}</p>
-      )}
-
-      <p className="text-[var(--ghost-text-muted)] mb-8">
-        {timedOut
-          ? "You can retry now or continue to dashboard while we keep things stable."
-          : status === "failed"
-            ? "Something went wrong while checking scan progress."
-            : steps[stepIndex]}
+      <p className="text-[hsl(var(--text-muted))] mb-8">
+        {status === "failed"
+          ? "Something went wrong during the analysis."
+          : "Ghost is analyzing your theme with AI buyer personas. This takes 1-3 minutes."}
       </p>
 
-      <div className="text-left bg-[var(--ghost-bg-secondary)] rounded-lg p-4 border border-[var(--ghost-border)]">
-        <ScanChecklist items={checklistItems} />
-      </div>
-
-      {(timedOut || status === "failed") && (
-        <div className="mt-6 flex flex-col gap-3">
-          <GhostButton onClick={handleTryAgain} disabled={isRestarting}>
-            {isRestarting ? "Restarting..." : "Try Again"}
-          </GhostButton>
-          <GhostButton variant="outline" onClick={handleGoDashboard} disabled={isRestarting}>
-            Go to Dashboard
-          </GhostButton>
-          {actionError && <p className="text-sm text-red-400">{actionError}</p>}
+      {status !== "failed" && (
+        <div className="max-w-sm mx-auto mb-8">
+          <Progress value={progress} className="h-2 mb-2" />
+          <p className="text-xs text-[hsl(var(--text-dim))] text-right">{progress}%</p>
         </div>
       )}
 
-      {!timedOut && status !== "failed" && status !== "completed" && (
-        <div className="mt-6">
-          <GhostButton variant="outline" onClick={handleGoDashboard}>
-            Cancel
-          </GhostButton>
+      {/* Checklist */}
+      <Card className="max-w-sm mx-auto">
+        <CardContent className="pt-6">
+          <div className="space-y-3 text-left">
+            {SCAN_STEPS.map((step) => {
+              const isDone = progress >= step.threshold
+              const isActive = !isDone && progress >= step.threshold - 20
+
+              return (
+                <div key={step.label} className="flex items-center gap-3">
+                  {isDone ? (
+                    <CheckCircle className="h-4 w-4 text-[hsl(var(--success))] shrink-0" />
+                  ) : isActive ? (
+                    <Loader2 className="h-4 w-4 text-[hsl(var(--accent))] animate-spin shrink-0" />
+                  ) : (
+                    <Circle className="h-4 w-4 text-[hsl(var(--text-dim))] shrink-0" />
+                  )}
+                  <span
+                    className={`text-sm ${
+                      isDone
+                        ? "text-[hsl(var(--text-primary))]"
+                        : isActive
+                          ? "text-[hsl(var(--text-secondary))]"
+                          : "text-[hsl(var(--text-dim))]"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {status === "failed" && (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button variant="outline" onClick={() => router.push("/dashboard")}>
+            Go to Dashboard
+          </Button>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       )}
     </div>
+  )
+}
+
+function StepDot({ active, completed, label }: { active?: boolean; completed?: boolean; label: string }) {
+  return (
+    <div
+      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+        completed
+          ? "bg-[hsl(var(--success))] text-white"
+          : active
+            ? "bg-[hsl(var(--accent))] text-[hsl(var(--primary-foreground))]"
+            : "bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]"
+      }`}
+    >
+      {completed ? <CheckCircle className="h-4 w-4" /> : label}
+    </div>
+  )
+}
+
+function StepLine({ active }: { active?: boolean }) {
+  return (
+    <div
+      className={`w-12 h-px ${
+        active ? "bg-[hsl(var(--accent))]" : "bg-[hsl(var(--border-default))]"
+      }`}
+    />
   )
 }

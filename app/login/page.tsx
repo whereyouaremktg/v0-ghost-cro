@@ -2,99 +2,109 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { Ghost } from "lucide-react"
-import { mapAuthError } from "@/lib/errors/user-friendly"
+import { Ghost, Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(mapAuthError(error))
-      setLoading(false)
-    } else {
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
       router.push("/dashboard")
+      router.refresh()
+    } catch {
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[var(--ghost-bg)] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--ghost-accent-primary)]/10 border border-[var(--ghost-accent-primary)]/20 mb-4">
-            <Ghost className="w-6 h-6 text-[var(--ghost-accent-primary)]" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-          <p className="text-zinc-400 mt-2">Sign in to your Ghost CRO account</p>
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--surface-0))] px-4">
+      {/* Background subtle pattern */}
+      <div className="fixed inset-0 ghost-grid opacity-50 pointer-events-none" />
+
+      <div className="relative w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <Ghost className="h-8 w-8 text-[hsl(var(--accent))]" />
+          <span className="text-xl font-bold text-[hsl(var(--text-primary))]">Ghost CRO</span>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
+        <Card>
+          <CardHeader className="text-center pb-2">
+            <h1 className="text-xl font-semibold text-[hsl(var(--text-primary))]">
+              Welcome back
+            </h1>
+            <p className="text-sm text-[hsl(var(--text-muted))]">
+              Sign in to your account
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign in"
+                )}
+              </Button>
+            </form>
 
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--ghost-accent-primary)]"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-zinc-400">Password</label>
-              <Link href="/reset-password" className="text-xs text-[var(--ghost-accent-primary)] hover:underline">
-                Forgot password?
+            <p className="mt-6 text-center text-sm text-[hsl(var(--text-muted))]">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-[hsl(var(--accent))] hover:underline font-medium">
+                Sign up
               </Link>
-            </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--ghost-accent-primary)]"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg bg-[var(--ghost-accent-primary)] text-[var(--ghost-bg-primary)] font-medium hover:bg-[var(--ghost-accent-secondary)] transition-colors disabled:opacity-50"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        <p className="text-center text-zinc-500 text-sm mt-6">
-          Don't have an account?{" "}
-          <Link href="/signup" className="text-[var(--ghost-accent-primary)] hover:underline">
-            Sign up
-          </Link>
-        </p>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

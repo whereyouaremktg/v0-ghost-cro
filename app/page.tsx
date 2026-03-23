@@ -1,61 +1,64 @@
-'use client'
-
-import {
-  Navbar,
-  Hero,
-  TrustBar,
-  FeatureSection,
-  CTASection,
-  Footer,
-} from '@/components/landing'
+import Link from "next/link"
+import { Ghost, ArrowRight } from "lucide-react"
 
 export default function LandingPage() {
   return (
-    <div className="landing-theme min-h-screen bg-[var(--landing-bg)]">
-      <Navbar />
-      <Hero />
-      <TrustBar />
+    <div className="min-h-screen bg-[hsl(var(--surface-0))] flex flex-col">
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--border-default))]">
+        <div className="flex items-center gap-2">
+          <Ghost className="h-6 w-6 text-[hsl(var(--accent))]" />
+          <span className="font-semibold text-[hsl(var(--text-primary))]">Ghost CRO</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-sm text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] transition-colors"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--accent))] px-4 py-2 text-sm font-medium text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--accent-hover))] transition-colors"
+          >
+            Get Started
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </nav>
 
-      {/* Feature Section 1: Typography */}
-      <FeatureSection
-        icon="type"
-        badge="Typography Intelligence"
-        title="Typography that converts."
-        description="Micro-adjustments in font size, line-height, and hierarchy that compound into meaningful conversion lifts. Our AI spots what the human eye misses."
-        checklistItems={[
-          'Dynamic font scaling based on device',
-          'Contrast ratio optimization',
-          'Header hierarchy testing',
-        ]}
-        imageSide="right"
-      />
+      {/* Hero */}
+      <main className="flex-1 flex items-center justify-center px-6">
+        <div className="max-w-2xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[hsl(var(--accent)/0.1)] border border-[hsl(var(--accent)/0.2)] text-[hsl(var(--accent))] text-xs font-medium mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent))]" />
+            AI-Powered CRO for Shopify
+          </div>
 
-      {/* Feature Section 2: Checkout */}
-      <FeatureSection
-        icon="credit-card"
-        badge="Checkout Intelligence"
-        title="Frictionless checkout."
-        description="The most critical point in your funnel deserves the most attention. We analyze every element that could cause a customer to abandon their cart."
-        link={{ label: 'Explore Checkout Intelligence', href: '#checkout' }}
-        imageSide="left"
-      />
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-[hsl(var(--text-primary))] leading-[1.1] mb-6">
+            Your silent
+            <br />
+            <span className="text-[hsl(var(--accent))]">CRO engine</span>
+            <br />
+            for Shopify.
+          </h1>
 
-      {/* Feature Section 3: Merchandising */}
-      <FeatureSection
-        icon="bar-chart-3"
-        badge="A/B Testing"
-        title="Data-driven merchandising."
-        description="Stop guessing which product image works best. Our AI tests visual variations and surfaces the winners before you even know there's a problem."
-        checklistItems={[
-          'Product image A/B testing',
-          'Layout optimization',
-          'Price display experiments',
-        ]}
-        imageSide="right"
-      />
+          <p className="text-lg text-[hsl(var(--text-secondary))] mb-10 max-w-xl mx-auto leading-relaxed">
+            Ghost scans your store, simulates real buyer personas, and surfaces
+            revenue-killing friction with production-ready fixes.
+          </p>
 
-      <CTASection />
-      <Footer />
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 rounded-lg bg-[hsl(var(--accent))] px-6 py-3 text-base font-medium text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--accent-hover))] shadow-md hover:shadow-lg transition-all"
+            >
+              Connect Your Store
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

@@ -1,274 +1,251 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  Palette,
-  Scan,
-  ShoppingCart,
-  Zap,
-} from "lucide-react"
-import { format } from "date-fns"
-
-import { GhostButton } from "@/components/ui/ghost-button"
-import { GhostCard } from "@/components/ui/ghost-card"
+import { Scan, Loader2, Zap, Smartphone, ShoppingCart } from "lucide-react"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
-import { useLatestTest } from "@/hooks/use-latest-test"
-import { readFirstNDJSONLine } from "@/lib/utils/ndjson-reader"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-type ToggleCard = {
-  id: "analyzeTheme" | "analyzeCheckout" | "analyzeSpeed"
-  icon: typeof Palette
-  label: string
-  description: string
-}
-
-const toggleCards: ToggleCard[] = [
-  {
-    id: "analyzeTheme",
-    icon: Palette,
-    label: "Analyze Theme",
-    description: "Scan storefront UX friction and conversion blockers.",
-  },
-  {
-    id: "analyzeCheckout",
-    icon: ShoppingCart,
-    label: "Analyze Cart",
-    description: "Evaluate cart experience with AI buyer personas.",
-  },
-  {
-    id: "analyzeSpeed",
-    icon: Zap,
-    label: "Analyze Speed",
-    description: "Check load performance and key experience metrics.",
-  },
+const PERSONA_MIXES = [
+  { value: "balanced", label: "Balanced", description: "Standard shopper mix" },
+  { value: "price-sensitive", label: "Price Sensitive", description: "Cost-conscious buyers" },
+  { value: "mobile-heavy", label: "Mobile Heavy", description: "Mobile-first users" },
+  { value: "skeptical", label: "Skeptical", description: "Trust-focused buyers" },
 ]
 
 export default function ScannerPage() {
   const router = useRouter()
   const { userId } = useAuthUserId()
-  const { test } = useLatestTest(userId)
-
-  const [isScanning, setIsScanning] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [store, setStore] = useState<{ shop: string } | null>(null)
+  const [personaMix, setPersonaMix] = useState("balanced")
   const [scanConfig, setScanConfig] = useState({
     analyzeTheme: true,
-    analyzeCheckout: false,
+    analyzeCheckout: true,
     analyzeSpeed: true,
   })
+  const [running, setRunning] = useState(false)
 
-  const history = useMemo(() => {
-    if (!test) return []
+  useEffect(() => {
+    if (!userId) return
+    const supabase = createClient()
+    supabase
+      .from("stores")
+      .select("shop")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setStore(data)
+      })
+  }, [userId])
 
-    return [
-      {
-        id: test.id,
-        date: test.date ? format(new Date(test.date), "MMM d, yyyy") : "Unknown",
-        score: test.score,
-        duration: "~3m",
-        status: "completed",
-      },
-    ]
-  }, [test])
-
-  const shouldShowSettingsLink =
-    typeof error === "string" && /subscription|shopify store|connect/i.test(error)
-
-  const handleTriggerScan = async () => {
-    if (!userId) {
-      setError("Please log in to run a scan")
+  const handleScan = async () => {
+    if (!store?.shop) {
+      toast.error("No store connected")
       return
     }
 
-    setIsScanning(true)
-    setError(null)
-
+    setRunning(true)
     try {
-      const response = await fetch("/api/analyze", {
+      // Auto-discover the main product URL
+      const discoverRes = await fetch(
+        `/api/shopify/auto-discover?shop=${encodeURIComponent(store.shop)}`
+      )
+      let url = `https://${store.shop}`
+      if (discoverRes.ok) {
+        const discoverData = await discoverRes.json()
+        if (discoverData.url) url = discoverData.url
+      }
+
+      const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: scanConfig }),
+        body: JSON.stringify({
+          url,
+          personaMix,
+          shop: store.shop,
+          scanConfig,
+        }),
       })
 
-      if (!response.ok) {
-        const data = await response
-          .json()
-          .catch(() => ({ error: "Unexpected response from analyze API" }))
-
-        if (response.status === 402) {
-          const message =
-            data.message ||
-            data.error ||
-            "Complete setup required: connect your Shopify store in Settings and activate a billing plan before running scans."
-          throw new Error(message)
-        }
-
-        if (response.status === 429) {
-          const retryAfter = typeof data.retryAfter === "number" ? data.retryAfter : null
-          throw new Error(
-            retryAfter
-              ? `Rate limit exceeded. Try again in ${retryAfter} seconds.`
-              : "Rate limit exceeded. Please try again shortly.",
-          )
-        }
-
-        if (response.status === 401) {
-          throw new Error("Your session expired. Please refresh and sign in again.")
-        }
-
-        throw new Error(data.error || "Failed to start scan")
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || "Failed to start scan")
+        return
       }
 
-      // Read first NDJSON line for jobId (server stream continues independently)
-      const data = await readFirstNDJSONLine<{ jobId?: string }>(response)
-
-      if (!data.jobId) {
-        throw new Error("No job ID returned")
+      const data = await res.json()
+      if (data.testId) {
+        router.push(`/onboarding/scanning?testId=${data.testId}`)
+      } else {
+        toast.error("Unexpected response from scan")
       }
-
-      router.push(`/onboarding/scanning?testId=${data.jobId}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start scan")
-      setIsScanning(false)
+    } catch {
+      toast.error("Failed to start scan")
+    } finally {
+      setRunning(false)
     }
   }
 
+  const toggleConfig = (key: keyof typeof scanConfig) => {
+    setScanConfig((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      <GhostCard className="overflow-hidden border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)]">
-        <div className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">Run Ghost Scan</h2>
-            <p className="mt-1 text-sm text-[var(--ghost-text-dim)]">
-              AI-powered analysis of your storefront conversion funnel.
-            </p>
-
-            {error && (
-              <>
-                <div className="mt-3 flex items-start gap-2 text-sm text-red-400">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
-                {shouldShowSettingsLink && (
-                  <p className="mt-1 text-xs text-[var(--ghost-text-muted)]">
-                    Open{" "}
-                    <Link
-                      href="/dashboard/settings"
-                      className="text-[var(--ghost-accent-primary)] underline hover:text-[var(--ghost-accent-secondary)]"
-                    >
-                      Settings
-                    </Link>{" "}
-                    and complete Integrations + Billing first.
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-
-          <GhostButton onClick={handleTriggerScan} disabled={isScanning} size="lg">
-            {isScanning ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Scan className="h-4 w-4" />
-            )}
-            {isScanning ? "Starting..." : "Trigger New Scan"}
-          </GhostButton>
-        </div>
-      </GhostCard>
-
-      <div className="rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)] p-6">
-        <h3 className="mb-4 text-lg font-semibold text-white">Scan Configuration</h3>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {toggleCards.map((card) => {
-            const enabled = scanConfig[card.id]
-            const Icon = card.icon
-
-            return (
-              <button
-                key={card.id}
-                type="button"
-                onClick={() =>
-                  setScanConfig((prev) => ({
-                    ...prev,
-                    [card.id]: !prev[card.id],
-                  }))
-                }
-                className="rounded-xl border p-4 text-left transition-all"
-                style={{
-                  backgroundColor: enabled ? "rgba(251, 191, 36, 0.06)" : "var(--ghost-bg-secondary)",
-                  borderColor: enabled ? "rgba(251, 191, 36, 0.3)" : "var(--ghost-border)",
-                }}
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <div
-                    className="flex h-9 w-9 items-center justify-center rounded-lg"
-                    style={{
-                      backgroundColor: enabled ? "rgba(251, 191, 36, 0.15)" : "var(--ghost-bg-elevated)",
-                    }}
-                  >
-                    <Icon className="h-4 w-4" color={enabled ? "var(--ghost-accent-primary)" : "var(--ghost-text-dim)"} />
-                  </div>
-                  <span
-                    className="inline-flex h-5 w-10 items-center rounded-full transition-colors"
-                    style={{ backgroundColor: enabled ? "var(--ghost-accent-primary)" : "var(--ghost-border-hover)" }}
-                  >
-                    <span
-                      className="h-4 w-4 rounded-full bg-white transition-all"
-                      style={{ transform: enabled ? "translateX(20px)" : "translateX(2px)" }}
-                    />
-                  </span>
-                </div>
-                <p className="text-sm font-semibold text-white">{card.label}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--ghost-text-dim)]">{card.description}</p>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="mt-5 flex items-center gap-2 text-xs text-[var(--ghost-text-dim)]">
-          <Clock className="h-3.5 w-3.5" />
-          Manual only
-        </div>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-[hsl(var(--text-primary))]">Run a Scan</h2>
+        <p className="text-sm text-[hsl(var(--text-muted))]">
+          Configure and run an AI-powered analysis of your store.
+        </p>
       </div>
 
-      <div className="rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-primary)] p-6">
-        <h3 className="mb-4 text-lg font-semibold text-white">Scan History</h3>
+      {/* Store info */}
+      <Card>
+        <CardContent className="pt-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="label-uppercase mb-1">Connected Store</p>
+              <p className="text-sm font-medium text-[hsl(var(--text-primary))]">
+                {store?.shop || "Loading..."}
+              </p>
+            </div>
+            <Badge variant="success">Connected</Badge>
+          </div>
+        </CardContent>
+      </Card>
 
-        {history.length === 0 ? (
-          <p className="py-6 text-center text-sm text-[var(--ghost-text-subtle)]">
-            No scans yet. Run your first scan to see history.
-          </p>
+      {/* Scan config */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Analysis Scope</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <ConfigToggle
+            icon={Scan}
+            label="Theme Analysis"
+            description="UX friction, conversion blockers, trust signals"
+            enabled={scanConfig.analyzeTheme}
+            onToggle={() => toggleConfig("analyzeTheme")}
+          />
+          <ConfigToggle
+            icon={ShoppingCart}
+            label="Checkout Analysis"
+            description="Cart experience with AI buyer personas"
+            enabled={scanConfig.analyzeCheckout}
+            onToggle={() => toggleConfig("analyzeCheckout")}
+          />
+          <ConfigToggle
+            icon={Zap}
+            label="Speed Analysis"
+            description="Page load performance and metrics"
+            enabled={scanConfig.analyzeSpeed}
+            onToggle={() => toggleConfig("analyzeSpeed")}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Persona mix */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Persona Mix</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={personaMix} onValueChange={setPersonaMix}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PERSONA_MIXES.map((mix) => (
+                <SelectItem key={mix.value} value={mix.value}>
+                  {mix.label} — {mix.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Run button */}
+      <Button
+        onClick={handleScan}
+        disabled={running || !store}
+        className="w-full"
+        size="lg"
+      >
+        {running ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Starting scan...
+          </>
         ) : (
-          <div className="space-y-3">
-            {history.map((scan) => (
-              <div
-                key={scan.id}
-                className="flex flex-col gap-3 rounded-xl border border-[var(--ghost-border)] bg-[var(--ghost-bg-secondary)] p-4 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-[var(--ghost-accent-primary)]/10 p-2">
-                    <CheckCircle2 className="h-4 w-4 text-[var(--ghost-accent-primary)]" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{scan.date}</p>
-                    <p className="text-xs text-[var(--ghost-text-subtle)]">
-                      {scan.status} • {scan.duration}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-sm font-semibold font-mono tabular-nums text-[var(--ghost-accent-primary)]">Score {scan.score}</div>
-              </div>
-            ))}
-          </div>
+          <>
+            <Scan className="h-4 w-4" />
+            Run Scan
+          </>
         )}
-      </div>
+      </Button>
     </div>
+  )
+}
+
+function ConfigToggle({
+  icon: Icon,
+  label,
+  description,
+  enabled,
+  onToggle,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  description: string
+  enabled: boolean
+  onToggle: () => void
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
+        enabled
+          ? "border-[hsl(var(--accent)/0.3)] bg-[hsl(var(--accent)/0.05)]"
+          : "border-[hsl(var(--border-default))] bg-transparent hover:bg-[hsl(var(--surface-2))]"
+      }`}
+    >
+      <div
+        className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+          enabled ? "bg-[hsl(var(--accent)/0.15)]" : "bg-[hsl(var(--surface-2))]"
+        }`}
+      >
+        <Icon className={`h-4 w-4 ${enabled ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--text-dim))]"}`} />
+      </div>
+      <div className="flex-1">
+        <p className={`text-sm font-medium ${enabled ? "text-[hsl(var(--text-primary))]" : "text-[hsl(var(--text-muted))]"}`}>
+          {label}
+        </p>
+        <p className="text-xs text-[hsl(var(--text-dim))]">{description}</p>
+      </div>
+      <div
+        className={`w-9 h-5 rounded-full transition-colors ${
+          enabled ? "bg-[hsl(var(--accent))]" : "bg-[hsl(var(--surface-3))]"
+        }`}
+      >
+        <div
+          className={`w-4 h-4 rounded-full bg-white mt-0.5 transition-transform ${
+            enabled ? "translate-x-4.5" : "translate-x-0.5"
+          }`}
+        />
+      </div>
+    </button>
   )
 }

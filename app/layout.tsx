@@ -1,54 +1,47 @@
-import type React from "react"
 import type { Metadata } from "next"
-import { Analytics } from "@vercel/analytics/next"
-import { isSupabaseConfigured } from "@/lib/supabase/env"
-import { SupabaseSetupPrompt } from "@/components/supabase-setup-prompt"
+import localFont from "next/font/local"
+import { Toaster } from "sonner"
 import "./globals.css"
 
+const geistSans = localFont({
+  src: "../node_modules/next/dist/next-devtools/server/font/geist-latin.woff2",
+  variable: "--font-geist-sans",
+  display: "swap",
+})
+
+const geistMono = localFont({
+  src: "../node_modules/next/dist/next-devtools/server/font/geist-mono-latin.woff2",
+  variable: "--font-geist-mono",
+  display: "swap",
+})
+
 export const metadata: Metadata = {
-  title: "Ghost CRO — AI Checkout Analysis for Shopify",
-  description:
-    "AI analyzes your checkout like 1,000 real shoppers would. Get actionable fixes in 5 minutes, not 5 weeks.",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
+  title: "Ghost CRO — Silent Optimization for Shopify",
+  description: "AI-powered conversion rate optimization for Shopify stores. Find revenue leaks, get production-ready fixes, and monitor your store health.",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
-  if (!isSupabaseConfigured()) {
-    return (
-      <html lang="en">
-        <body className="font-sans antialiased" suppressHydrationWarning>
-          <SupabaseSetupPrompt />
-          <Analytics />
-        </body>
-      </html>
-    )
-  }
-
+}) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased" suppressHydrationWarning>
+    <html lang="en" className="dark">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[hsl(var(--surface-0))] text-[hsl(var(--text-primary))] antialiased`}
+      >
         {children}
-        <Analytics />
+        <Toaster
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "hsl(var(--surface-1))",
+              border: "1px solid hsl(var(--border-default))",
+              color: "hsl(var(--text-primary))",
+            },
+          }}
+        />
       </body>
     </html>
   )
