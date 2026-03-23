@@ -1,197 +1,95 @@
-/* Ghost OS Color Tokens
- * Extract from globals.css — source of truth for all colors.
- */
+/* ============================================
+   GHOST OS 3.0 — Color Tokens
+   Dark + Amber/Gold, Modernized
+   ============================================ */
 
 :root {
-  /* ── Ghost OS Branding ────────────────────────── */
+  /* ── Surface System (dark backgrounds) ──────── */
+  --surface-0: 0 0% 4%;          /* #0A0A0A — deepest bg */
+  --surface-1: 0 0% 7%;          /* #121212 — cards */
+  --surface-2: 0 0% 10%;         /* #1A1A1A — elevated */
+  --surface-3: 0 0% 14%;         /* #242424 — hover/active */
 
-  /* Backgrounds */
-  --ghost-bg-primary: #0A0A0A;
-  --ghost-bg-secondary: #111111;
-  --ghost-bg-elevated: #1A1A1A;
-  --ghost-bg-surface: #1F1F1F;
+  /* ── Text ────────────────────────────────────── */
+  --text-primary: 0 0% 98%;      /* #FAFAFA */
+  --text-secondary: 0 0% 70%;    /* #B3B3B3 */
+  --text-muted: 0 0% 45%;        /* #737373 */
+  --text-dim: 0 0% 30%;          /* #4D4D4D */
 
-  /* Text */
-  --ghost-text-primary: #FFFFFF;
-  --ghost-text-secondary: #e5e5e5;
-  --ghost-text-muted: #9CA3AF;
-  --ghost-text-subtle: #6B7280;
+  /* ── Accent (Amber/Gold) ────────────────────── */
+  --accent: 44 96% 56%;          /* #FBBF24 */
+  --accent-hover: 38 95% 53%;    /* #F59E0B */
+  --accent-soft: 44 96% 56% / 0.1;
+  --accent-glow: 44 96% 56% / 0.25;
 
-  /* Accent */
-  --ghost-accent-primary: #FBBF24;
-  --ghost-accent-secondary: #F59E0B;
-  --ghost-accent-hover: #FCD34D;
+  /* ── Severity ───────────────────────────────── */
+  --critical: 350 89% 60%;       /* #F43F5E */
+  --critical-soft: 350 89% 60% / 0.12;
+  --warning: 38 92% 50%;         /* #F59E0B */
+  --warning-soft: 38 92% 50% / 0.12;
+  --success: 160 84% 39%;        /* #10B981 */
+  --success-soft: 160 84% 39% / 0.12;
+  --info: 217 91% 60%;           /* #3B82F6 */
+  --info-soft: 217 91% 60% / 0.12;
 
-  /* Status / Semantic */
-  --ghost-success: #10B981;
-  --ghost-warning: #F59E0B;
-  --ghost-error: #EF4444;
-  --ghost-critical: #F43F5E;
-  --ghost-info: #3B82F6;
+  /* ── Borders ────────────────────────────────── */
+  --border-default: 0 0% 100% / 0.08;
+  --border-hover: 0 0% 100% / 0.15;
+  --border-active: 44 96% 56% / 0.4;
 
-  /* Borders */
-  --ghost-border: #1F1F1F;
-  --ghost-border-hover: #374151;
-  --ghost-border-active: #FBBF24;
+  /* ── Shadows ────────────────────────────────── */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px -4px rgb(0 0 0 / 0.5);
+  --shadow-glow: 0 0 20px hsl(44 96% 56% / 0.15);
+  --shadow-glow-strong: 0 0 40px hsl(44 96% 56% / 0.25);
 
-  /* Landing Page Theme */
-  --obsidian: #0A0A0A;
-  --obsidian-light: #111111;
-  --amber: #FBBF24;
-  --amber-dark: #D97706;
-  --amber-light: #FDE68A;
-
-  /* ── Base Colors — Ghost OS Light Mode ────────── */
-
-  --background: #FFFFFF;
-  --foreground: #0A0A0A;
-  --card: #FFFFFF;
-  --card-foreground: #0A0A0A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0A0A0A;
-
-  /* Primary Accent - Amber */
-  --primary: #FBBF24;
-  --primary-foreground: #0A0A0A;
-
-  /* Secondary - Subtle Gray */
-  --secondary: #F5F5F7;
-  --secondary-foreground: #0A0A0A;
-
-  /* Muted */
-  --muted: #F5F5F7;
-  --muted-foreground: #71717a;
-
-  /* Accent */
-  --accent: #FBBF24;
-  --accent-foreground: #0A0A0A;
-
-  /* Semantic Colors */
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --info: #FBBF24;
-
-  /* Premium Dashboard Colors */
-  --leak: #F43F5E;
-  --leak-light: #FFF1F2;
-  --win: #10B981;
-  --win-light: #ECFDF5;
-  --opportunity: #FBBF24;
-  --opportunity-light: #FEF3C7;
-
-  /* Borders & Dividers - Glassmorphism */
-  --border: rgba(0, 0, 0, 0.08);
-  --input: rgba(0, 0, 0, 0.08);
-  --ring: #FBBF24;
+  /* ── shadcn/ui compatibility tokens ─────────── */
+  --background: var(--surface-0);
+  --foreground: var(--text-primary);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: 0 0% 4%;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-muted);
+  --accent-color: var(--accent);
+  --accent-foreground: 0 0% 4%;
+  --destructive: var(--critical);
+  --destructive-foreground: 0 0% 98%;
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
 
   /* Charts */
-  --chart-1: #FBBF24;
-  --chart-2: #10B981;
-  --chart-3: #EF4444;
-  --chart-4: #F59E0B;
-  --chart-5: #FCD34D;
+  --chart-1: var(--accent);
+  --chart-2: var(--success);
+  --chart-3: var(--critical);
+  --chart-4: var(--warning);
+  --chart-5: var(--info);
 
   /* Radius */
-  --radius: 0rem;
-
-  /* Ghost OS Variables */
-  --ghost-bg: #020202;
-  --ghost-card: #0a0a0a;
-  --ghost-card-border: rgba(255, 255, 255, 0.08);
-  --ghost-card-glow: rgba(251, 191, 36, 0.03);
-  --ghost-blue: #FBBF24;
-  --ghost-blue-bright: #FCD34D;
-  --ghost-blue-dim: #D97706;
-  --ghost-blue-glow: rgba(251, 191, 36, 0.25);
-  --ghost-blue-soft: rgba(251, 191, 36, 0.08);
-  --ghost-danger: #f87171;
-  --ghost-danger-glow: rgba(248, 113, 113, 0.2);
-  --ghost-warning: #fbbf24;
-  --ghost-success: #10b981;
-  --ghost-info: #FBBF24;
-  --ghost-text: #e5e5e5;
-  --ghost-text-muted: #a1a1aa;
-  --ghost-text-dim: #71717a;
-
-  /* Brutalist Shadows */
-  --shadow-brutal: 4px 4px 0 0 #0A0A0A;
-  --shadow-brutal-lg: 6px 6px 0 0 #0A0A0A;
-  --shadow-brutal-hover: 2px 2px 0 0 #0A0A0A;
-  --shadow-card: 4px 4px 0 0 #0A0A0A;
-  --shadow-card-hover: 2px 2px 0 0 #0A0A0A;
-  --shadow-metric: 0 0 0 1px rgb(0 0 0 / 0.03);
-  --shadow-elevated: 6px 6px 0 0 #0A0A0A;
+  --radius: 0.75rem;
 
   /* Sidebar */
-  --sidebar: #FAFAFA;
-  --sidebar-foreground: #0A0A0A;
-  --sidebar-primary: #FBBF24;
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: #F5F5F5;
-  --sidebar-accent-foreground: #0A0A0A;
-  --sidebar-border: #0A0A0A;
-  --sidebar-ring: #FBBF24;
-}
+  --sidebar: var(--surface-0);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: 0 0% 4%;
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--accent);
 
-/* ── Dark Mode ────────────────────────────────── */
-
-.dark {
-  --background: #020202;
-  --foreground: #e5e5e5;
-  --card: #0a0a0a;
-  --card-foreground: #e5e5e5;
-  --popover: #0a0a0a;
-  --popover-foreground: #e5e5e5;
-  --primary: #FBBF24;
-  --primary-foreground: #0A0A0A;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #e5e5e5;
-  --muted: #1A1A1A;
-  --muted-foreground: #a1a1aa;
-  --accent: #FBBF24;
-  --accent-foreground: #0A0A0A;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.08);
-  --ring: #FBBF24;
-
-  /* Premium Dashboard Colors - Dark Mode */
-  --leak: #FB7185;
-  --leak-light: #1A0A0D;
-  --win: #34D399;
-  --win-light: #0A1F17;
-  --opportunity: #FBBF24;
-  --opportunity-light: rgba(251, 191, 36, 0.1);
-
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #e5e5e5;
-  --sidebar-primary: #FBBF24;
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #e5e5e5;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #FBBF24;
-}
-
-/* ── Landing Page Theme ───────────────────────── */
-
-.landing-theme {
-  --landing-bg: #0A0A0A;
-  --landing-surface: #111111;
-  --landing-surface-hover: #1A1A1A;
-
-  --landing-accent: #FBBF24;
-  --landing-accent-hover: #F59E0B;
-  --landing-accent-soft: rgba(251, 191, 36, 0.1);
-  --landing-accent-glow: rgba(251, 191, 36, 0.25);
-
-  --landing-text-primary: #FFFFFF;
-  --landing-text-secondary: #9CA3AF;
-  --landing-text-muted: #6B7280;
-
-  --landing-border: #1F1F1F;
-  --landing-border-subtle: rgba(255, 255, 255, 0.05);
+  /* Premium Dashboard */
+  --leak: 350 89% 60%;
+  --leak-light: 350 89% 60% / 0.1;
+  --win: 160 84% 39%;
+  --win-light: 160 84% 39% / 0.1;
+  --opportunity: 44 96% 56%;
+  --opportunity-light: 44 96% 56% / 0.1;
 }

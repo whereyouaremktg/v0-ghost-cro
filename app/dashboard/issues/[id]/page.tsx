@@ -1,221 +1,214 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useParams } from "next/navigation"
-import { CheckCircle2, Copy, ExternalLink, Loader2 } from "lucide-react"
-
-import { EmptyState } from "@/components/ui/empty-state"
-import { GhostButton } from "@/components/ui/ghost-button"
-import { GhostCard } from "@/components/ui/ghost-card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useParams, useRouter } from "next/navigation"
+import {
+  ArrowLeft,
+  MapPin,
+  Users,
+  Wrench,
+  Loader2,
+  Rocket,
+  CheckCircle,
+  XCircle,
+} from "lucide-react"
+import { toast } from "sonner"
 import { useAuthUserId } from "@/hooks/use-auth-user-id"
 import { useLatestTest } from "@/hooks/use-latest-test"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { CodeBlock } from "@/components/ui/code-block"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { FrictionPoint } from "@/lib/types"
+
+type Severity = "critical" | "high" | "medium"
 
 export default function IssueDetailPage() {
   const params = useParams()
-  const issueId = Array.isArray(params?.id) ? params.id[0] : params?.id
-  const { userId, isLoading: isUserLoading } = useAuthUserId()
+  const router = useRouter()
+  const issueId = params.id as string
+  const { userId } = useAuthUserId()
   const { test, isLoading } = useLatestTest(userId)
-  const [isCopied, setIsCopied] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [isDeploying, setIsDeploying] = useState(false)
-  const [deployError, setDeployError] = useState<string | null>(null)
+  const [deploying, setDeploying] = useState(false)
 
-  const issue = useMemo(() => {
-    if (!test || !issueId) {
-      return null
-    }
-    const allIssues = [
-      ...test.frictionPoints.critical,
-      ...test.frictionPoints.high,
-      ...test.frictionPoints.medium,
-    ]
-    return allIssues.find((item) => item.id === issueId) ?? null
-  }, [issueId, test])
+  const { issue, severity } = useMemo(() => {
+    if (!test) return { issue: null, severity: null }
 
-  const handleCopy = async () => {
-    if (!issue?.codeFix?.optimizedCode) {
-      return
+    for (const fp of test.frictionPoints.critical) {
+      if (fp.id === issueId) return { issue: fp, severity: "critical" as Severity }
     }
+    for (const fp of test.frictionPoints.high) {
+      if (fp.id === issueId) return { issue: fp, severity: "high" as Severity }
+    }
+    for (const fp of test.frictionPoints.medium) {
+      if (fp.id === issueId) return { issue: fp, severity: "medium" as Severity }
+    }
+    return { issue: null, severity: null }
+  }, [test, issueId])
+
+  const handleDeploy = async () => {
+    if (!issue?.codeFix) return
+    setDeploying(true)
     try {
-      await navigator.clipboard.writeText(issue.codeFix.optimizedCode)
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
-    } catch (error) {
-      console.error("Failed to copy code", error)
-    }
-  }
-
-  const handleMarkFixed = async () => {
-    if (!issue || !test?.id) {
-      return
-    }
-
-    setIsUpdating(true)
-    try {
-      const response = await fetch(`/api/issues/${issue.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ test_id: test.id, status: "fixed" }),
-      })
-
-      if (!response.ok) {
-        console.error("Failed to update issue status")
-      }
-    } catch (error) {
-      console.error("Failed to update issue status", error)
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const canPreviewFix =
-    issue?.codeFix &&
-    issue.codeFix.optimizedCode &&
-    issue.codeFix.targetFile &&
-    issue.codeFix.type
-
-  const handlePreviewFix = async () => {
-    if (!issue?.codeFix || !canPreviewFix) return
-
-    setIsDeploying(true)
-    setDeployError(null)
-    try {
-      const response = await fetch("/api/shopify/sandbox/deploy", {
+      const res = await fetch("/api/shopify/sandbox/deploy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fixes: [
-            {
-              frictionPointId: issue.id,
-              codeFix: issue.codeFix,
-            },
-          ],
+          fixes: [{ frictionPointId: issue.id, codeFix: issue.codeFix }],
         }),
       })
-      const data = await response.json()
-
-      if (!response.ok) {
-        setDeployError(data.error ?? "Failed to deploy to sandbox")
-        return
-      }
-      if (data.success && data.previewUrl) {
-        window.open(data.previewUrl, "_blank")
+      const data = await res.json()
+      if (data.success) {
+        toast.success("Deployed to sandbox theme!")
       } else {
-        setDeployError("No preview URL returned")
+        toast.error(data.error || "Deployment failed")
       }
-    } catch (error) {
-      setDeployError(error instanceof Error ? error.message : "Failed to deploy to sandbox")
+    } catch {
+      toast.error("Failed to deploy")
     } finally {
-      setIsDeploying(false)
+      setDeploying(false)
     }
   }
 
-  if (isUserLoading || isLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-24" />
-        <Skeleton className="h-32" />
+        <Skeleton className="h-8 w-48" />
         <Skeleton className="h-48" />
-        <Skeleton className="h-24" />
+        <Skeleton className="h-64" />
       </div>
     )
   }
 
-  if (!issue) {
+  if (!issue || !severity) {
     return (
-      <EmptyState
-        icon={CheckCircle2}
-        title="Issue not found"
-        description="We couldn't locate this issue in your latest scan."
-        action={
-          <GhostButton asChild variant="secondary">
-            <a href="/dashboard/issues">Back to issues</a>
-          </GhostButton>
-        }
-      />
+      <div className="text-center py-12">
+        <h2 className="text-lg font-semibold text-[hsl(var(--text-primary))] mb-2">
+          Issue not found
+        </h2>
+        <p className="text-sm text-[hsl(var(--text-muted))] mb-4">
+          This issue may have been resolved or doesn&apos;t exist.
+        </p>
+        <Button variant="outline" onClick={() => router.push("/dashboard/issues")}>
+          Back to Issues
+        </Button>
+      </div>
     )
   }
 
-  const codeSnippet = issue.codeFix?.optimizedCode ?? "// No code snippet provided."
-  const description = issue.fix || issue.impact
+  const sevConfig = {
+    critical: { label: "Critical", variant: "critical" as const },
+    high: { label: "High", variant: "warning" as const },
+    medium: { label: "Medium", variant: "success" as const },
+  }
+  const config = sevConfig[severity]
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl space-y-6">
+      {/* Back */}
+      <button
+        onClick={() => router.push("/dashboard/issues")}
+        className="flex items-center gap-1.5 text-sm text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Issues
+      </button>
+
+      {/* Header */}
       <div>
-        <p className="text-xs text-[var(--ghost-text-subtle)]">Issue ID: {issue.id}</p>
-        <h2 className="text-2xl font-semibold text-white mt-2">
+        <div className="flex items-center gap-2 mb-2">
+          <Badge variant={config.variant}>{config.label}</Badge>
+          {issue.codeFix && (
+            <Badge variant="outline">
+              {issue.codeFix.effort} effort
+            </Badge>
+          )}
+        </div>
+        <h1 className="text-xl font-bold text-[hsl(var(--text-primary))] mb-1">
           {issue.title}
-        </h2>
-        {description && (
-          <p className="text-[var(--ghost-text-muted)] mt-2 max-w-2xl">{description}</p>
-        )}
+        </h1>
       </div>
 
-      <GhostCard className="p-6 space-y-3">
-        <h3 className="text-lg font-semibold text-white">Fix summary</h3>
-        <p className="text-[var(--ghost-text-muted)]">{issue.fix}</p>
-        {issue.location && (
-          <p className="text-xs text-[var(--ghost-text-subtle)]">Location: {issue.location}</p>
-        )}
-      </GhostCard>
+      {/* Details */}
+      <Card>
+        <CardContent className="pt-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 text-[hsl(var(--text-dim))] mt-0.5 shrink-0" />
+              <div>
+                <p className="label-uppercase mb-0.5">Location</p>
+                <p className="text-sm text-[hsl(var(--text-primary))]">{issue.location}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <Users className="h-4 w-4 text-[hsl(var(--text-dim))] mt-0.5 shrink-0" />
+              <div>
+                <p className="label-uppercase mb-0.5">Affected</p>
+                <p className="text-sm text-[hsl(var(--text-primary))]">{issue.affected || "All visitors"}</p>
+              </div>
+            </div>
+            {issue.impact && (
+              <div className="flex items-start gap-2">
+                <Wrench className="h-4 w-4 text-[hsl(var(--text-dim))] mt-0.5 shrink-0" />
+                <div>
+                  <p className="label-uppercase mb-0.5">Impact</p>
+                  <p className="text-sm text-[hsl(var(--text-primary))]">{issue.impact}</p>
+                </div>
+              </div>
+            )}
+          </div>
 
-      <GhostCard className="p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">Step-by-step fix</h3>
-        <ol className="list-decimal list-inside text-[var(--ghost-text-muted)] space-y-2">
-          <li>Open your Shopify theme editor for the affected page.</li>
-          <li>Locate {issue.location || "the relevant section"}.</li>
-          <li>Apply the optimized snippet below.</li>
-          <li>Publish and rerun a scan to confirm the lift.</li>
-        </ol>
-      </GhostCard>
+          {issue.fix && (
+            <div className="pt-4 border-t border-[hsl(var(--border-default))]">
+              <p className="label-uppercase mb-2">Recommendation</p>
+              <p className="text-sm text-[hsl(var(--text-secondary))] leading-relaxed">{issue.fix}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      <GhostCard className="p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold text-white">Code snippet</h3>
-          <div className="flex items-center gap-2">
-            <GhostButton variant="secondary" size="sm" onClick={handleCopy}>
-              <Copy className="h-4 w-4" />
-              {isCopied ? "Copied" : "Copy"}
-            </GhostButton>
-            <GhostButton
-              variant="secondary"
+      {/* Code Fix */}
+      {issue.codeFix && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Code Fix</CardTitle>
+            <Button
               size="sm"
-              onClick={handlePreviewFix}
-              disabled={!canPreviewFix || isDeploying}
-              title={!canPreviewFix ? "No code fix available for this issue" : "Deploy to sandbox and open preview in a new tab"}
+              onClick={handleDeploy}
+              disabled={deploying}
             >
-              {isDeploying ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+              {deploying ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Deploying...
+                </>
               ) : (
-                <ExternalLink className="h-4 w-4" />
+                <>
+                  <Rocket className="h-3.5 w-3.5" />
+                  Deploy to Sandbox
+                </>
               )}
-              {isDeploying ? "Deploying..." : "Preview Fix"}
-            </GhostButton>
-          </div>
-        </div>
-        {deployError && (
-          <p className="text-sm text-red-400">{deployError}</p>
-        )}
-        <pre className="rounded-lg bg-[var(--ghost-bg-primary)] border border-[var(--ghost-border)] p-4 text-sm text-[var(--ghost-text-muted)] overflow-auto whitespace-pre-wrap">
-          {codeSnippet}
-        </pre>
-        {canPreviewFix && (
-          <p className="text-xs text-[var(--ghost-text-subtle)]">Preview Fix opens the sandbox theme in a new tab.</p>
-        )}
-      </GhostCard>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {issue.codeFix.reasoningTrace && (
+              <div>
+                <p className="label-uppercase mb-1.5">AI Reasoning</p>
+                <p className="text-sm text-[hsl(var(--text-muted))] leading-relaxed">
+                  {issue.codeFix.reasoningTrace}
+                </p>
+              </div>
+            )}
 
-      <GhostCard className="p-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-green-400">
-            <CheckCircle2 className="h-5 w-5" />
-            Mark as fixed when ready
-          </div>
-          <GhostButton onClick={handleMarkFixed} disabled={isUpdating}>
-            {isUpdating ? "Updating..." : "Mark as Fixed"}
-          </GhostButton>
-        </div>
-      </GhostCard>
+            <CodeBlock
+              code={issue.codeFix.optimizedCode}
+              language={issue.codeFix.type}
+              filename={issue.codeFix.targetFile}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

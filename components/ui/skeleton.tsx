@@ -1,15 +1,15 @@
 import { cn } from "@/lib/utils"
 
-type SkeletonProps = React.HTMLAttributes<HTMLDivElement>
-
-export function Skeleton({ className, ...props }: SkeletonProps) {
+function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-xl bg-[#1A1A1A] skeleton-shimmer",
-        className,
+        "rounded-lg bg-[hsl(var(--surface-2))] skeleton-shimmer",
+        className
       )}
       {...props}
     />
   )
 }
+
+export { Skeleton }

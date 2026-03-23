@@ -1,6 +1,0 @@
-export { Navbar } from './navbar'
-export { Hero } from './hero'
-export { TrustBar } from './trust-bar'
-export { FeatureSection } from './feature-section'
-export { CTASection } from './cta-section'
-export { Footer } from './footer'
